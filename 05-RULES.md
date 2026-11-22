@@ -22,5 +22,6 @@ These are never broken. An app's CLAUDE.md can add rules but never loosen these.
    command). Destructive actions (delete, force-push, branch deletes) are confirmed first.
 9. **Edits happen in the working copy that gets synced.** In the cloud setup, edit the container copy and sync. Edits
    made only on the PC get overwritten.
-10. **The helper runs outside our apps.** Start it from Windows' own Explorer or Run, never inside a Nexus Explorer
-    terminal: an install closes Explorer and kills the helper mid-install.
+10. **Old `_tools` queue helpers run outside our apps** (the Catalyzer link replaces them; see 04). Start it from Windows' own Explorer or Run, never inside a Nexus Explorer
+    terminal: an install closes Explorer and kills the helper mid-install. Through the link, install Catalyzer
+    itself with `run.sh -s` (survive).

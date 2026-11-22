@@ -14,7 +14,24 @@
   Small apps may use a single PC chat.
 - When a thread gets long, write the handover and start a new one. Don't let context run out mid-change.
 
+## Running things on the PC: the Catalyzer link
+Each app chat has its own repo folder linked. Catalyzer (always running, started with Windows) gives that repo a
+hidden Windows terminal when Aaron clicks **LINK** on its card. There's no console window, nothing to start by
+hand, and one terminal per project, so parallel chats never share one.
+- **Check:** `bash .catalyzer/link/run.sh --status`. If it's OFF, ask Aaron to click LINK on the project's card.
+- **Use:** `bash .catalyzer/link/run.sh '<PowerShell>'` runs in the repo root, prints the output and returns the
+  exit code. The full how-to is in `.catalyzer/link/README.md`, which Catalyzer writes into the repo.
+- **With the link on:**
+  - edit the PC working copy directly;
+  - run git, builds, snapshots and installs through the link (git there has Aaron's credentials);
+  - no tarball sync.
+- Every command shows in Catalyzer's feed. The link makes commands possible, not approved: these rules still
+  decide what's allowed.
+- Builds and installs live in the repo's own `tools\` scripts, so any chat can run them through the link. An app's
+  old `_tools` queue helper stays only until the app adopts the link.
+
 ## Starting a chat
+0. Check the Catalyzer link (`bash .catalyzer/link/run.sh --status`); say in your first lines whether it's on.
 1. Read the app's `CLAUDE.md` → these principles (at least the CHANGELOG since the app's `.nexus-principles`) →
    `docs/HANDOFF.md` / `STATE.md` / `BACKLOG.md` → `git log --oneline -30`.
 2. Study how the part you'll touch already works, and reuse its mechanisms. Don't build a parallel one.

@@ -11,7 +11,8 @@
     HANDOFF.md             the baton between chats
     STATE.md               what exists · Removed / decided against · known gaps
     BACKLOG.md             Aaron's list + bugs
-  tools/ or _tools/        install.ps1 (+ the helper scripts, if any)
+  tools/                   build / install / snap scripts a linked chat runs (bash .catalyzer/link/run.sh -f tools/x.ps1)
+  .catalyzer/              Catalyzer's link mailbox (it git-ignores itself; never commit it)
   src/ ...                 the code
 ```
 
@@ -30,7 +31,8 @@ Rules below only add to them; exceptions are marked **EXCEPTION** with the reaso
 <projects / folders and what each owns; the public API / SDK if any>
 
 ## Build / install / run
-<commands; data locations; snapshot>
+Through the Catalyzer link (`bash .catalyzer/link/run.sh --status`; OFF → ask Aaron to click LINK on the card):
+<the tools\ scripts to run, e.g. `bash .catalyzer/link/run.sh -f tools/build.ps1`; data locations; snapshot>
 
 ## App-specific rules
 <anything the principles don't cover>
