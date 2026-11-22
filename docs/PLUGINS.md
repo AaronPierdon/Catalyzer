@@ -67,4 +67,4 @@ public sealed class HelloPlugin : ICatalyzerPlugin
 - Catalyzer won't start a plugin whose `MinApi` is higher than the host's API version, and shows why in Settings.
 - Errors in your plugin are caught and logged. A failing plugin is marked in Settings and never takes the app down.
 
-Example: `plugins/Catalyzer.Nexus` — a live theme from Nexus's public `NexusApi`, plus a card button.
+Example: `plugins/Catalyzer.Nexus` — a live theme from Nexus's public `NexusPublicApi`, plus a card button.

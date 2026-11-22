@@ -36,7 +36,7 @@ A project describes itself with an optional `catalyzer.json` (name, description,
   Manage them under Settings → Plugins: switch each on or off, or use Add / Import (a .dll with its folder, or a .zip). See [docs/PLUGINS.md](docs/PLUGINS.md).
 - **Themes** live in Catalyzer's own theme layer (`CatalyzerTheme`: colours, fonts, glow, cut, scan lines, backdrop). Four themes are built in. Plugins register more.
 - **NexusPlugin** (`plugins/Catalyzer.Nexus`) shows the pattern:
-  - it reads Nexus through Nexus's public `NexusApi`;
+  - it reads Nexus through Nexus's public `NexusPublicApi`;
   - it maps the live Nexus look onto a Catalyzer theme;
   - it adds "Open in Nexus Explorer".
 

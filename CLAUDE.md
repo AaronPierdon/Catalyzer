@@ -8,7 +8,7 @@ Catalyzer is Aaron's project command center: a WPF / .NET 10 dashboard, extensib
 - `src/Catalyzer` — the app.
   - Owns its theme layer (`Cz*` resources). It must never reference Nexus or any plugin.
 - `plugins/*` — plugins. Each builds to `<install>\plugins\<Name>\`.
-  - `Catalyzer.Nexus` → `NexusPlugin.dll`. It uses Nexus only through `Nexus.UI.Wpf.NexusApi` (Nexus repo, `src/Nexus.Kit/Parts/NexusApi.cs`).
+  - `Catalyzer.Nexus` → `NexusPlugin.dll`. It uses Nexus only through `Nexus.UI.Wpf.NexusPublicApi` (Nexus repo, `src/Nexus.Kit/Parts/NexusPublicApi.cs`).
 - Docs: `docs/PLUGINS.md` (plugin API), `docs/MANIFEST.md` (catalyzer.json).
 
 ## Rules

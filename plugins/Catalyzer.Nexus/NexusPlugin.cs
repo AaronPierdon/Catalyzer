@@ -7,10 +7,10 @@ using Nexus.UI.Wpf;
 namespace Catalyzer.Nexus
 {
     /// <summary>
-    /// Catalyzer wearing Nexus. Joins the Nexus settings bus (NexusApi.Attach), turns the live Nexus look into a
+    /// Catalyzer wearing Nexus. Joins the Nexus settings bus (NexusPublicApi.Attach), turns the live Nexus look into a
     /// Catalyzer theme ("Nexus  //  live") and re-registers it whenever Nexus changes, so switching theme in Nexus
     /// Control repaints Catalyzer too. Adds an "Open in Nexus Explorer" button to every card.
-    /// Everything goes through two public surfaces: Catalyzer.Sdk and Nexus's NexusApi. Nothing in Catalyzer knows Nexus.
+    /// Everything goes through two public surfaces: Catalyzer.Sdk and Nexus's NexusPublicApi. Nothing in Catalyzer knows Nexus.
     /// </summary>
     public sealed class NexusPlugin : ICatalyzerPlugin
     {
@@ -26,24 +26,24 @@ namespace Catalyzer.Nexus
         public void Start(ICatalyzerHost host)
         {
             _host = host;
-            NexusApi.Attach("catalyzer", "Catalyzer");
-            NexusApi.LookChanged += Push;
+            NexusPublicApi.Attach("catalyzer", "Catalyzer");
+            NexusPublicApi.LookChanged += Push;
             Push();
             host.AddAction(new ProjectAction
             {
                 Id = "nexus.explorer", Label = "NEXUS", Glyph = "", Order = 15,
                 Tip = "OPEN IN NEXUS EXPLORER",
-                AppliesTo = p => File.Exists(Path.Combine(NexusApi.InstallFolder, "Nexus.Files.exe")) && Directory.Exists(p.Folder),
-                Run = p => { if (!NexusApi.OpenFolder(p.Folder)) host.Log(this, "Nexus Explorer isn't installed", true); },
+                AppliesTo = p => File.Exists(Path.Combine(NexusPublicApi.InstallFolder, "Nexus.Files.exe")) && Directory.Exists(p.Folder),
+                Run = p => { if (!NexusPublicApi.OpenFolder(p.Folder)) host.Log(this, "Nexus Explorer isn't installed", true); },
             });
-            host.Log(this, "following Nexus theme '" + NexusApi.Look.ThemeName + "' (Nexus API " + NexusApi.Version + ")");
+            host.Log(this, "following Nexus theme '" + NexusPublicApi.Look.ThemeName + "' (Nexus API " + NexusPublicApi.Version + ")");
         }
 
-        public void Stop() { NexusApi.LookChanged -= Push; }
+        public void Stop() { NexusPublicApi.LookChanged -= Push; }
 
         private void Push()
         {
-            var L = NexusApi.Look;
+            var L = NexusPublicApi.Look;
             _host.Themes.Register(new CatalyzerTheme
             {
                 Id = "nexus", Name = "Nexus  //  " + (L.ThemeName ?? "live"), Source = "Nexus plugin",
@@ -52,7 +52,7 @@ namespace Catalyzer.Nexus
                 Accent = L.Accent, Select = L.Select, Ok = L.Ok, Warn = L.Warn, Danger = L.Danger,
                 FontUi = L.FontUi, FontHead = L.FontHead, FontMono = L.FontMono, HeadCaps = true,
                 Glow = L.Glow, Light = L.Light, Cut = 12, Scan = 0.45,
-                Backdrop = NexusApi.Backdrop,
+                Backdrop = NexusPublicApi.Backdrop,
             });
         }
     }
