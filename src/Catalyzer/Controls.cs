@@ -66,10 +66,22 @@ namespace Catalyzer
             e.Effect = new DropShadowEffect { Color = c, BlurRadius = radius * T.Glow, ShadowDepth = 0, Opacity = opacity, RenderingBias = RenderingBias.Performance };
         }
 
+        /// <summary>A tone's brush resource and colour (roles, never literals).</summary>
+        public static string ToneBrush(Tone t) => t switch
+        {
+            Tone.Faint => "CzTextFaintBrush", Tone.Dim => "CzTextDimBrush", Tone.Accent => "CzAccentBrush", Tone.Select => "CzSelectBrush",
+            Tone.Ok => "CzOkBrush", Tone.Warn => "CzWarnBrush", Tone.Danger => "CzDangerBrush", _ => "CzTextDimBrush",
+        };
+        public static Color ToneColor(Tone t) => t switch
+        {
+            Tone.Faint => T.TextFaint, Tone.Dim => T.TextDim, Tone.Accent => T.Accent, Tone.Select => T.Select,
+            Tone.Ok => T.Ok, Tone.Warn => T.Warn, Tone.Danger => T.Danger, _ => T.TextDim,
+        };
+
         public static bool IsInteractive(DependencyObject src, DependencyObject stop)
         {
             for (var d = src; d != null && d != stop; d = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
-                if (d is ButtonBase || d is TextBoxBase || d is CzButton || d is CzToggle) return true;
+                if (d is ButtonBase || d is TextBoxBase || d is CzButton || d is CzToggle || d is Chip) return true;
             return false;
         }
 
@@ -390,6 +402,57 @@ namespace Catalyzer
         }
     }
 
+    /// <summary>
+    /// A status chip: a light and a short mono text in a small chamfered outline, tinted by its tone. Clickable when it
+    /// has a click (it lifts and glows on hover). Card badges and the header's "n HELPERS" are chips.
+    /// </summary>
+    public sealed class Chip : Grid
+    {
+        private readonly Path _bg = new Path { StrokeThickness = 1 };
+        private readonly Led _led;
+        private readonly TextBlock _text;
+        private Tone _tone = Tone.Dim;
+        private bool _hot;
+        public Action<Chip> Click;
+
+        public Chip(double height = 24)
+        {
+            Height = height; Background = Brushes.Transparent;
+            Children.Add(Cz.Under(_bg));
+            var sp = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(9, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+            _led = new Led(Cz.T.TextDim, 8) { VerticalAlignment = VerticalAlignment.Center };
+            _text = Cz.Mono("", 10, "CzTextDimBrush"); _text.Margin = new Thickness(7, 0, 0, 0); _text.VerticalAlignment = VerticalAlignment.Center;
+            sp.Children.Add(_led); sp.Children.Add(_text);
+            Children.Add(sp);
+            SizeChanged += (s, e) => Look();
+            ThemeService.I.Changed += Look;
+            MouseEnter += (s, e) => { _hot = Click != null; Look(); };
+            MouseLeave += (s, e) => { _hot = false; Look(); };
+            MouseLeftButtonUp += (s, e) => { if (Click == null) return; e.Handled = true; Click(this); };
+        }
+
+        public void Set(string text, Tone tone, bool pulse, string tip)
+        {
+            _tone = tone;
+            if (_text.Text != text) { if (string.IsNullOrEmpty(_text.Text)) Decode.Play(_text, text, 0, 0.3); else _text.Text = text; }
+            _text.SetResourceReference(TextBlock.ForegroundProperty, Cz.ToneBrush(tone));
+            _led.Color = Cz.ToneColor(tone); _led.Pulse = pulse; _led.InvalidateVisual();
+            ToolTip = tip;
+            Cursor = Click != null ? Cursors.Hand : null;
+            Look();
+        }
+
+        private void Look()
+        {
+            var c = Cz.ToneColor(_tone);
+            _led.Color = c; _led.InvalidateVisual();
+            _bg.Data = Cz.Chamfer(Math.Max(4, ActualWidth), Math.Max(4, ActualHeight), 5);
+            _bg.Fill = c.A(_hot ? 0.18 : 0.07).Brush();
+            _bg.Stroke = c.A(_hot ? 0.85 : 0.4).Brush();
+            if (_hot) Cz.Glow(_bg, c, 10, 0.5); else _bg.Effect = null;
+        }
+    }
+
     /// <summary>Minimize / maximize / close, drawn.</summary>
     public sealed class WinButton : FrameworkElement
     {
@@ -426,6 +489,17 @@ namespace Catalyzer
     {
         public sealed class Item { public string Text, Glyph, Hint; public Action Click; public bool Separator, Check, Danger; }
         private Popup _pop;
+        /// <summary>The menu went away (picked, clicked outside, or Esc).</summary>
+        public event Action Closed;
+        public PlacementMode Placement = PlacementMode.MousePoint;
+
+        /// <summary>A plugin's menu lines (SDK) as menu items.</summary>
+        public static List<Item> From(IEnumerable<MenuEntry> entries, string what)
+            => (entries ?? Enumerable.Empty<MenuEntry>()).Where(e => e != null).Select(e => new Item
+            {
+                Text = e.Text, Glyph = e.Glyph, Hint = e.Hint, Separator = e.Separator, Danger = e.Danger,
+                Click = e.Run == null ? null : () => { try { e.Run(); } catch (Exception ex) { Log.Write(what + ": " + ex.Message, show: true); } },
+            }).ToList();
         public void Show(UIElement anchor, string header, IEnumerable<Item> items)
         {
             _pop?.SetValue(Popup.IsOpenProperty, false);
@@ -452,7 +526,8 @@ namespace Catalyzer
             host.Children.Add(panel);
             var shadow = new Border { Child = host, Margin = new Thickness(14) };
             Cz.Glow(host, Cz.T.Accent, 18, 0.35);
-            _pop = new Popup { Child = shadow, AllowsTransparency = true, StaysOpen = false, PlacementTarget = anchor, Placement = PlacementMode.MousePoint, PopupAnimation = Cz.Still ? PopupAnimation.None : PopupAnimation.Fade };
+            _pop = new Popup { Child = shadow, AllowsTransparency = true, StaysOpen = false, PlacementTarget = anchor, Placement = Placement, PopupAnimation = Cz.Still ? PopupAnimation.None : PopupAnimation.Fade };
+            _pop.Closed += (s, e) => Closed?.Invoke();
             _pop.IsOpen = true;
         }
     }

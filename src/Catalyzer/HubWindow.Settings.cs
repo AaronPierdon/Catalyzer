@@ -82,6 +82,15 @@ namespace Catalyzer
             b.Children.Add(new CzToggle(Launch.AtStartup, on => Launch.AtStartup = on, "Run at Windows start") { Margin = new Thickness(0, 4, 0, 10) });
             b.Children.Add(new CzToggle(Prefs.Value.ReduceMotion, on => { Prefs.Save(p => p.ReduceMotion = on); }, "Reduce motion") { Margin = new Thickness(0, 0, 0, 4) });
             b.Children.Add(Note("Starting with Windows opens Catalyzer minimized."));
+            b.Children.Add(Cz.Mono("CLOSING WHILE HELPERS RUN", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
+            var close = new WrapPanel();
+            foreach (var (id, label, glyph) in new[] { ("ask", "ASK", "\uE897"), ("stop", "STOP ALL & EXIT", "\uE71A"), ("tray", "KEEP IN TRAY", "\uE8A5") })
+            {
+                var v = id;
+                close.Children.Add(new CzButton(label, () => { Prefs.Save(p => p.CloseWithWork = v); BuildSettings(); }, glyph, primary: Prefs.Value.CloseWithWork == v) { Margin = new Thickness(0, 0, 8, 8) });
+            }
+            b.Children.Add(close);
+            b.Children.Add(Note("Helpers always stop if Catalyzer itself stops - nothing is left running behind your back."));
 
             // ---------------- FOLDERS
             b.Children.Add(Section("Project folders", Prefs.Value.Roots.Count + Prefs.Value.Extra.Count + " FOLDERS"));
@@ -187,6 +196,7 @@ namespace Catalyzer
         private void Restart()
         {
             try { Process.Start(new ProcessStartInfo(Environment.ProcessPath, "--restart") { UseShellExecute = false }); } catch (Exception ex) { Log.Write("restart: " + ex.Message, show: true); return; }
+            _exiting = true;
             Application.Current.Shutdown();
         }
     }

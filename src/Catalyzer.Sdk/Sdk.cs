@@ -9,8 +9,12 @@ namespace Catalyzer.Sdk
     /// <summary>The plugin API version. Grows only by adding things; a plugin built against an older version keeps working.</summary>
     public static class Api
     {
-        /// <summary>1 = themes, project actions, project sources, log, data folder, settings tab.</summary>
-        public const int Version = 1;
+        /// <summary>
+        /// 1 = themes, project actions, project sources, log, data folder.
+        /// 2 = card badges (<see cref="ProjectBadge"/>), background work (<see cref="IBackgroundWork"/>: the header chip,
+        ///     the close prompt and the tray), <see cref="ICatalyzerHost.IsSnapshot"/>.
+        /// </summary>
+        public const int Version = 2;
     }
 
     /// <summary>
@@ -56,6 +60,75 @@ namespace Catalyzer.Sdk
         string DataFolder(ICatalyzerPlugin plugin);
         /// <summary>A line in Catalyzer's log; also shown on the footer when <paramref name="show"/>.</summary>
         void Log(ICatalyzerPlugin plugin, string message, bool show = false);
+
+        // ---------------------------------------------------------------- API 2
+
+        /// <summary>API 2. A render-only run (--snapshot): draw, but don't start anything or write anything.</summary>
+        bool IsSnapshot { get; }
+        /// <summary>API 2. A status chip on project cards (shown where <see cref="ProjectBadge.AppliesTo"/> says).</summary>
+        void AddBadge(ProjectBadge badge);
+        /// <summary>API 2. Ask the cards to read their badges again (call it when your state changed; any thread).</summary>
+        void UpdateBadges();
+        /// <summary>
+        /// API 2. Work that keeps running while Catalyzer is open (helpers, watchers...). Catalyzer shows it in the header,
+        /// asks before closing while any is running, and offers "stop all" in the tray.
+        /// </summary>
+        void AddBackgroundWork(IBackgroundWork work);
+    }
+
+    /// <summary>API 2. How a badge or line is coloured: a theme role, never a literal.</summary>
+    public enum Tone { Faint, Dim, Accent, Select, Ok, Warn, Danger }
+
+    /// <summary>API 2. A small status chip on a card: a light, a short text, and a menu when clicked.</summary>
+    public sealed class ProjectBadge
+    {
+        public string Id { get; set; } = "";
+        /// <summary>Lower = further left.</summary>
+        public int Order { get; set; } = 100;
+        public Func<Project, bool> AppliesTo { get; set; } = _ => true;
+        /// <summary>What it shows for a project right now (null = nothing for this one). Called on the UI thread.</summary>
+        public Func<Project, BadgeState> State { get; set; }
+        /// <summary>What clicking it offers (null or empty = not clickable). Called on the UI thread.</summary>
+        public Func<Project, IEnumerable<MenuEntry>> Menu { get; set; }
+    }
+
+    /// <summary>API 2. A badge's look at one moment.</summary>
+    public sealed class BadgeState
+    {
+        /// <summary>Short, capitals (e.g. "HELPERS 1/2").</summary>
+        public string Text { get; set; } = "";
+        public Tone Tone { get; set; } = Tone.Dim;
+        /// <summary>The light breathes (something is busy).</summary>
+        public bool Pulse { get; set; }
+        public string Tip { get; set; }
+    }
+
+    /// <summary>API 2. A line in a Catalyzer menu.</summary>
+    public sealed class MenuEntry
+    {
+        public string Text { get; set; } = "";
+        /// <summary>A Segoe Fluent Icons / MDL2 glyph.</summary>
+        public string Glyph { get; set; }
+        /// <summary>Faint text after the label.</summary>
+        public string Hint { get; set; }
+        public Action Run { get; set; }
+        public bool Separator { get; set; }
+        public bool Danger { get; set; }
+    }
+
+    /// <summary>API 2. Something a plugin keeps running (see <see cref="ICatalyzerHost.AddBackgroundWork"/>).</summary>
+    public interface IBackgroundWork
+    {
+        /// <summary>What one of them is called, plural, capitals: "HELPERS".</summary>
+        string Name { get; }
+        /// <summary>How many are running now.</summary>
+        int Running { get; }
+        /// <summary>Raised (any thread) when <see cref="Running"/> may have changed.</summary>
+        event Action Changed;
+        /// <summary>One line per running item, for the header chip's menu (each with its own stop).</summary>
+        IEnumerable<MenuEntry> Items();
+        /// <summary>Stop everything, now (Catalyzer is closing or the user asked).</summary>
+        void StopAll();
     }
 
     /// <summary>The theme layer: every Catalyzer control draws from the current theme, live.</summary>

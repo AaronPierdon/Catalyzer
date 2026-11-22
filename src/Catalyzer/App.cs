@@ -18,6 +18,9 @@ namespace Catalyzer
     public sealed class App : Application
     {
         private static Mutex _one;
+        /// <summary>A second start sets this; the running copy comes forward (from the tray too).</summary>
+        private const string ShowSignal = @"Local\Catalyzer.Show";
+        private static EventWaitHandle _show;
 
         [STAThread]
         public static int Main(string[] args)
@@ -35,7 +38,12 @@ namespace Catalyzer
                     _one = new Mutex(true, @"Local\Catalyzer.One", out mine);
                     if (!mine) { _one.Dispose(); if (restart) Thread.Sleep(150); }
                 }
-                if (!mine) { Forward(); return 0; }
+                if (!mine)
+                {
+                    try { using var ev = EventWaitHandle.OpenExisting(ShowSignal); ev.Set(); } catch { Forward(); }
+                    return 0;
+                }
+                _show = new EventWaitHandle(false, EventResetMode.AutoReset, ShowSignal);
             }
             var app = new App();
             app.ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -58,6 +66,8 @@ namespace Catalyzer
             if (snap != null) { Snapshot(w, board, snap); return; }
             if (autostart) { w.WindowState = WindowState.Minimized; w.ShowActivated = false; }
             w.Show();
+            if (_show != null)
+                new Thread(() => { try { while (_show.WaitOne()) Dispatcher.BeginInvoke(new Action(w.FromTray)); } catch { } }) { IsBackground = true, Name = "show-signal" }.Start();
             board.Rescan();
         }
 
@@ -78,6 +88,9 @@ namespace Catalyzer
             w.OpenSettingsForSnapshot();
             await System.Threading.Tasks.Task.Delay(800);
             Save(w, Path.Combine(dir, "catalyzer-settings.png"));
+            w.PromptForSnapshot();
+            await System.Threading.Tasks.Task.Delay(900);
+            Save(w, Path.Combine(dir, "catalyzer-close.png"));
             Shutdown();
         }
 

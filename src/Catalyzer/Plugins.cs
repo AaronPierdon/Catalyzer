@@ -33,6 +33,8 @@ namespace Catalyzer
         private readonly List<ProjectAction> _actions = new List<ProjectAction>();
         private readonly List<IProjectSource> _sources = new List<IProjectSource>();
         private readonly List<string> _probe = new List<string>();
+        private readonly List<ProjectBadge> _badges = new List<ProjectBadge>();
+        private readonly List<IBackgroundWork> _work = new List<IBackgroundWork>();
         public static readonly string UserFolder = Path.Combine(Prefs.Folder, "plugins");
         public static string BundledFolder => Path.Combine(AppContext.BaseDirectory, "plugins");
 
@@ -45,6 +47,15 @@ namespace Catalyzer
         public IReadOnlyList<ProjectAction> Actions => _actions;
         public IReadOnlyList<IProjectSource> Sources => _sources;
         public Board Board { get; }
+        public IReadOnlyList<ProjectBadge> Badges => _badges;
+        public IReadOnlyList<IBackgroundWork> Work => _work;
+        /// <summary>The badges should be read again (UI thread).</summary>
+        public event Action BadgesChanged;
+        /// <summary>Some background work started or stopped (UI thread).</summary>
+        public event Action WorkChanged;
+        public bool IsSnapshot => Prefs.Offline;
+        /// <summary>Everything plugins keep running, added up.</summary>
+        public int Running => _work.Sum(w => { try { return w.Running; } catch { return 0; } });
 
         public PluginHost(Board board)
         {
@@ -58,6 +69,22 @@ namespace Catalyzer
         public void Refresh() => Board.Rescan();
         public string DataFolder(ICatalyzerPlugin p) { var d = Path.Combine(Prefs.Folder, "plugin-data", p?.Id ?? "unknown"); Directory.CreateDirectory(d); return d; }
         public void Log(ICatalyzerPlugin p, string m, bool show = false) => Catalyzer.Log.Write("[" + (p?.Name ?? "plugin") + "] " + m, show);
+
+        public void AddBadge(ProjectBadge b) { if (b?.State != null) { _badges.RemoveAll(x => x.Id == b.Id && b.Id != ""); _badges.Add(b); UpdateBadges(); } }
+        public void UpdateBadges() => Application.Current?.Dispatcher.BeginInvoke(new Action(() => BadgesChanged?.Invoke()));
+        public void AddBackgroundWork(IBackgroundWork w)
+        {
+            if (w == null || _work.Contains(w)) return;
+            _work.Add(w);
+            w.Changed += () => Application.Current?.Dispatcher.BeginInvoke(new Action(() => WorkChanged?.Invoke()));
+        }
+
+        /// <summary>Stop every plugin's background work (closing, or "stop all").</summary>
+        public void StopAllWork()
+        {
+            foreach (var w in _work.ToList())
+                try { w.StopAll(); } catch (Exception ex) { Catalyzer.Log.Write("stop " + w.Name + ": " + ex.Message); }
+        }
 
         /// <summary>Find every plugin; start the ones that are on.</summary>
         public void LoadAll()

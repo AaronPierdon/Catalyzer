@@ -24,6 +24,8 @@ namespace Catalyzer
         public double Height { get; set; } = 920;
         public bool Maximized { get; set; }
         public bool ReduceMotion { get; set; }
+        /// <summary>Closing while helpers (plugins' background work) run: "ask", "stop" (stop all and exit) or "tray".</summary>
+        public string CloseWithWork { get; set; } = "ask";
     }
 
     public static class Prefs

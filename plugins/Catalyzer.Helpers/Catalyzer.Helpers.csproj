@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- HelpersPlugin: starts each project's helper scripts hidden (no console windows), keeps them in a kill-on-close job
+       so they never outlive Catalyzer, logs their output, and shows a light per card. Helpers are listed in each
+       project's own catalyzer.json ("helpers"); see docs/MANIFEST.md. Output goes to plugins\Helpers\ in the install. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>HelpersPlugin</AssemblyName>
+    <RootNamespace>Catalyzer.Helpers</RootNamespace>
+    <Version>1.0.0</Version>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalyzer.Sdk\Catalyzer.Sdk.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+  <!-- Debug runs (and the helper's "snap") load plugins from the app's own bin folder: put this one there too. -->
+  <Target Name="CopyToDebugApp" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MSBuildThisFileDirectory)..\..\src\Catalyzer\bin\Debug\net10.0-windows\plugins\Helpers" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

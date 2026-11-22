@@ -59,6 +59,7 @@ namespace Catalyzer
             _root.Children.Add(body);
             _root.Children.Add(Rim());
             _root.Children.Add(_drawerHost);
+            _root.Children.Add(_promptHost);
             Content = _root;
 
             ThemeService.I.Changed += OnTheme;
@@ -72,7 +73,7 @@ namespace Catalyzer
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; }
                 else if (e.Key == Key.F5) { _board.Rescan(); e.Handled = true; }
-                else if (e.Key == Key.Escape) { if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
+                else if (e.Key == Key.Escape) { if (PromptOpen) ClosePrompt(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
             };
             StateChanged += (s, e) => { _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
             Activated += (s, e) => { if ((DateTime.Now - _board.LastScan).TotalSeconds > 20 && !_board.Scanning) _board.RefreshGit(); };
@@ -81,6 +82,7 @@ namespace Catalyzer
             var clock = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
             clock.Tick += (s, e) => { foreach (var c in _cardOf.Values) c.Git(); FooterRight(); };
             clock.Start();
+            InitWork();
             Say("READY  //  F5 RESCAN  ·  CTRL+F SEARCH  ·  RIGHT-CLICK A CARD FOR MORE");
         }
 
@@ -125,6 +127,7 @@ namespace Catalyzer
             Grid.SetColumn(_stats, 1); g.Children.Add(_stats);
             // search + tools
             var tools = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) };
+            tools.Children.Add(_workChip);   // "2 HELPERS" while plugins keep something running
             var sg = new Grid { Width = 280, Height = 36, Margin = new Thickness(0, 0, 10, 0) };
             sg.Children.Add(new Glass { Cut = 7, Brackets = false });
             var sp = new Grid { Margin = new Thickness(12, 0, 10, 0) };

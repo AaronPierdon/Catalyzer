@@ -25,6 +25,8 @@ namespace Catalyzer
         private readonly Led _led;
         private readonly ActivityBars _bars = new ActivityBars { Height = 30 };
         private readonly OneRow _buttons = new OneRow();
+        private readonly StackPanel _badges = new StackPanel { Orientation = Orientation.Horizontal };
+        private readonly Dictionary<string, Chip> _chipOf = new Dictionary<string, Chip>();
         private readonly TranslateTransform _lift = new TranslateTransform();
         private readonly Path _badge = new Path(), _badgeRing = new Path();
         private readonly TextBlock _badgeGlyph;
@@ -43,7 +45,7 @@ namespace Catalyzer
             var body = new Grid { Margin = new Thickness(18, 14, 18, 12) };
             body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(48) });   // badge + name
             body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38) });   // description
-            body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(14) });   // rule
+            body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(24) });   // rule + plugin badges
             body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(40) });   // git
             body.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });       // activity
             body.RowDefinitions.Add(new RowDefinition());                                  // buttons
@@ -89,6 +91,8 @@ namespace Catalyzer
             rule.Children.Add(line);
             var dia = new Rectangle { Width = 5, Height = 5, HorizontalAlignment = HorizontalAlignment.Left, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform(45), Fill = Tint.Brush() };
             rule.Children.Add(dia);
+            _badges.HorizontalAlignment = HorizontalAlignment.Right; _badges.VerticalAlignment = VerticalAlignment.Center;
+            rule.Children.Add(_badges);
             Grid.SetRow(rule, 2); body.Children.Add(rule);
 
             // ---- git
@@ -116,6 +120,7 @@ namespace Catalyzer
             Grid.SetRow(_buttons, 5); body.Children.Add(_buttons);
             _hadGitHub = p.GitHub != null;
             BuildButtons();
+            Badges();
 
             // ---- life
             ThemeService.I.Changed += Look;
@@ -168,6 +173,35 @@ namespace Catalyzer
             }, "\uE712", height: 26, tip: "MORE") { Margin = new Thickness(0, 0, 0, 6) };
             _buttons.More = more;
             _buttons.Children.Add(more);
+        }
+
+        /// <summary>Plugins' chips (API 2), read again whenever a plugin says its state changed.</summary>
+        public void Badges()
+        {
+            var want = new List<(ProjectBadge b, BadgeState st)>();
+            foreach (var b in (PluginHost.I?.Badges ?? new List<ProjectBadge>()).OrderBy(x => x.Order))
+            {
+                try { if (b.AppliesTo != null && !b.AppliesTo(P)) continue; var st = b.State(P); if (st != null) want.Add((b, st)); }
+                catch (Exception ex) { Log.Write("badge " + b.Id + ": " + ex.Message); }
+            }
+            foreach (var gone in _chipOf.Keys.Where(k => want.All(w => w.b.Id != k)).ToList()) { _badges.Children.Remove(_chipOf[gone]); _chipOf.Remove(gone); }
+            foreach (var (b, st) in want)
+            {
+                if (!_chipOf.TryGetValue(b.Id, out var chip))
+                {
+                    var badge = b;
+                    chip = new Chip(22) { Margin = new Thickness(8, 0, 0, 0) };
+                    chip.Click = c =>
+                    {
+                        List<CzMenu.Item> items;
+                        try { items = CzMenu.From(badge.Menu?.Invoke(P), badge.Id); } catch (Exception ex) { Log.Write("badge " + badge.Id + ": " + ex.Message, show: true); return; }
+                        if (items.Count > 0) new CzMenu { Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom }.Show(c, P.Name, items);
+                    };
+                    _chipOf[b.Id] = chip; _badges.Children.Add(chip);
+                }
+                if (b.Menu == null) chip.Click = null;
+                chip.Set(st.Text ?? "", st.Tone, st.Pulse, st.Tip);
+            }
         }
 
         public void Git()

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using Catalyzer.Sdk;
 
 namespace Catalyzer
@@ -37,6 +38,7 @@ namespace Catalyzer
                             .ThenByDescending(p => Touched(p.Folder)).ThenBy(p => p.Name).ToList();
                 LastScan = DateTime.Now;
                 Changed?.Invoke();
+                Watch();
                 Log.Write("scan: " + Items.Count + " projects");
                 foreach (var p in Items.ToList())
                 {
@@ -53,6 +55,56 @@ namespace Catalyzer
         {
             foreach (var p in Items.ToList()) { await Projects.LoadGit(p); GitLoaded?.Invoke(p); }
         }
+
+        // ------------------------------------------------------------------ watching for new projects
+        // Cheap on purpose: each scan root is watched one level deep (a folder appears, goes or is renamed), and each
+        // project only for its own catalyzer.json. Nothing recursive, so builds churning bin\obj never wake us.
+
+        private readonly List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
+        private DispatcherTimer _settle;
+        private static readonly HashSet<string> Ignore = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "archives", "archive", "node_modules", "temp", "tmp" };
+
+        private void Watch()
+        {
+            if (Prefs.Offline) return;
+            foreach (var w in _watchers) { try { w.EnableRaisingEvents = false; w.Dispose(); } catch { } }
+            _watchers.Clear();
+            foreach (var root in Prefs.Value.Roots.Where(Directory.Exists))
+                Add(root, null, NotifyFilters.DirectoryName, (e, old) =>
+                {
+                    bool Real(string path) { var n = Path.GetFileName(path ?? ""); return n.Length > 0 && !n.StartsWith(".") && !Ignore.Contains(n); }
+                    return Real(e) || Real(old);
+                });
+            foreach (var p in Items.Where(p => Directory.Exists(p.Folder)))
+                Add(p.Folder, Projects.ManifestName, NotifyFilters.FileName | NotifyFilters.LastWrite, (e, old) => true);
+        }
+
+        private void Add(string dir, string filter, NotifyFilters what, Func<string, string, bool> matters)
+        {
+            try
+            {
+                var w = new FileSystemWatcher(dir) { IncludeSubdirectories = false, NotifyFilter = what };
+                if (filter != null) w.Filter = filter;
+                FileSystemEventHandler on = (s, e) => { if (matters(e.FullPath, null)) Soon(); };
+                w.Created += on; w.Deleted += on; w.Changed += on;
+                w.Renamed += (s, e) => { if (matters(e.FullPath, e.OldFullPath)) Soon(); };
+                w.Error += (s, e) => Log.Write("watch " + dir + ": " + e.GetException()?.Message);
+                w.EnableRaisingEvents = true;
+                _watchers.Add(w);
+            }
+            catch (Exception ex) { Log.Write("watch " + dir + ": " + ex.Message); }
+        }
+
+        /// <summary>Something changed on disk: rescan once it has settled (a clone or a save fires a burst).</summary>
+        private void Soon() => Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (_settle == null)
+            {
+                _settle = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
+                _settle.Tick += (s, e) => { if (Scanning) return; _settle.Stop(); Log.Write("folders changed: rescan"); Rescan(); };
+            }
+            _settle.Stop(); _settle.Start();
+        }));
 
         private static DateTime Touched(string dir)
         {
