@@ -24,7 +24,7 @@ namespace Catalyzer
         private readonly TextBlock _name, _state, _branch, _commit, _when, _activity;
         private readonly Led _led;
         private readonly ActivityBars _bars = new ActivityBars { Height = 30 };
-        private readonly WrapPanel _buttons = new WrapPanel();
+        private readonly OneRow _buttons = new OneRow();
         private readonly TranslateTransform _lift = new TranslateTransform();
         private readonly Path _badge = new Path(), _badgeRing = new Path();
         private readonly TextBlock _badgeGlyph;
@@ -146,6 +146,7 @@ namespace Catalyzer
         public void BuildButtons()
         {
             _buttons.Children.Clear();
+            var acts = new List<ProjectAction>();
             var all = Launch.BuiltIn().Concat(Launch.FromManifest(P)).Concat(PluginHost.I?.Actions ?? new List<ProjectAction>())
                                       .Where(a => { try { return a.AppliesTo == null || a.AppliesTo(P); } catch { return false; } })
                                       .OrderBy(a => a.Order);
@@ -153,8 +154,18 @@ namespace Catalyzer
             {
                 var act = a;
                 var b = new CzButton(a.Label, () => { try { act.Run(P); Log.Write(act.Label + "  //  " + P.Name, show: true); } catch (Exception ex) { Log.Write(act.Label + ": " + ex.Message, show: true); } }, a.Glyph, height: 26, tip: a.Tip) { Margin = new Thickness(0, 0, 6, 6) };
+                acts.Add(act);
                 _buttons.Children.Add(b);
             }
+            // what doesn't fit on the row folds into a menu
+            CzButton more = null;
+            more = new CzButton(null, () =>
+            {
+                var items = _buttons.Hidden.Select(i => acts[i]).Select(a => new CzMenu.Item { Text = a.Label, Glyph = a.Glyph, Hint = a.Tip?.ToLowerInvariant(), Click = () => { try { a.Run(P); } catch (Exception ex) { Log.Write(a.Label + ": " + ex.Message, show: true); } } }).ToList();
+                if (items.Count > 0) new CzMenu().Show(more, P.Name, items);
+            }, "\uE712", height: 26, tip: "MORE") { Margin = new Thickness(0, 0, 0, 6) };
+            _buttons.More = more;
+            _buttons.Children.Add(more);
         }
 
         public void Git()
@@ -219,6 +230,46 @@ namespace Catalyzer
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             return p.StartsWith(home, StringComparison.OrdinalIgnoreCase) ? "~" + p.Substring(home.Length) : p;
+        }
+    }
+
+    /// <summary>Buttons on one line; whatever doesn't fit hides, and <see cref="More"/> (the last child) appears for it.</summary>
+    public sealed class OneRow : Panel
+    {
+        public UIElement More;
+        public OneRow() { ClipToBounds = true; }
+        public readonly List<int> Hidden = new List<int>();
+        private readonly List<bool> _shown = new List<bool>();
+
+        protected override Size MeasureOverride(Size avail)
+        {
+            double h = 0;
+            foreach (UIElement c in InternalChildren) { c.Measure(new Size(double.PositiveInfinity, avail.Height)); h = Math.Max(h, c.DesiredSize.Height); }
+            Hidden.Clear(); _shown.Clear();
+            var items = InternalChildren.Cast<UIElement>().Where(c => c != More).ToList();
+            double total = items.Sum(c => c.DesiredSize.Width), room = double.IsInfinity(avail.Width) ? total : avail.Width;
+            bool overflow = total > room + 0.5;
+            double limit = overflow && More != null ? room - More.DesiredSize.Width : room, x = 0;
+            for (int i = 0; i < items.Count; i++)
+            {
+                bool fit = !overflow || x + items[i].DesiredSize.Width <= limit + 0.5;
+                if (fit && (Hidden.Count == 0)) { x += items[i].DesiredSize.Width; _shown.Add(true); }
+                else { Hidden.Add(i); _shown.Add(false); }
+            }
+            return new Size(Math.Min(room, x + (overflow && More != null ? More.DesiredSize.Width : 0)), h);
+        }
+
+        protected override Size ArrangeOverride(Size size)
+        {
+            double x = 0; int i = 0;
+            foreach (UIElement c in InternalChildren)
+            {
+                bool show = c == More ? Hidden.Count > 0 : i < _shown.Count && _shown[i];
+                if (c != More) i++;
+                if (show) { c.Arrange(new Rect(x, 0, c.DesiredSize.Width, c.DesiredSize.Height)); x += c.DesiredSize.Width; }
+                else c.Arrange(new Rect(-10000, 0, c.DesiredSize.Width, c.DesiredSize.Height));   // off the clipped panel
+            }
+            return size;
         }
     }
 }

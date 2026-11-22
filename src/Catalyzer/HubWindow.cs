@@ -195,10 +195,10 @@ namespace Catalyzer
         /// <summary>Cards share the row: as many columns as fit at the minimum width, stretched to fill it.</summary>
         private void Fit()
         {
-            double avail = _scroll.ActualWidth - _cards.Margin.Left - _cards.Margin.Right - 12;
+            double avail = (_scroll.ViewportWidth > 0 ? _scroll.ViewportWidth : _scroll.ActualWidth - 10) - _cards.Margin.Left - _cards.Margin.Right - 2;
             if (avail < 100) return;
-            int cols = Math.Max(1, (int)((avail + 18) / (ProjectCard.W + 18)));
-            double w = Math.Floor((avail + 18) / cols - 18);
+            int cols = Math.Max(1, (int)(avail / (ProjectCard.W + 18)));
+            double w = Math.Floor(avail / cols) - 18;
             foreach (var c in _cardOf.Values) c.Width = w;
         }
 
