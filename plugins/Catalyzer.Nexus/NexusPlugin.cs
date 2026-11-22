@@ -46,7 +46,7 @@ namespace Catalyzer.Nexus
             var L = NexusPublicApi.Look;
             _host.Themes.Register(new CatalyzerTheme
             {
-                Id = "nexus", Name = "Nexus  //  " + (L.ThemeName ?? "live"), Source = "Nexus plugin",
+                Id = "nexus", Name = L.ThemeName ?? "Nexus", Source = "Nexus plugin  //  live",
                 Bg0 = L.Bg0, Bg1 = L.Bg1, Panel = L.Glass, PanelEdge = L.GlassEdge, Line = L.Line.A(0.6),
                 Text = L.Text, TextDim = L.TextDim, TextFaint = L.TextFaint,
                 Accent = L.Accent, Select = L.Select, Ok = L.Ok, Warn = L.Warn, Danger = L.Danger,

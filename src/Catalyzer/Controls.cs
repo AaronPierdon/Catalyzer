@@ -28,6 +28,9 @@ namespace Catalyzer
             TextOptions.SetTextFormattingMode(t, TextFormattingMode.Display);
             return t;
         }
+        /// <summary>A shape drawn to its host's size that must not take part in layout (a stroked Path sized from ActualWidth would grow 1 px per pass).</summary>
+        public static Canvas Under(UIElement shape) { var c = new Canvas { IsHitTestVisible = false, ClipToBounds = false }; c.Children.Add(shape); return c; }
+
         public static TextBlock Mono(string s, double size = 11, string brush = "CzTextDimBrush") => Text(s, size, brush, "CzFontMono");
         public static TextBlock Head(string s, double size = 14, string brush = "CzAccentBrush")
         {
@@ -189,6 +192,8 @@ namespace Catalyzer
         public Color? Tint;
         public double Cut = -1;
         public bool Brackets = true;
+        /// <summary>A near-opaque base under the glass (drawers, popups over busy content).</summary>
+        public bool Solid;
         public Glass() { IsHitTestVisible = false; ThemeService.I.Changed += InvalidateVisual; }
 
         protected override void OnRender(DrawingContext dc)
@@ -197,6 +202,7 @@ namespace Catalyzer
             double cut = Cut >= 0 ? Cut : T.Cut;
             var tint = Tint ?? T.Accent;
             var shape = Cz.Chamfer(w, h, cut);
+            if (Solid) dc.DrawGeometry(T.Bg0.Mix(T.Bg1, 0.35).A(0.95).Brush(), null, shape);
             var fill = new LinearGradientBrush(T.Panel.Mix(tint.A(T.Panel.A / 255.0), 0.06 + 0.06 * _lit), T.Panel.Mix(T.Bg0.A(T.Panel.A / 255.0), 0.45), 90); fill.Freeze();
             dc.DrawGeometry(fill, null, shape);
             dc.PushClip(shape);
@@ -239,7 +245,7 @@ namespace Catalyzer
         public CzButton(string label, Action click, string glyph = null, bool primary = false, double height = 28, string tip = null)
         {
             _primary = primary; Height = height; Cursor = Cursors.Hand; ToolTip = tip; Background = Brushes.Transparent;
-            Children.Add(_bg);
+            Children.Add(Cz.Under(_bg));
             var sp = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(label == null ? 7 : 10, 0, label == null ? 7 : 11, 0), VerticalAlignment = VerticalAlignment.Center };
             if (glyph != null) { _glyph = Cz.Icon(glyph, 11.5, primary ? "CzSelectBrush" : "CzAccentBrush"); sp.Children.Add(_glyph); }
             if (label != null) { _label = Cz.Text(label, 11.5, primary ? "CzSelectBrush" : "CzTextBrush", "CzFontHead", FontWeights.SemiBold); _label.Margin = new Thickness(glyph != null ? 7 : 0, 0, 0, 0); sp.Children.Add(_label); }
@@ -429,7 +435,7 @@ namespace Catalyzer
             {
                 if (it.Separator) { var r = new Rectangle { Height = 1, Margin = new Thickness(8, 5, 8, 5) }; r.SetResourceReference(Shape.FillProperty, "CzLineBrush"); panel.Children.Add(r); continue; }
                 var g = new Grid { Height = 30, Background = Brushes.Transparent, Cursor = Cursors.Hand };
-                var hl = new Path { Opacity = 0 }; g.Children.Add(hl);
+                var hl = new Path { Opacity = 0 }; g.Children.Add(Cz.Under(hl));
                 g.SizeChanged += (s, e) => { hl.Data = Cz.Chamfer(e.NewSize.Width, e.NewSize.Height, 4); hl.Fill = Cz.T.Accent.A(0.16).Brush(); hl.Stroke = Cz.T.Accent.A(0.5).Brush(); };
                 var sp = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
                 var ic = Cz.Icon(it.Check ? "" : it.Glyph ?? "", 12, it.Danger ? "CzDangerBrush" : it.Check ? "CzSelectBrush" : "CzAccentBrush"); ic.Width = 18; sp.Children.Add(ic);
@@ -442,7 +448,7 @@ namespace Catalyzer
                 panel.Children.Add(g);
             }
             var host = new Grid();
-            host.Children.Add(new Glass { Cut = 8 });
+            host.Children.Add(new Glass { Cut = 8, Solid = true });
             host.Children.Add(panel);
             var shadow = new Border { Child = host, Margin = new Thickness(14) };
             Cz.Glow(host, Cz.T.Accent, 18, 0.35);

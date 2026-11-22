@@ -112,7 +112,7 @@ namespace Catalyzer
                 {
                     var head = lines[0].Substring(3);
                     var br = head.Split(new[] { "...", " " }, StringSplitOptions.None)[0];
-                    g.Branch = br.StartsWith("No commits yet on ") ? head.Substring(18) : br;
+                    g.Branch = head.StartsWith("No commits yet on ") ? head.Substring(18).Split(new[] { "...", " " }, StringSplitOptions.None)[0] : br;
                     g.Ahead = Num(head, "ahead "); g.Behind = Num(head, "behind ");
                 }
                 g.Changed = lines.Count(l => !l.StartsWith("## "));

@@ -52,6 +52,7 @@ namespace Catalyzer
             body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(30) });
             body.Children.Add(Header(out _title));
             _scroll.Content = _cards;
+            _scroll.SizeChanged += (s, e) => Fit();
             Grid.SetRow(_scroll, 1); body.Children.Add(_scroll);
             body.Children.Add(Footer());
             _root.Children.Add(body);
@@ -188,7 +189,17 @@ namespace Catalyzer
                 empty.Children.Add(Cz.Text("Catalyzer shows every git repo in " + string.Join(", ", Prefs.Value.Roots) + ". Add a folder with + or in settings.", 13, "CzTextFaintBrush"));
                 _cards.Children.Add(empty);
             }
-            Filter(); Stats(); FooterRight();
+            Fit(); Filter(); Stats(); FooterRight();
+        }
+
+        /// <summary>Cards share the row: as many columns as fit at the minimum width, stretched to fill it.</summary>
+        private void Fit()
+        {
+            double avail = _scroll.ActualWidth - _cards.Margin.Left - _cards.Margin.Right - 12;
+            if (avail < 100) return;
+            int cols = Math.Max(1, (int)((avail + 18) / (ProjectCard.W + 18)));
+            double w = Math.Floor((avail + 18) / cols - 18);
+            foreach (var c in _cardOf.Values) c.Width = w;
         }
 
         private void Filter()
@@ -284,7 +295,7 @@ namespace Catalyzer
             SizeChanged += (s, e) => r.Data = Cz.Chamfer(Math.Max(10, e.NewSize.Width - 1), Math.Max(10, e.NewSize.Height - 1), 14);
             void Look() => r.Stroke = new LinearGradientBrush(Cz.T.Accent.A(0.55), Cz.T.Select.A(0.35), 45);
             ThemeService.I.Changed += Look; Look();
-            return r;
+            return Cz.Under(r);
         }
     }
 

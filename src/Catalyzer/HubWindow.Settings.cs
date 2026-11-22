@@ -38,11 +38,11 @@ namespace Catalyzer
         private void BuildDrawerShell()
         {
             // a dim veil over the board (click it to close), the drawer on the right
-            var veil = new Rectangle { Fill = Brushes.Black, Opacity = 0.35 };
+            var veil = new Rectangle { Fill = Brushes.Black, Opacity = 0.5 };
             veil.MouseLeftButtonDown += (s, e) => Drawer(false);
             _drawerHost.Children.Add(veil);
             var drawer = new Grid { Width = 500, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 10, 10), RenderTransform = _drawerX };
-            drawer.Children.Add(new Glass { Cut = 16 });
+            drawer.Children.Add(new Glass { Cut = 16, Solid = true });
             var sv = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = _drawerBody, Focusable = false };
             drawer.Children.Add(sv);
             Cz.Glow(drawer, Cz.T.Accent, 30, 0.35);

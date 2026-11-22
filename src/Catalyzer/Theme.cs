@@ -95,13 +95,13 @@ namespace Catalyzer
             return new List<CatalyzerTheme>
             {
                 // reactor: the catalyst glow - teal energy, violet for what matters
-                T("catalyst", "Catalyst", "#04060C", "#0B1222", "#E4F4FF", "#86A0C2", "#33445F", "#24F0C6", "#9C7BFF"),
+                T("catalyst", "Catalyst", "#04060C", "#0B1222", "#E4F4FF", "#93ABCB", "#5B7090", "#24F0C6", "#9C7BFF"),
                 // plasma: magenta field, cyan picks
-                T("plasma", "Plasma", "#07040C", "#160B22", "#FBE9FF", "#B593C9", "#4D3460", "#FF4FD8", "#3FD8FF"),
+                T("plasma", "Plasma", "#07040C", "#160B22", "#FBE9FF", "#C0A0D2", "#7A5E8E", "#FF4FD8", "#3FD8FF"),
                 // ember: forge orange, ice-blue picks
-                T("ember", "Ember", "#0A0503", "#1C0E07", "#FFF1E4", "#C9A084", "#5E3E2A", "#FF8A2E", "#4FC3FF"),
+                T("ember", "Ember", "#0A0503", "#1C0E07", "#FFF1E4", "#D2AA8E", "#8C6B54", "#FF8A2E", "#4FC3FF"),
                 // ion: clean blue-white
-                T("ion", "Ion", "#03060A", "#0A1420", "#EAF6FF", "#8EA9C2", "#34475C", "#4FB8FF", "#7CFFB2"),
+                T("ion", "Ion", "#03060A", "#0A1420", "#EAF6FF", "#9BB4CB", "#5E778F", "#4FB8FF", "#7CFFB2"),
             };
         }
     }
