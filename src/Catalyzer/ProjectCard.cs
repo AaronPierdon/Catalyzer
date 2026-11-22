@@ -29,6 +29,7 @@ namespace Catalyzer
         private readonly Path _badge = new Path(), _badgeRing = new Path();
         private readonly TextBlock _badgeGlyph;
         private double _lit, _litTo;
+        private bool _hadGitHub;
         public event Action<ProjectCard> Menu;
 
         private Color Tint => P.Accent ?? Cz.T.Accent;
@@ -113,6 +114,7 @@ namespace Catalyzer
             // ---- buttons
             _buttons.VerticalAlignment = VerticalAlignment.Bottom; _buttons.Margin = new Thickness(0, 8, 0, 0);
             Grid.SetRow(_buttons, 5); body.Children.Add(_buttons);
+            _hadGitHub = p.GitHub != null;
             BuildButtons();
 
             // ---- life
@@ -171,6 +173,7 @@ namespace Catalyzer
         public void Git()
         {
             var g = P.Git; var T = Cz.T;
+            if ((P.GitHub != null) != _hadGitHub) { _hadGitHub = P.GitHub != null; BuildButtons(); }   // the remote arrived with git: GITHUB appears
             if (!g.Loaded) { _branch.Text = "..."; _commit.Text = ""; _state.Text = "READING"; _led.Color = T.TextFaint; _led.Pulse = true; _led.InvalidateVisual(); return; }
             if (!g.IsRepo)
             {
