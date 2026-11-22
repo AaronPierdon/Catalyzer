@@ -2,61 +2,57 @@
 
 Each chat rewrites its own section at the end (git keeps history).
 
-## From the helpers chat — 2026-11-22 (cloud chat linked to the PC)
+## From the helpers / link chat — 2026-11-22 (cloud chat linked to the PC)
 
 ### What this chat did
-- **GitHub:** pushed `AaronPierdon/Catalyzer` (`script catalyzer repo`; `origin` had been missing) and
-  `AaronPierdon/Nexus-Development-Principles`. The principles path has spaces, which the helper's argument split
-  can't take, so the push used the short name: `script catalyzer git -C ..\NEXUSD~1 push -u origin main`.
-- **Branch `pc/2026-11-22-helpers`** (pushed, not merged):
-  - **SDK API 2** (add-only): `ProjectBadge` / `BadgeState` / `MenuEntry` / `Tone`, `IBackgroundWork`,
-    `ICatalyzerHost.IsSnapshot`, `AddBadge`, `UpdateBadges`, `AddBackgroundWork`. Documented in `docs/PLUGINS.md`.
-  - **HelpersPlugin** (`plugins/Catalyzer.Helpers` → `HelpersPlugin.dll`):
-    - reads `helpers` from each `catalyzer.json` (`docs/MANIFEST.md`);
-    - runs every helper hidden (CreateNoWindow) inside a kill-on-close job object;
-    - logs to `%APPDATA%\Catalyzer\plugin-data\helpers\logs`;
-    - shows a card chip (HELPERS n/m) with start / stop / open log;
-    - supports `auto` (once a session) and `restart` (3 tries a minute).
-
-    Its Debug build copies itself into the app's Debug `plugins\Helpers`, so `script catalyzer snap` loads it
-    without touching Nexus's script.
+- **GitHub:** pushed `AaronPierdon/Catalyzer` (`origin` had been missing) and `AaronPierdon/Nexus-Development-Principles`.
+  The principles path has spaces, so the push went through the Nexus helper with the short name `..\NEXUSD~1`.
+- **Branch `pc/2026-11-22-helpers`** (pushed; merge after Aaron's live look):
+  - **Link** (`plugins/Catalyzer.Link`, `docs/LINK.md`), Aaron's new way of working:
+    - LINK on a card gives that repo a hidden Windows terminal for chats, through a mailbox at `.catalyzer\link\`
+      that Catalyzer git-ignores itself;
+    - Catalyzer writes `README.md` and `run.sh` into the mailbox, so a new chat discovers how to use it;
+    - nothing listens on the network; requests run hidden in the repo root, one at a time, inside a kill-on-close job;
+    - survive mode (`-s`) is for installing Catalyzer itself;
+    - every command shows in the card's feed drawer;
+    - links are remembered and relink at start;
+    - requests found waiting at link time are set aside, never run.
+  - **Helpers** (`plugins/Catalyzer.Helpers`): a project's long-running scripts, from `helpers` in its
+    `catalyzer.json`, run hidden with a card chip.
+  - **SDK API 2:**
+    - badges (`ProjectBadge`, now with `Click`);
+    - `IBackgroundWork`;
+    - `IFeed` / `ShowFeed`;
+    - `IsSnapshot`.
   - **App:**
-    - the header chip "n HELPERS" (stop each or all);
-    - closing with work running follows `closeWithWork` in settings (`ask` default / `stop` / `tray`): a glass
-      prompt with STOP ALL & EXIT / KEEP IN TRAY and a Remember toggle;
-    - Settings → General lets you change the close choice later;
-    - a tray icon with a Catalyzer glass menu (open, stop each, stop all, exit);
-    - a second start now signals the first copy (`Local\Catalyzer.Show`), which comes back from the tray.
-  - **Folder watcher:** each scan root is watched one level deep, and each project for its own `catalyzer.json`.
-    Nothing is recursive, so builds never wake it. Changes trigger a debounced rescan after 1.5 s.
-  - `--snapshot` also renders `catalyzer-close.png` (the close prompt).
+    - the header chip for running work;
+    - the close prompt (STOP ALL & EXIT / KEEP IN TRAY, remembered; Settings → General);
+    - a tray icon with a glass menu;
+    - a second start restores the window from the tray;
+    - a folder watcher, so new repos appear by themselves;
+    - the feed drawer.
+  - `tools/snap.ps1`: Catalyzer builds and snapshots itself, so it no longer needs Nexus's script once linked.
+- **Principles 1.1.0** (in their own repo): chats work through the Catalyzer link. See their CHANGELOG.
 
 ### Verified
-- It builds on the PC.
-- Snapshots in all five themes, plus settings and the close prompt, were looked at:
-  - the Catalyzer card shows HELPERS 0/2 (snapshot runs never start helpers);
-  - fixed after the first look: the prompt is wider so Remember isn't clipped, and the tray glyph changed.
-- Not yet seen live:
-  - helpers actually running (the LED, logs, restart);
-  - the tray;
-  - the prompt from a real ✕;
-  - the watcher picking up a fresh clone.
+- On the PC: the build, an install of the helpers stage, and a Heartbeat test helper running hidden (its log ticks
+  every 5 s).
+- Snapshots of the helpers stage looked at. The link stage is covered under *Ready to test* below.
 
-### Ready to test (on Aaron's PC)
-- **Uncommitted test rig:** `catalyzer.json` has two test helpers, pointing at `.scratch\test-heartbeat.ps1`
-  (auto, writes every 5 s) and `.scratch\test-fail.ps1` (exits 3). The original is in `.scratch\catalyzer.json.bak`.
-  **Restore it before merging.**
-- Install (`script catalyzer install`) restarts Catalyzer only (not Nexus). Then:
-  1. HEARTBEAT should be on and the chip should read HELPERS 1/2, and no window should appear.
-  2. Start the fail test: the chip should turn red and the log should show `! on purpose`.
-  3. Press ✕: the prompt should appear. Try KEEP IN TRAY, then right-click the tray icon and try Exit. Check in
-     Task Manager that no powershell is left.
-  4. Kill Catalyzer from Task Manager while the heartbeat runs: its powershell should die too.
+### Ready to test
+- **Uncommitted test rig:** `catalyzer.json` has two test helpers (`.scratch\test-*.ps1`). The original is in
+  `.scratch\catalyzer.json.bak`. **Restore it before merging.**
+- **Link:** after the install, Aaron clicks LINK on the Catalyzer card. Then from a chat:
+  1. `bash .catalyzer/link/run.sh --status`
+  2. `bash .catalyzer/link/run.sh 'git status'`
+  3. `bash .catalyzer/link/run.sh -t 600 -f tools/snap.ps1`
+  4. check that the feed shows all three.
 
 ### Next
-1. Aaron's live look at the above, then: restore `catalyzer.json`, merge to `main`, install, push.
-2. Give real projects their `helpers`. Ask Aaron which scripts. Not the Nexus helper (see MANIFEST).
-3. Principles badge (BACKLOG).
+1. Aaron's live look, then: restore `catalyzer.json`, merge to `main`, install through the link (`-s`), push.
+2. Aaron links his other projects: the phone app and the two desktop apps. Each repo's CLAUDE.md gets the
+   "running things on the PC" lines (Principles 1.1.0 → *update to the latest principles* in each app's chat).
+3. Principles badge on cards (BACKLOG).
 
 ## From the first chat — 2026-11-22 (built in the Nexus PC chat, then retired)
 

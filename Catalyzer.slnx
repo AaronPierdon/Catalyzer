@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/plugins/">
     <Project Path="plugins/Catalyzer.Helpers/Catalyzer.Helpers.csproj" />
+    <Project Path="plugins/Catalyzer.Link/Catalyzer.Link.csproj" />
     <Project Path="plugins/Catalyzer.Nexus/Catalyzer.Nexus.csproj" />
   </Folder>
   <Folder Name="/src/">

@@ -59,6 +59,7 @@ namespace Catalyzer
             _root.Children.Add(body);
             _root.Children.Add(Rim());
             _root.Children.Add(_drawerHost);
+            _root.Children.Add(_feedHost);
             _root.Children.Add(_promptHost);
             Content = _root;
 
@@ -73,7 +74,7 @@ namespace Catalyzer
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; }
                 else if (e.Key == Key.F5) { _board.Rescan(); e.Handled = true; }
-                else if (e.Key == Key.Escape) { if (PromptOpen) ClosePrompt(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
+                else if (e.Key == Key.Escape) { if (PromptOpen) ClosePrompt(); else if (FeedOpen) CloseFeed(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
             };
             StateChanged += (s, e) => { _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
             Activated += (s, e) => { if ((DateTime.Now - _board.LastScan).TotalSeconds > 20 && !_board.Scanning) _board.RefreshGit(); };
@@ -83,6 +84,7 @@ namespace Catalyzer
             clock.Tick += (s, e) => { foreach (var c in _cardOf.Values) c.Git(); FooterRight(); };
             clock.Start();
             InitWork();
+            InitFeed();
             Say("READY  //  F5 RESCAN  ·  CTRL+F SEARCH  ·  RIGHT-CLICK A CARD FOR MORE");
         }
 

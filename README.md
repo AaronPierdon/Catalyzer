@@ -26,6 +26,11 @@ You can add more folders in Settings, or with **+**:
 
 A project describes itself with an optional `catalyzer.json` (name, description, colour, glyph, its own buttons, its helper scripts). See [docs/MANIFEST.md](docs/MANIFEST.md). New projects need no code changes, and a new repo shows up on the board by itself.
 
+## Link
+Click **LINK** on a project's card and that repo gets a hidden Windows terminal that a chat (Claude) can use for
+builds, git and installs. There are no windows, and every command shows in the card's feed. See
+[docs/LINK.md](docs/LINK.md).
+
 ## Helpers
 List a project's long-running scripts under `helpers` in its `catalyzer.json`. Catalyzer then:
 - starts them hidden from the card (no console windows) and logs their output;

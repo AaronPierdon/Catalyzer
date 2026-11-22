@@ -1,6 +1,8 @@
 # BACKLOG — Aaron's list + bugs
 
 ## Next up
+- [ ] Link: live check, then merge `pc/2026-11-22-helpers` (built 2026-11-22; see HANDOFF).
+- [ ] Link: Aaron links the phone app and the two desktop apps; their CLAUDE.md files pick up Principles 1.1.0.
 - [ ] Helpers: live check on the PC, then merge `pc/2026-11-22-helpers` (built 2026-11-22; see HANDOFF).
 - [ ] Helpers: add real `helpers` to the projects that have them (ask Aaron which).
 - [ ] Principles badge: show each repo's `.nexus-principles` version vs the current principles.

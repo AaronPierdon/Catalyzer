@@ -11,8 +11,9 @@ namespace Catalyzer.Sdk
     {
         /// <summary>
         /// 1 = themes, project actions, project sources, log, data folder.
-        /// 2 = card badges (<see cref="ProjectBadge"/>), background work (<see cref="IBackgroundWork"/>: the header chip,
-        ///     the close prompt and the tray), <see cref="ICatalyzerHost.IsSnapshot"/>.
+        /// 2 = card badges (<see cref="ProjectBadge"/>, clickable), background work (<see cref="IBackgroundWork"/>: the
+        ///     header chip, the close prompt and the tray), feeds (<see cref="IFeed"/>: a live log drawer),
+        ///     <see cref="ICatalyzerHost.IsSnapshot"/>.
         /// </summary>
         public const int Version = 2;
     }
@@ -74,6 +75,31 @@ namespace Catalyzer.Sdk
         /// asks before closing while any is running, and offers "stop all" in the tray.
         /// </summary>
         void AddBackgroundWork(IBackgroundWork work);
+        /// <summary>API 2. Open a live log drawer (Catalyzer's glass, mono lines, follows the end). One at a time.</summary>
+        void ShowFeed(IFeed feed);
+    }
+
+    /// <summary>API 2. One line in a feed.</summary>
+    public sealed class FeedLine
+    {
+        public DateTime When { get; set; } = DateTime.Now;
+        public string Text { get; set; } = "";
+        public Tone Tone { get; set; } = Tone.Dim;
+    }
+
+    /// <summary>API 2. A live log Catalyzer can show in its drawer (see <see cref="ICatalyzerHost.ShowFeed"/>).</summary>
+    public interface IFeed
+    {
+        /// <summary>Drawer title, e.g. the project's name.</summary>
+        string Title { get; }
+        /// <summary>A short status beside the title ("LINKED · RUNNING").</summary>
+        BadgeState State { get; }
+        /// <summary>The lines so far, oldest first (a snapshot; any thread).</summary>
+        IReadOnlyList<FeedLine> Lines();
+        /// <summary>Raised (any thread) when lines or state changed.</summary>
+        event Action Changed;
+        /// <summary>Buttons along the drawer's top (UNLINK, CANCEL...).</summary>
+        IEnumerable<MenuEntry> Actions();
     }
 
     /// <summary>API 2. How a badge or line is coloured: a theme role, never a literal.</summary>
@@ -88,8 +114,11 @@ namespace Catalyzer.Sdk
         public Func<Project, bool> AppliesTo { get; set; } = _ => true;
         /// <summary>What it shows for a project right now (null = nothing for this one). Called on the UI thread.</summary>
         public Func<Project, BadgeState> State { get; set; }
-        /// <summary>What clicking it offers (null or empty = not clickable). Called on the UI thread.</summary>
+        /// <summary>What clicking it offers (null or empty = not clickable). Called on the UI thread. With
+        /// <see cref="Click"/> set, this is the right-click menu instead.</summary>
         public Func<Project, IEnumerable<MenuEntry>> Menu { get; set; }
+        /// <summary>A one-click action (e.g. a toggle). Left-click runs it; right-click opens <see cref="Menu"/>.</summary>
+        public Action<Project> Click { get; set; }
     }
 
     /// <summary>API 2. A badge's look at one moment.</summary>

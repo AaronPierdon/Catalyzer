@@ -79,6 +79,10 @@ namespace Catalyzer
             w.Changed += () => Application.Current?.Dispatcher.BeginInvoke(new Action(() => WorkChanged?.Invoke()));
         }
 
+        /// <summary>A plugin asked for its feed drawer (UI thread).</summary>
+        public event Action<IFeed> FeedRequested;
+        public void ShowFeed(IFeed f) { if (f != null) Application.Current?.Dispatcher.BeginInvoke(new Action(() => FeedRequested?.Invoke(f))); }
+
         /// <summary>Stop every plugin's background work (closing, or "stop all").</summary>
         public void StopAllWork()
         {

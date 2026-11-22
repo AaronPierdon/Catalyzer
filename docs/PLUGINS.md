@@ -52,12 +52,13 @@ public sealed class HelloPlugin : ICatalyzerPlugin
 | `IsSnapshot` *(API 2)* | a render-only run (`--snapshot`): draw, but don't start or write anything |
 | `AddBadge(ProjectBadge)` *(API 2)* | a status chip on cards: `State(p)` → text, `Tone`, pulse, tip; `Menu(p)` → what clicking offers |
 | `UpdateBadges()` *(API 2)* | your state changed: cards read their chips again (any thread) |
+| `ShowFeed(IFeed)` *(API 2)* | open the live log drawer: `Title`, `State`, `Lines()`, `Actions()` (its buttons), `Changed` |
 | `AddBackgroundWork(IBackgroundWork)` *(API 2)* | something you keep running. Catalyzer shows it in the header, asks before closing while any of it runs, and offers stop in the tray |
 
 ## Badges and background work (API 2)
 - **Badges.** A `ProjectBadge` has an `Id`, an `Order`, an `AppliesTo`, a `State` and a `Menu`. `State` returns a
   `BadgeState`: `Text` (short, capitals), `Tone` (`Faint`, `Dim`, `Accent`, `Select`, `Ok`, `Warn` or `Danger`; a
-  theme role, never a colour), `Pulse` (busy) and `Tip`. `Menu` returns `MenuEntry` lines (`Text`, `Glyph`, `Hint`,
+  theme role, never a colour), `Pulse` (busy) and `Tip`. `Click` (optional) makes the chip a one-click toggle, with `Menu` on right-click. `Menu` returns `MenuEntry` lines (`Text`, `Glyph`, `Hint`,
   `Run`, `Separator`, `Danger`); Catalyzer draws them as its own glass menu.
 - **Background work.** `IBackgroundWork` has:
   - `Name`: plural, capitals, e.g. `"HELPERS"`;
@@ -69,7 +70,9 @@ public sealed class HelloPlugin : ICatalyzerPlugin
   Catalyzer calls `StopAll()` when the user exits with work running. Your `Stop()` is still called at exit: stop
   everything there too.
 
-Example: `plugins/Catalyzer.Helpers`, which uses all of API 2.
+Examples:
+- `plugins/Catalyzer.Helpers` uses badges and background work;
+- `plugins/Catalyzer.Link` uses `Click`, feeds and background work.
 
 ## Themes
 `host.Themes.Register(new CatalyzerTheme { Id = "mine", Name = "Mine", Accent = ..., Select = ..., ... })`

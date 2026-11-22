@@ -414,6 +414,7 @@ namespace Catalyzer
         private Tone _tone = Tone.Dim;
         private bool _hot;
         public Action<Chip> Click;
+        public Action<Chip> RightClick;
 
         public Chip(double height = 24)
         {
@@ -429,6 +430,7 @@ namespace Catalyzer
             MouseEnter += (s, e) => { _hot = Click != null; Look(); };
             MouseLeave += (s, e) => { _hot = false; Look(); };
             MouseLeftButtonUp += (s, e) => { if (Click == null) return; e.Handled = true; Click(this); };
+            MouseRightButtonUp += (s, e) => { if (RightClick == null) return; e.Handled = true; RightClick(this); };
         }
 
         public void Set(string text, Tone tone, bool pulse, string tip)

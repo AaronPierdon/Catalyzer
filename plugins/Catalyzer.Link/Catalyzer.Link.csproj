@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- LinkPlugin: LINK on a project card gives that repo a hidden Windows terminal for Claude, through a mailbox folder
+       inside the repo (.catalyzer\link). No network, no console windows, every command in the feed. docs/LINK.md.
+       Output goes to plugins\Link\ in the install. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>LinkPlugin</AssemblyName>
+    <RootNamespace>Catalyzer.Link</RootNamespace>
+    <Version>1.0.0</Version>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalyzer.Sdk\Catalyzer.Sdk.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+    <EmbeddedResource Include="Assets\README.md" LogicalName="Link.README.md" />
+    <EmbeddedResource Include="Assets\run.sh" LogicalName="Link.run.sh" />
+    <EmbeddedResource Include="Assets\run-request.ps1" LogicalName="Link.run-request.ps1" />
+  </ItemGroup>
+  <!-- Debug runs (and tools\snap.ps1) load plugins from the app's own bin folder: put this one there too. -->
+  <Target Name="CopyToDebugApp" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MSBuildThisFileDirectory)..\..\src\Catalyzer\bin\Debug\net10.0-windows\plugins\Link" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

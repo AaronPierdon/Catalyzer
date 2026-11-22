@@ -191,15 +191,20 @@ namespace Catalyzer
                 {
                     var badge = b;
                     chip = new Chip(22) { Margin = new Thickness(8, 0, 0, 0) };
-                    chip.Click = c =>
+                    void OpenMenu(Chip c)
                     {
                         List<CzMenu.Item> items;
                         try { items = CzMenu.From(badge.Menu?.Invoke(P), badge.Id); } catch (Exception ex) { Log.Write("badge " + badge.Id + ": " + ex.Message, show: true); return; }
                         if (items.Count > 0) new CzMenu { Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom }.Show(c, P.Name, items);
-                    };
+                    }
+                    if (badge.Click != null)
+                    {
+                        chip.Click = c => { try { badge.Click(P); } catch (Exception ex) { Log.Write("badge " + badge.Id + ": " + ex.Message, show: true); } };
+                        if (badge.Menu != null) chip.RightClick = OpenMenu;
+                    }
+                    else if (badge.Menu != null) { chip.Click = OpenMenu; chip.RightClick = OpenMenu; }
                     _chipOf[b.Id] = chip; _badges.Children.Add(chip);
                 }
-                if (b.Menu == null) chip.Click = null;
                 chip.Set(st.Text ?? "", st.Tone, st.Pulse, st.Tip);
             }
         }
