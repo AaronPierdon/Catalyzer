@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/plugins/">
+    <Project Path="plugins/Catalyzer.Nexus/Catalyzer.Nexus.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Catalyzer.Sdk/Catalyzer.Sdk.csproj" />
+    <Project Path="src/Catalyzer/Catalyzer.csproj" />
+  </Folder>
+</Solution>

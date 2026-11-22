@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- NexusPlugin: Catalyzer wearing the Nexus look. Uses Nexus's public API (Nexus.Kit: the settings bus, themes,
+       fonts, backdrop) from the Nexus repo next to this one, and hands it to Catalyzer as a live theme + actions.
+       Output (with Nexus.Kit and its dependencies) goes to plugins\Nexus\ in the Catalyzer install. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>NexusPlugin</AssemblyName>
+    <RootNamespace>Catalyzer.Nexus</RootNamespace>
+    <Version>1.0.0</Version>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalyzer.Sdk\Catalyzer.Sdk.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Nexus\src\Nexus.Kit\Nexus.Kit.csproj" />
+  </ItemGroup>
+</Project>

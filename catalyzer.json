@@ -1,0 +1,9 @@
+{
+  "name": "Catalyzer",
+  "description": "Project command center: every repo on glass, plugins, live themes",
+  "glyph": "",
+  "accent": "#24F0C6",
+  "actions": [
+    { "label": "Install", "glyph": "", "run": "powershell.exe", "args": "-NoProfile -ExecutionPolicy Bypass -File tools\\install.ps1", "tip": "BUILD RELEASE + INSTALL" }
+  ]
+}

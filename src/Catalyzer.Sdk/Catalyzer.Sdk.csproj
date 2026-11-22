@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Catalyzer plugin API. Plugins reference this (Private=false: the host's copy is the one that loads) and
+       implement ICatalyzerPlugin. Additive changes only; bump Api.Version when something new appears. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Catalyzer.Sdk</AssemblyName>
+    <RootNamespace>Catalyzer.Sdk</RootNamespace>
+    <Version>1.0.0</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+</Project>
