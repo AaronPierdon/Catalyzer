@@ -53,6 +53,7 @@ namespace Catalyzer
             body.Children.Add(Header(out _title));
             _scroll.Content = _cards;
             _scroll.SizeChanged += (s, e) => Fit();
+            _scroll.ScrollChanged += (s, e) => { if (e.ViewportWidthChange != 0) Fit(); };   // the scroll bar arriving narrows the row
             Grid.SetRow(_scroll, 1); body.Children.Add(_scroll);
             body.Children.Add(Footer());
             _root.Children.Add(body);
