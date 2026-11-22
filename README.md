@@ -24,7 +24,16 @@ You can add more folders in Settings, or with **+**:
 - pick a project folder and Catalyzer adds that project;
 - pick a folder of projects and Catalyzer scans it.
 
-A project describes itself with an optional `catalyzer.json` (name, description, colour, glyph, its own buttons). See [docs/MANIFEST.md](docs/MANIFEST.md). New projects need no code changes.
+A project describes itself with an optional `catalyzer.json` (name, description, colour, glyph, its own buttons, its helper scripts). See [docs/MANIFEST.md](docs/MANIFEST.md). New projects need no code changes, and a new repo shows up on the board by itself.
+
+## Helpers
+List a project's long-running scripts under `helpers` in its `catalyzer.json`. Catalyzer then:
+- starts them hidden from the card (no console windows) and logs their output;
+- shows HELPERS n/m on the card;
+- keeps them in a job that stops them if Catalyzer stops.
+
+Closing with helpers running asks whether to stop them all or keep them running in the tray. See
+[docs/MANIFEST.md](docs/MANIFEST.md).
 
 ## Extending it
 - **Plugins** are .NET dlls built on `Catalyzer.Sdk`. They can:

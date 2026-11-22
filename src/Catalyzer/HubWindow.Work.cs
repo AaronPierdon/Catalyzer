@@ -148,7 +148,7 @@ namespace Catalyzer
             var btns = new StackPanel { Orientation = Orientation.Horizontal };
             btns.Children.Add(new CzButton("CANCEL", ClosePrompt, null, height: 34, tip: "ESC") { Margin = new Thickness(0, 0, 8, 0) });
             btns.Children.Add(new CzButton("STOP ALL & EXIT", () => { if (remember) Prefs.Save(p => p.CloseWithWork = "stop"); ClosePrompt(); Exit(); }, "", height: 34) { Margin = new Thickness(0, 0, 8, 0) });
-            btns.Children.Add(new CzButton("KEEP IN TRAY", () => { if (remember) Prefs.Save(p => p.CloseWithWork = "tray"); ClosePrompt(); ToTray(); }, "", primary: true, height: 34));
+            btns.Children.Add(new CzButton("KEEP IN TRAY", () => { if (remember) Prefs.Save(p => p.CloseWithWork = "tray"); ClosePrompt(); ToTray(); }, "\uE70D", primary: true, height: 34));
             Grid.SetColumn(btns, 1); bottom.Children.Add(btns);
             b.Children.Add(bottom);
             panel.Children.Add(b);

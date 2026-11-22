@@ -17,7 +17,7 @@ public sealed class HelloPlugin : ICatalyzerPlugin
     public string Version => "1.0.0";
     public string Author => "you";
     public string Description => "Says hi on every card.";
-    public int MinApi => 1;               // the Api.Version you need
+    public int MinApi => 1;               // the Api.Version you need (2 for badges / background work)
 
     public void Start(ICatalyzerHost host)
     {
@@ -49,6 +49,27 @@ public sealed class HelloPlugin : ICatalyzerPlugin
 | `Refresh()` | rescan |
 | `DataFolder(this)` | your own folder for files and settings |
 | `Log(this, text, show)` | the log; `show: true` also puts it on the info bar |
+| `IsSnapshot` *(API 2)* | a render-only run (`--snapshot`): draw, but don't start or write anything |
+| `AddBadge(ProjectBadge)` *(API 2)* | a status chip on cards: `State(p)` → text, `Tone`, pulse, tip; `Menu(p)` → what clicking offers |
+| `UpdateBadges()` *(API 2)* | your state changed: cards read their chips again (any thread) |
+| `AddBackgroundWork(IBackgroundWork)` *(API 2)* | something you keep running. Catalyzer shows it in the header, asks before closing while any of it runs, and offers stop in the tray |
+
+## Badges and background work (API 2)
+- **Badges.** A `ProjectBadge` has an `Id`, an `Order`, an `AppliesTo`, a `State` and a `Menu`. `State` returns a
+  `BadgeState`: `Text` (short, capitals), `Tone` (`Faint`, `Dim`, `Accent`, `Select`, `Ok`, `Warn` or `Danger`; a
+  theme role, never a colour), `Pulse` (busy) and `Tip`. `Menu` returns `MenuEntry` lines (`Text`, `Glyph`, `Hint`,
+  `Run`, `Separator`, `Danger`); Catalyzer draws them as its own glass menu.
+- **Background work.** `IBackgroundWork` has:
+  - `Name`: plural, capitals, e.g. `"HELPERS"`;
+  - `Running`: a count;
+  - `Changed`: an event;
+  - `Items()`: one stop line per running thing;
+  - `StopAll()`.
+
+  Catalyzer calls `StopAll()` when the user exits with work running. Your `Stop()` is still called at exit: stop
+  everything there too.
+
+Example: `plugins/Catalyzer.Helpers`, which uses all of API 2.
 
 ## Themes
 `host.Themes.Register(new CatalyzerTheme { Id = "mine", Name = "Mine", Accent = ..., Select = ..., ... })`
@@ -67,4 +88,4 @@ public sealed class HelloPlugin : ICatalyzerPlugin
 - Catalyzer won't start a plugin whose `MinApi` is higher than the host's API version, and shows why in Settings.
 - Errors in your plugin are caught and logged. A failing plugin is marked in Settings and never takes the app down.
 
-Example: `plugins/Catalyzer.Nexus` — a live theme from Nexus's public `NexusPublicApi`, plus a card button.
+Examples: `plugins/Catalyzer.Nexus` — a live theme from Nexus's public `NexusPublicApi`, plus a card button.

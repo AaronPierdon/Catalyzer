@@ -10,6 +10,9 @@ Put a `catalyzer.json` in a project's root folder. Every key is optional, and co
   "accent": "#1BF28C",                      // card colour (default: the theme accent)
   "glyph": "",                        // Segoe Fluent Icons character for the badge (default: initials)
   "solution": "Nexus.sln",                  // what the VS button opens (default: the first .sln / .slnx)
+  "helpers": [                              // scripts Catalyzer keeps running for you, hidden (Helpers plugin)
+    { "name": "Build agent", "run": "_tools\\agent.ps1", "auto": true, "restart": true }
+  ],
   "actions": [                              // the project's own buttons
     { "label": "Build",   "glyph": "", "run": "build.cmd" },
     { "label": "Install", "run": "powershell.exe", "args": "-File _tools\\scripts\\install.ps1", "tip": "Install to this PC" }
@@ -22,3 +25,31 @@ How `actions` run:
 - The project folder is always the working directory.
 
 Plugins can read any other key you add: `Project.Extra["yourKey"]` holds its raw text.
+
+## `helpers` — scripts that run hidden (Helpers plugin)
+Each helper is a long-running script the project wants alive while you work: a build agent, a watcher, a local
+server. Its card shows a chip (**HELPERS 1/2**). Click the chip to start or stop each helper, or to open its log.
+
+| key | | |
+|---|---|---|
+| `name` | required in practice | what the card and menus call it; unique within the project |
+| `run` | required | a file in the project (`.ps1`, `.cmd` / `.bat`, `.py`, `.js`, `.exe`) or a command on PATH |
+| `args` | optional | added after the script |
+| `auto` | default `false` | start it when Catalyzer starts (once a session: if you stop it, it stays stopped) |
+| `restart` | default `false` | if it fails (non-zero exit), start it again after 2 s; it gives up after 3 failures in a minute |
+
+How they run:
+- **Never a console window.** `.ps1` runs through `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File`,
+  `.cmd` / `.bat` through `cmd /d /c`, `.py` through `python -u`, and `.js` through `node`. Everything starts hidden,
+  with the project folder as the working directory. Input is closed, so a script that asks a question gets
+  end-of-input instead of hanging.
+- **Contained.** Every helper is in a Windows job object that kills its members when Catalyzer goes, whether it
+  closes, crashes or is killed. Stopping a helper kills its whole process tree.
+- **Logged.** Output goes to `%APPDATA%\Catalyzer\plugin-data\helpers\logs\<project>--<name>.log`, which rolls over at
+  1 MB. Errors are marked `!`.
+- The environment has `CATALYZER_HELPER=<name>` set, so a script can tell it's running under Catalyzer.
+- **Closing Catalyzer while helpers run** asks: *Stop all & exit* or *Keep in tray*, with an option to remember the
+  answer. You can change it later in Settings → General. From the tray you can open Catalyzer, stop one helper, stop
+  them all, or exit, each in one click.
+- **Not for the Nexus helper** (`Start Nexus helper.cmd`). It installs Catalyzer, and an install closes Catalyzer,
+  which would take the helper down mid-install. Keep starting it from Windows Explorer.

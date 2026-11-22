@@ -84,7 +84,7 @@ namespace Catalyzer
             b.Children.Add(Note("Starting with Windows opens Catalyzer minimized."));
             b.Children.Add(Cz.Mono("CLOSING WHILE HELPERS RUN", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
             var close = new WrapPanel();
-            foreach (var (id, label, glyph) in new[] { ("ask", "ASK", "\uE897"), ("stop", "STOP ALL & EXIT", "\uE71A"), ("tray", "KEEP IN TRAY", "\uE921") })
+            foreach (var (id, label, glyph) in new[] { ("ask", "ASK", "\uE897"), ("stop", "STOP ALL & EXIT", "\uE71A"), ("tray", "KEEP IN TRAY", "\uE70D") })
             {
                 var v = id;
                 close.Children.Add(new CzButton(label, () => { Prefs.Save(p => p.CloseWithWork = v); BuildSettings(); }, glyph, primary: Prefs.Value.CloseWithWork == v) { Margin = new Thickness(0, 0, 8, 8) });

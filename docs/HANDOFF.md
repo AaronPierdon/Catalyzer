@@ -2,6 +2,62 @@
 
 Each chat rewrites its own section at the end (git keeps history).
 
+## From the helpers chat — 2026-11-22 (cloud chat linked to the PC)
+
+### What this chat did
+- **GitHub:** pushed `AaronPierdon/Catalyzer` (`script catalyzer repo`; `origin` had been missing) and
+  `AaronPierdon/Nexus-Development-Principles`. The principles path has spaces, which the helper's argument split
+  can't take, so the push used the short name: `script catalyzer git -C ..\NEXUSD~1 push -u origin main`.
+- **Branch `pc/2026-11-22-helpers`** (pushed, not merged):
+  - **SDK API 2** (add-only): `ProjectBadge` / `BadgeState` / `MenuEntry` / `Tone`, `IBackgroundWork`,
+    `ICatalyzerHost.IsSnapshot`, `AddBadge`, `UpdateBadges`, `AddBackgroundWork`. Documented in `docs/PLUGINS.md`.
+  - **HelpersPlugin** (`plugins/Catalyzer.Helpers` → `HelpersPlugin.dll`):
+    - reads `helpers` from each `catalyzer.json` (`docs/MANIFEST.md`);
+    - runs every helper hidden (CreateNoWindow) inside a kill-on-close job object;
+    - logs to `%APPDATA%\Catalyzer\plugin-data\helpers\logs`;
+    - shows a card chip (HELPERS n/m) with start / stop / open log;
+    - supports `auto` (once a session) and `restart` (3 tries a minute).
+
+    Its Debug build copies itself into the app's Debug `plugins\Helpers`, so `script catalyzer snap` loads it
+    without touching Nexus's script.
+  - **App:**
+    - the header chip "n HELPERS" (stop each or all);
+    - closing with work running follows `closeWithWork` in settings (`ask` default / `stop` / `tray`): a glass
+      prompt with STOP ALL & EXIT / KEEP IN TRAY and a Remember toggle;
+    - Settings → General lets you change the close choice later;
+    - a tray icon with a Catalyzer glass menu (open, stop each, stop all, exit);
+    - a second start now signals the first copy (`Local\Catalyzer.Show`), which comes back from the tray.
+  - **Folder watcher:** each scan root is watched one level deep, and each project for its own `catalyzer.json`.
+    Nothing is recursive, so builds never wake it. Changes trigger a debounced rescan after 1.5 s.
+  - `--snapshot` also renders `catalyzer-close.png` (the close prompt).
+
+### Verified
+- It builds on the PC.
+- Snapshots in all five themes, plus settings and the close prompt, were looked at:
+  - the Catalyzer card shows HELPERS 0/2 (snapshot runs never start helpers);
+  - fixed after the first look: the prompt is wider so Remember isn't clipped, and the tray glyph changed.
+- Not yet seen live:
+  - helpers actually running (the LED, logs, restart);
+  - the tray;
+  - the prompt from a real ✕;
+  - the watcher picking up a fresh clone.
+
+### Ready to test (on Aaron's PC)
+- **Uncommitted test rig:** `catalyzer.json` has two test helpers, pointing at `.scratch\test-heartbeat.ps1`
+  (auto, writes every 5 s) and `.scratch\test-fail.ps1` (exits 3). The original is in `.scratch\catalyzer.json.bak`.
+  **Restore it before merging.**
+- Install (`script catalyzer install`) restarts Catalyzer only (not Nexus). Then:
+  1. HEARTBEAT should be on and the chip should read HELPERS 1/2, and no window should appear.
+  2. Start the fail test: the chip should turn red and the log should show `! on purpose`.
+  3. Press ✕: the prompt should appear. Try KEEP IN TRAY, then right-click the tray icon and try Exit. Check in
+     Task Manager that no powershell is left.
+  4. Kill Catalyzer from Task Manager while the heartbeat runs: its powershell should die too.
+
+### Next
+1. Aaron's live look at the above, then: restore `catalyzer.json`, merge to `main`, install, push.
+2. Give real projects their `helpers`. Ask Aaron which scripts. Not the Nexus helper (see MANIFEST).
+3. Principles badge (BACKLOG).
+
 ## From the first chat — 2026-11-22 (built in the Nexus PC chat, then retired)
 
 ### What exists
