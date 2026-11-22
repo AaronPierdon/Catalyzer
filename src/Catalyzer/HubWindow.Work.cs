@@ -117,7 +117,7 @@ namespace Catalyzer
             veil.MouseLeftButtonDown += (s, e) => ClosePrompt();
             _promptHost.Children.Add(veil);
 
-            var panel = new Grid { Width = 520, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            var panel = new Grid { Width = 620, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             var lift = new TranslateTransform(); panel.RenderTransform = lift;
             panel.Children.Add(new Glass { Cut = 14, Solid = true });
             Cz.Glow(panel, Cz.T.Accent, 30, 0.35);
