@@ -60,7 +60,11 @@ namespace Catalyzer
                 var body = l.Substring(2);
                 bool check = body.StartsWith("[ ]") || body.StartsWith("[x]") || body.StartsWith("[X]");
                 bool done = body.StartsWith("[x]") || body.StartsWith("[X]");
-                list.Add(new Item { Section = sec, Line = i, Check = check, Done = done, Text = (check ? body.Substring(3) : body).Trim() });
+                var text = (check ? body.Substring(3) : body).Trim();
+                // a note that wraps onto indented lines (not a sub-list) is still one note
+                for (int j = i + 1; j < _lines.Count && (_lines[j].StartsWith("  ") || _lines[j].StartsWith("\t")) && !_lines[j].TrimStart().StartsWith("- "); j++)
+                    text += " " + _lines[j].Trim();
+                list.Add(new Item { Section = sec, Line = i, Check = check, Done = done, Text = text });
             }
             return list;
         }
