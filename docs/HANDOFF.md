@@ -25,9 +25,10 @@ GUIDE) isn't done. Run PROMPTS → *Update* in the next Catalyzer chat.
 
 ### Next (first move first)
 1. **Update to principles 2.1.0** (PROMPTS → *Update*).
-2. **Kickoff generator** (BACKLOG): a NEW PROJECT button that asks for name and purpose, then shows the 04 setup
-   steps plus the filled-in Kickoff prompt with copy buttons.
-3. Everything under the first chat's *Next* below still stands.
+2. **NEW PROJECT** (BACKLOG, now fully specified): Catalyzer creates the GitHub repo, folder, templates and first push
+   by itself, then hands off to Claude with copy buttons. Every project starts here.
+3. **GitHub dashboard** (BACKLOG): list all repos, public and private, with URLs; rename and delete optional.
+4. Everything under the first chat's *Next* below still stands.
 
 ## From the first chat — 2026-11-22 (built in the Nexus PC chat, then retired)
 
