@@ -63,10 +63,12 @@ Every chat works with **two repos**: its app, and Catalyzer (the hub, with these
    app's `.catalyzer-principles`.
 2. Read `docs/HANDOFF.md`, `docs/NOTES.md` (Inbox and Next up) and `docs/STATE.md`, then run
    `git log --oneline -30`. Skim `VISION.md` and `ARCHITECTURE.md`. Read `GUIDE.md` for the part you'll touch.
-3. **Sync check:** is the app behind the principles VERSION? Are any of the 07 files missing? Is the NOTES Inbox
+3. **Scratch goes in `_devSpace/`.** One-off scripts, dumps, screenshots and experiments never land in `tools/`,
+   `src/` or the root.
+4. **Sync check:** is the app behind the principles VERSION? Are any of the 07 files missing? Is the NOTES Inbox
    unsorted? Say so in one line, and offer the Update prompt rather than silently fixing it.
-4. Study how the part you'll touch already works, and reuse its mechanisms. Don't build a parallel one.
-5. Tell Aaron in a few lines what you understood and what you'll do, then start.
+5. Study how the part you'll touch already works, and reuse its mechanisms. Don't build a parallel one.
+6. Tell Aaron in a few lines what you understood and what you'll do, then start.
 
 ## Branches and commits
 - `main` is what's installed and trusted.

@@ -7,26 +7,74 @@ Every app is built **with Catalyzer in mind**:
 
 The repo is the single source of truth. Chat memory isn't.
 
+## Spartan repos
+A repo holds what's needed to build, run, understand and ship the app: nothing more. Each thing in it is code, a
+doc someone reads, or a tool that builds or installs it. Here's the whole picture:
+
 ```
 <App>/
-  .catalyzer-principles        the principles version it follows, e.g. 2.0.0 (one line)
+  README.md                what it is, how to install and run, where its data lives (GitHub's front page)
   CLAUDE.md                how to work here: rules, build / run, what to read (template)
-  README.md                what it is, how to install and run, where its data lives
   catalyzer.json           its card in Catalyzer (name, description, accent, glyph, buttons, helpers)
-  <App>.sln / .slnx        builds everything with one command (or the platform's equivalent)
-  docs/
-    NOTES.md               the shared notepad: Aaron's list, ideas, bugs, done (Aaron + Claude + Catalyzer write)
-    VISION.md              where it's going: purpose, scope now, scope later, out of scope
-    ARCHITECTURE.md        the top-level map: components, libraries, feature sets, how data flows
-    GUIDE.md               the guide for humans: how it works, the main classes and key methods, with file pointers
-    HANDOFF.md             the baton between chats
-    STATE.md               what exists · Removed / decided against · known gaps
-  tools/                   build / install / snap scripts that a linked chat runs through the Catalyzer link
+  .catalyzer-principles    the principles version it follows (one line)
+  <App>.slnx / .sln        ONE solution that builds everything (or the platform's equivalent, e.g. Gradle)
+  .gitignore .gitattributes Directory.Build.props (optional)
+  src/                     the code: one folder per project (.csproj), with its own Assets/ (images, icons, fonts)
+  plugins/                 only for apps with a plugin SDK: one folder per bundled plugin
+  tests/                   test projects (inside the same solution)
+  tools/                   build / install / snap scripts + a double-click .cmd beside each
+  docs/                    NOTES, VISION, ARCHITECTURE, GUIDE, HANDOFF, STATE (+ a few topic docs, see below)
+  _devSpace/               scratch: git-ignored, never committed, cleaned at milestones
   .catalyzer/              Catalyzer's link mailbox (it git-ignores itself; never commit it)
-  src/ ...                 the code
 ```
 
-Starter files for all of these are in [`templates/`](templates/). Copy them, then fill them in. Don't leave
+**The rules:**
+- **Nothing else at the root.** No `.cmd` files, scripts, plans, runbooks or handovers up there. They go in `tools/` or
+  `docs/`.
+- **One solution.** Test projects live inside it. A second solution only for a real need (say a fast subset), and
+  CLAUDE.md says why.
+- **A project (`.csproj`) is one output** (an exe or a dll). Split code into projects for reuse or clear boundaries
+  (a `Core` used by the app, its agents and its tests), not for tidiness.
+- **Topic docs are few.** Beyond the six standard docs, keep a topic doc only when it describes something that
+  *exists*. Examples: a protocol (`CONTRACT.md`), a runbook for live data, a subsystem's design. Plans and roadmaps
+  go in VISION and NOTES. A finished plan is deleted, not archived: git remembers it.
+- **Retired code and old prototypes are deleted, not kept in `docs/history/`.** Git keeps them, and STATE →
+  *Removed / decided against* records the decision.
+- **Prototypes you care about** live on a git branch (`proto/<name>`), so they're backed up. A prototype that wins
+  moves into `src/`.
+- **Big files** (media, test images, datasets, builds) stay out of git. They go on the file server or in
+  `_devSpace/`, and the README says where.
+- **`tools/` holds the scripts people run**, and a script earns its place by being run again. One-off diagnostic
+  scripts (a screenshot of this, a dump of that) are written in `_devSpace/` and stay there.
+
+## `_devSpace` — the scratch pad
+- **What goes there:** experiments, throwaway scripts, test data, screenshots, logs, a spike before it's real code.
+  A chat writes its one-offs here, not in `tools/` or `src/`.
+- **Git-ignored:** `.gitignore` has `_devSpace/`. That means it is **not backed up**. Anything worth keeping
+  graduates into `src/`, `tools/`, `docs/` or a `proto/` branch.
+- **Cleaned at milestones.** When a feature ships (HANDOFF / STATE updated), the chat lists what's in `_devSpace` and
+  what it plans to delete. Aaron says yes before anything goes. Catalyzer can show its size on the card and suggest
+  a cleanup of files untouched since well before the last commit: it always shows the list first and never deletes
+  silently.
+
+## App families (one product across several repos)
+Some apps are a family: one product across several repos that talk to each other. MAWP is one: the PC app, the
+Android app and the TV app, sharing a backend and a device-link protocol.
+- **One contract doc** describes what the members share: the protocol, messages, ports, discovery, the shared data
+  shapes. It lives in the lead repo as `docs/CONTRACT.md` (for MAWP: the PC repo), and the others link to it rather
+  than keeping copies.
+- **A chat works in one member and reads the rest only when it needs to.** When the work touches the contract, it:
+  - reads CONTRACT and the other members' HANDOFF;
+  - updates CONTRACT;
+  - notes the change in each affected member's NOTES → *Inbox*.
+
+  It never loads the other codebases unless asked. That keeps family-aware work cheap.
+- **One Claude project and one Morning brief for the family**, with every member's folder attached. The brief reads
+  every member's HANDOFF and flags contract drift.
+- **Merging the repos into one** (`pc/`, `android/`, `tv/`) is an option when most changes hit every member at once.
+  It costs combining the histories and mixing toolchains in one tree, so decide it at a big refactor, not mid-feature.
+
+Starter files for all of these (`.gitignore` included) are in [`templates/`](templates/). Copy them, then fill them in. Don't leave
 placeholders in a pushed repo.
 
 ## The docs, and who keeps them true

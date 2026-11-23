@@ -20,9 +20,25 @@ Each chat rewrites its own section at the end (git keeps history).
 - **`main` now has everything:** helpers, link, notes, principles. It's what's installed. Other chats (the phone
   ones included) branch from it, so they don't start on stale docs again.
 
+### Later the same day
+- **The link is tested on the PC**: commands, exit codes, cancel, git with Aaron's credentials, a MAWP build, and
+  installing Catalyzer through its own link (`-s`). The install script now waits for the old process and retries the
+  staging folder. Commits and pushes now go through the link.
+- **Principles 3.1 → 4.0.0:**
+  - 3.1: the *Project instructions* block;
+  - 3.2: *Wiring an app to Catalyzer*, retiring `_tools` helpers, and the `tools/` templates;
+  - 4.0: **spartan repos**, **`_devSpace/`** and **app families** (MAWP).
+
+  Catalyzer adopted 4.0: snapshots now go to `_devSpace/snap`; `plugins/` and `principles/` are a recorded
+  EXCEPTION.
+- The wrong commit email ("aaron", a stranger's GitHub address) was scrubbed from all history (force-push, with
+  Aaron's OK). The repo's git email is now aetrocles@gmail.com.
+- NOTES → Next up: first-run setup, the GitHub panel, `_devSpace` on cards.
+
 ### Next (first move first)
-1. **Aaron clicks LINK** on the Catalyzer card. Then test through the link: git, `tools/snap.ps1`, a cancel, and the
-   feed. Try the NOTES panel.
+1. Aaron looks at the feed and the NOTES panel live. Then remove the test helpers from `catalyzer.json` (the
+   original is in `.scratch\catalyzer.json.bak`).
+2. First-run setup + the GitHub panel (NOTES → Next up).
 2. Every other app: "update to the latest principles" in its chat (3.0.0: the new marker and header; 2.0.0 docs if
    missing). Nexus's CLAUDE.md still points to the old principles repo until its chat does this.
 3. NEW PROJECT, then the GitHub dashboard (NOTES → Next up).

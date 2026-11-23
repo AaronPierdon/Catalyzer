@@ -25,6 +25,10 @@ LINK on the card.
 - Install: `bash .catalyzer/link/run.sh -f tools/install.ps1`. Warn Aaron first if it restarts something he uses.
 - Data: `%APPDATA%\<App>\settings.json`, log `%LOCALAPPDATA%\<App>\log.txt`.
 
+## Scratch
+One-off scripts, dumps, screenshots and experiments go in `_devSpace/` (git-ignored), never in `tools/`, `src/` or
+the root. List it for Aaron at milestones before cleaning.
+
 ## App-specific rules
 <anything the principles don't cover>
 

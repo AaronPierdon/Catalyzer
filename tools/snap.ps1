@@ -1,4 +1,4 @@
-# Debug build + render every theme (and settings, and the close prompt) to .scratch\snap\*.png, then print the log tail.
+# Debug build + render every theme (and settings, the close prompt, the feed, the notes) to _devSpace\snap\*.png, then print the log tail.
 # Usage (from a linked chat):  bash .catalyzer/link/run.sh -t 600 -f tools/snap.ps1
 $ErrorActionPreference = 'Continue'
 $root = Split-Path $PSScriptRoot -Parent
@@ -14,7 +14,7 @@ if (Test-Path $nx) {
     Copy-Item "$nx\*" "$bin\plugins\Nexus" -Recurse -Force
     Remove-Item "$bin\plugins\Nexus\Catalyzer.Sdk.*" -ErrorAction SilentlyContinue
 }
-$dir = "$root\.scratch\snap"; New-Item $dir -ItemType Directory -Force | Out-Null
+$dir = "$root\_devSpace\snap"; New-Item $dir -ItemType Directory -Force | Out-Null
 Remove-Item "$dir\*.png" -ErrorAction SilentlyContinue
 $p = Start-Process "$bin\Catalyzer.exe" -ArgumentList '--snapshot', "`"$dir`"" -PassThru -WindowStyle Hidden
 if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Output 'snapshot timed out' }

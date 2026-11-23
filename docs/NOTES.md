@@ -35,6 +35,16 @@ them into the other sections. Never delete Aaron's words. Done items move to *Do
 - [ ] Principles badge: show each repo's `.catalyzer-principles` (or old `.nexus-principles`) version against the current principles VERSION
       (behind = warn).
 
+- [ ] **First-run setup** (Aaron, 2026-11-23): on a new install, a glass welcome asks for the projects folder
+      (default `source\repos`), then GitHub: reuse the PC's git sign-in (Git Credential Manager, after asking) or
+      open GitHub's own sign-in. Stored with DPAPI, never shown or logged. No Claude API key (scrapped: API use is
+      billed apart from Pro, and Aaron works in the desktop app).
+- [ ] **GitHub panel** (Aaron, 2026-11-23): every repo on the account, public and private, each marked:
+      on this PC (it has a card); not here (CLONE into the projects folder); local only (PUBLISH = create + push);
+      ahead (PUSH). No cleanup. Merges with the GitHub dashboard item above.
+- [ ] **`_devSpace` on cards** (Aaron, 2026-11-23): show its size; suggest cleaning files untouched since well before
+      the last commit, always listing them first, never deleting silently.
+
 ## Ideas
 - [ ] Cross-device Catalyzer (Aaron, 2026-11-22): the same dashboard on the laptop, with GitHub as the backend
       (every machine pulls); maybe the phone later. Each PC runs its own link.

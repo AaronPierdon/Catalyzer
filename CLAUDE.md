@@ -41,7 +41,7 @@ Catalyzer is Aaron's project command center: a WPF / .NET 10 dashboard, extensib
 ## Running things on the PC (start here)
 ```bash
 bash .catalyzer/link/run.sh --status            # ACTIVE = you have a hidden Windows terminal in this repo
-bash .catalyzer/link/run.sh -t 600 -f tools/snap.ps1          # build + render every theme to .scratch/snap
+bash .catalyzer/link/run.sh -t 600 -f tools/snap.ps1          # build + render every theme to _devSpace/snap
 bash .catalyzer/link/run.sh 'git status; git log --oneline -5'
 bash .catalyzer/link/run.sh -s -f tools/install.ps1           # install: survive mode (it restarts Catalyzer itself)
 ```
@@ -52,6 +52,10 @@ bash .catalyzer/link/run.sh -s -f tools/install.ps1           # install: survive
   its lock files there). The tarball sync in HANDOFF is only for when nothing else works.
 
 ## Rules
+- Scratch goes in `_devSpace/` (git-ignored). The old `.scratch/` folder holds past chats' tarballs and test rigs:
+  ask Aaron before clearing it.
+- Root layout follows principles 07, with two extra folders: `plugins/` (bundled plugins) and `principles/` (the
+  rulebook lives here). That's an **EXCEPTION** to "nothing else at the root", because this repo is the hub.
 - Look matters: chamfered glass, glow, decode-in text, nothing pops. Every colour comes from the theme. No literals in UI code.
 - No console windows, ever: git and helper processes run hidden (`CreateNoWindow`).
 - Installing Catalyzer restarts it (and everything its link and helpers were running): say so to Aaron first.

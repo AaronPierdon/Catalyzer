@@ -2,6 +2,33 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 4.0.0 — 2026-11-23
+**Spartan repos** (07). The repo layout is now a rule, not a suggestion:
+- the root holds only README, CLAUDE, `catalyzer.json`, the marker, the solution and the git files;
+- everything else goes in `src/`, `tests/`, `tools/`, `docs/` or `_devSpace/`;
+- one solution;
+- topic docs only for things that exist;
+- retired code and plans are deleted (git remembers), not kept in `docs/history/`;
+- prototypes live on `proto/` branches;
+- big files stay out of git.
+
+**New: `_devSpace/`**, the git-ignored scratch pad for experiments, one-off scripts and test data. It's cleaned at
+milestones, only with Aaron's yes.
+
+**New: app families** (07): one product across several repos (MAWP PC / Android / TV). One `docs/CONTRACT.md` in the
+lead repo; a chat reads the other members only when it touches the contract; one Claude project and one Morning
+brief for the family.
+
+**What an app must do** (in its next chat, as its own commit, with Aaron's go-ahead before deleting anything):
+1. Add `_devSpace/` to `.gitignore`.
+2. Move root clutter into `tools/` or `docs/`, keeping the `.cmd` files Aaron double-clicks working. The code goes
+   into `src/` if it sits at the root.
+3. Sort `docs/`: plans → VISION / NOTES; finished plans and `docs/history/` → delete (list them first).
+4. Sort scripts: the ones people run again → `tools/`; one-offs → `_devSpace/`.
+5. Big files out of git. Untracked code that matters → commit it, or put it on a `proto/` branch.
+6. For a family member: create or point to the family's `CONTRACT.md`.
+7. Bump `.catalyzer-principles` to `4.0.0`.
+
 ## 3.2.0 — 2026-11-23
 **Wiring an app to Catalyzer** (07): the once-per-app recipe:
 - a GitHub repo and folder;

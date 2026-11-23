@@ -34,3 +34,5 @@
       docs (NOTES, VISION, ARCHITECTURE, GUIDE, HANDOFF, STATE), filled in with no placeholders left.
 - [ ] Its own GitHub repo (`AaronPierdon/<App>`), with `main` pushed. Shows up in Catalyzer.
 - [ ] Build, snap and install are `tools\` scripts that a linked chat can run.
+- [ ] Spartan (07): nothing at the root beyond the listed files; one solution; `_devSpace/` ignored; no
+      `docs/history/`; no big files or one-off scripts in git; no untracked code that matters.

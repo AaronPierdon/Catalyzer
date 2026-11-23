@@ -1,0 +1,10 @@
+# build output
+bin/
+obj/
+publish/
+.vs/
+*.user
+# scratch pad: never committed (principles 07 -> _devSpace)
+_devSpace/
+# Catalyzer's link mailbox (it also ignores itself)
+.catalyzer/
