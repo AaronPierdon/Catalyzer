@@ -28,6 +28,10 @@ namespace Catalyzer
         public string CloseWithWork { get; set; } = "ask";
         /// <summary>Notes edited in the panel commit (NOTES.md only) and push themselves a minute after the last edit.</summary>
         public bool NotesAutoSync { get; set; } = true;
+        /// <summary>The welcome has been seen (first start).</summary>
+        public bool FirstRunDone { get; set; }
+        /// <summary>The GitHub login git's sign-in belongs to (display only; the key itself is never stored).</summary>
+        public string GitHubLogin { get; set; }
     }
 
     public static class Prefs

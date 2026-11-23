@@ -37,6 +37,10 @@ namespace Catalyzer.Helpers
         /// <summary>Auto-start happens once per session per helper: a helper you stopped stays stopped across rescans.</summary>
         private readonly HashSet<string> _autoDone = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private bool _stopping;
+        /// <summary>Helpers Aaron has started by hand at least once (folder|name|run). Only these auto-start: a repo cloned
+        /// from elsewhere can't run anything just by saying "auto" in its catalyzer.json.</summary>
+        private HashSet<string> _trusted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private string _trustFile;
 
         public event Action Changed;
 
@@ -44,6 +48,8 @@ namespace Catalyzer.Helpers
         {
             _host = host;
             _logs = Path.Combine(host.DataFolder(this), "logs");
+            _trustFile = Path.Combine(host.DataFolder(this), "trusted.json");
+            try { if (File.Exists(_trustFile)) _trusted = new HashSet<string>(JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_trustFile)) ?? new List<string>(), StringComparer.OrdinalIgnoreCase); } catch { }
             if (!host.IsSnapshot) _job = new Job();
             host.AddBadge(new ProjectBadge
             {
@@ -103,7 +109,11 @@ namespace Catalyzer.Helpers
                         if (!_all.TryGetValue(key, out var h)) _all[key] = h = new Helper { Key = key, Folder = p.Folder, Project = p.Name, Log = LogFile(p.Name, d.Name) };
                         h.Project = p.Name;
                         if (!h.IsRunning) h.Def = d; else h.Pending = d;   // a running helper keeps the definition it was started with
-                        if (d.Auto && !_host.IsSnapshot && _autoDone.Add(key) && !h.IsRunning) auto.Add(h);
+                        if (d.Auto && !_host.IsSnapshot && !h.IsRunning && _autoDone.Add(key))
+                        {
+                            if (_trusted.Contains(TrustKey(h, d))) auto.Add(h);
+                            else { h.Note = "auto waits for a first start by hand"; _host.Log(this, p.Name + " / " + d.Name + ": auto-start waits until it's been started by hand once"); }
+                        }
                     }
             }
             foreach (var h in auto) Launch(h, "auto");
@@ -111,6 +121,14 @@ namespace Catalyzer.Helpers
         }
 
         // ================================================================== running
+
+        private static string TrustKey(Helper h, HelperDef d) => h.Folder + "|" + d.Name + "|" + d.Run + "|" + d.Args;
+
+        private void Trust(Helper h)
+        {
+            if (h.Def == null || !_trusted.Add(TrustKey(h, h.Def))) return;
+            try { File.WriteAllText(_trustFile, JsonSerializer.Serialize(_trusted.ToList())); } catch (Exception ex) { _host.Log(this, "trusted.json: " + ex.Message); }
+        }
 
         private void Launch(Helper h, string why)
         {
@@ -263,12 +281,12 @@ namespace Catalyzer.Helpers
                 if (h.IsRunning || h.State == HelperState.Waiting)
                     items.Add(new MenuEntry { Text = "Stop " + h.Def.Name, Glyph = "", Hint = Describe(h), Run = () => StopOne(x) });
                 else
-                    items.Add(new MenuEntry { Text = "Start " + h.Def.Name, Glyph = "", Hint = Describe(h), Danger = false, Run = () => Launch(x, "started from the card") });
+                    items.Add(new MenuEntry { Text = "Start " + h.Def.Name, Glyph = "", Hint = Describe(h), Danger = false, Run = () => { Trust(x); Launch(x, "started from the card"); } });
             }
             if (hs.Count > 1)
             {
                 items.Add(new MenuEntry { Separator = true });
-                if (hs.Any(h => !h.IsRunning)) items.Add(new MenuEntry { Text = "Start all", Glyph = "", Run = () => { foreach (var h in hs.Where(h => !h.IsRunning)) Launch(h, "start all"); } });
+                if (hs.Any(h => !h.IsRunning)) items.Add(new MenuEntry { Text = "Start all", Glyph = "", Run = () => { foreach (var h in hs.Where(h => !h.IsRunning)) { Trust(h); Launch(h, "start all"); } } });
                 if (hs.Any(h => h.IsRunning)) items.Add(new MenuEntry { Text = "Stop all", Glyph = "", Danger = true, Run = () => { foreach (var h in hs) StopOne(h); } });
             }
             items.Add(new MenuEntry { Separator = true });

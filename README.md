@@ -22,6 +22,20 @@ Git is read with a hidden `git.exe`, so you never see a console window.
 
 Keys: `F5` rescans, `Ctrl+F` searches, `Esc` closes settings or clears the search. Right-click a card for more options. Double-click a card to open its folder.
 
+## Getting started
+- **First start:** a welcome asks where your projects live (default `source\repos`) and signs in to GitHub. It uses
+  the sign-in git already has on the PC; Catalyzer never stores the key.
+- **`+`** in the header: **New project** (folder, docs, first commit, GitHub repo, push, then what to paste into
+  Claude), **Clone from GitHub**, or **Add an existing folder**.
+- **The GitHub button** lists every repo on your account against this PC: CLONE what's missing, PUSH what's ahead,
+  PUBLISH what's only local.
+- **Each card** has chips:
+  - NOTES (and SYNC when notes and GitHub differ);
+  - LINK (a hidden terminal for Claude);
+  - HELPERS, if the project declares any;
+  - DEV (its `_devSpace` scratch folder: open it, or clean it up into the Recycle Bin after a list).
+- **Uninstall:** Settings → Apps → Catalyzer → Uninstall. Your projects are never touched.
+
 ## Projects
 Catalyzer shows every git repo, or folder with a `catalyzer.json`, directly inside the scan folders. The default scan folder is `%USERPROFILE%\source\repos`. It skips `archives`, `node_modules`, `temp` and dot-folders.
 

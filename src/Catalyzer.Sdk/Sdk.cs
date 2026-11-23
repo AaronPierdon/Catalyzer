@@ -14,8 +14,9 @@ namespace Catalyzer.Sdk
         /// 2 = card badges (<see cref="ProjectBadge"/>, clickable), background work (<see cref="IBackgroundWork"/>: the
         ///     header chip, the close prompt and the tray), feeds (<see cref="IFeed"/>: a live log drawer),
         ///     <see cref="ICatalyzerHost.IsSnapshot"/>.
+        /// 3 = plugin options in Settings (<see cref="PluginSetting"/>).
         /// </summary>
-        public const int Version = 2;
+        public const int Version = 3;
     }
 
     /// <summary>
@@ -77,6 +78,22 @@ namespace Catalyzer.Sdk
         void AddBackgroundWork(IBackgroundWork work);
         /// <summary>API 2. Open a live log drawer (Catalyzer's glass, mono lines, follows the end). One at a time.</summary>
         void ShowFeed(IFeed feed);
+
+        // ---------------------------------------------------------------- API 3
+
+        /// <summary>API 3. An on / off option of the plugin, shown in Settings → General (the plugin keeps the value).</summary>
+        void AddSetting(ICatalyzerPlugin plugin, PluginSetting setting);
+    }
+
+    /// <summary>API 3. An on / off option a plugin shows in Settings.</summary>
+    public sealed class PluginSetting
+    {
+        public string Id { get; set; } = "";
+        public string Label { get; set; } = "";
+        /// <summary>A line under the toggle.</summary>
+        public string Note { get; set; }
+        public Func<bool> Get { get; set; }
+        public Action<bool> Set { get; set; }
     }
 
     /// <summary>API 2. One line in a feed.</summary>

@@ -2,6 +2,32 @@
 
 Each chat rewrites its own section at the end (git keeps history).
 
+## From the helpers / link chat, 1.0 — 2026-11-23 evening
+
+### What this chat did (Catalyzer 1.0)
+- **Notes auto-sync:** NOTES.md only, a minute after the last edit, generated messages, a SYNC ↑/↓ chip on the card,
+  pull on open when safe. Tested on throwaway repos: push, pull, held back behind a chat's unpushed work, merge, and
+  conflict.
+- **Window fixes:** header icons and window buttons never lose a click to DragMove; the restore glyph is fixed.
+- **Settings:** plugin options (SDK API 3, `AddSetting`); Link: *Relink linked projects when Catalyzer starts*
+  (default on).
+- **First-run welcome**, **GitHub panel** (clone / push / publish), and **NEW PROJECT** (templates → first commit →
+  GitHub → push → handoff with COPY).
+- **`_devSpace` chip:** size; cleanup to the Recycle Bin after a list.
+- **Security pass:**
+  - Helpers' `auto` only works after a helper has been started by hand once (`trusted.json`), so a cloned repo
+    can't run anything at start;
+  - the link refuses requests tracked by git (ones that came with a pull or clone);
+  - the GitHub key is borrowed from Git Credential Manager per request and never stored or logged.
+- **1.0.0:** the install bundles `principles/` (NEW PROJECT needs the templates), writes an Apps & Features entry,
+  and `uninstall.ps1` removes everything but `%APPDATA%` (`-Purge` for that too).
+
+### Next (first move first)
+1. Aaron tries 1.0 live (NOTES → Next up has the list).
+2. His other apps: link them, then "update to the latest principles" in each one's chat.
+3. MAWP's morning brief: create it from inside the MAWP project (the prompt is in this chat's history; principles
+   PROMPTS → *Morning brief* is the short form).
+
 ## From the helpers / link chat, day 2 — 2026-11-23 (cloud chat linked to the PC)
 
 ### What this chat did

@@ -60,8 +60,10 @@ namespace Catalyzer
             _root.Children.Add(Rim());
             _root.Children.Add(_drawerHost);
             _root.Children.Add(_notesHost);
+            _root.Children.Add(_ghHost);
             _root.Children.Add(_feedHost);
             _root.Children.Add(_promptHost);
+            _root.Children.Add(_dialogHost);
             Content = _root;
 
             ThemeService.I.Changed += OnTheme;
@@ -75,7 +77,7 @@ namespace Catalyzer
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; }
                 else if (e.Key == Key.F5) { _board.Rescan(); e.Handled = true; }
-                else if (e.Key == Key.Escape) { if (PromptOpen) ClosePrompt(); else if (FeedOpen) CloseFeed(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
+                else if (e.Key == Key.Escape) { if (DialogOpen) _dialogEsc?.Invoke(); else if (PromptOpen) ClosePrompt(); else if (GitHubOpen) CloseGitHub(); else if (FeedOpen) CloseFeed(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
             };
             StateChanged += (s, e) => { _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
             Activated += (s, e) => { if ((DateTime.Now - _board.LastScan).TotalSeconds > 20 && !_board.Scanning) _board.RefreshGit(); };
@@ -87,6 +89,9 @@ namespace Catalyzer
             InitWork();
             InitFeed();
             InitNotes();
+            InitGitHub();
+            InitDevSpace();
+            Loaded += (s, e) => { if (!Prefs.Value.FirstRunDone && !Prefs.Offline) Dispatcher.BeginInvoke(new Action(Welcome), System.Windows.Threading.DispatcherPriority.Background); };
             Say("READY  //  F5 RESCAN  ·  CTRL+F SEARCH  ·  RIGHT-CLICK A CARD FOR MORE");
         }
 
@@ -144,7 +149,15 @@ namespace Catalyzer
             sg.Children.Add(sp);
             tools.Children.Add(sg);
             tools.Children.Add(new CzIconButton("\uE72C", () => { _board.Rescan(); Say("RESCANNING"); }, "RESCAN  //  F5"));
-            tools.Children.Add(new CzIconButton("\uE710", AddFolder, "ADD A PROJECT FOLDER"));
+            CzIconButton plus = null;
+            plus = new CzIconButton("\uE710", () => new CzMenu { Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom }.Show(plus, "NEW", new List<CzMenu.Item>
+            {
+                new CzMenu.Item { Text = "New project", Glyph = "\uE710", Hint = "folder + repo + GitHub + kickoff", Click = NewProject },
+                new CzMenu.Item { Text = "Clone from GitHub", Glyph = "\uE896", Hint = "the GitHub panel", Click = OpenGitHub },
+                new CzMenu.Item { Text = "Add an existing folder", Glyph = "\uE8DA", Click = AddFolder },
+            }), "NEW PROJECT  ·  CLONE  ·  ADD A FOLDER");
+            tools.Children.Add(plus);
+            tools.Children.Add(new CzIconButton("\uE753", OpenGitHub, "GITHUB  //  ALL YOUR REPOS"));
             tools.Children.Add(new CzIconButton("\uE713", () => Drawer(!_drawerOpen), "SETTINGS  //  THEMES · PLUGINS · FOLDERS"));
             Grid.SetColumn(tools, 2); g.Children.Add(tools);
             var win = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Top };

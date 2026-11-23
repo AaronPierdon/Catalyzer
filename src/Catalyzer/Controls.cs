@@ -255,9 +255,13 @@ namespace Catalyzer
         private readonly Path _bg = new Path { StrokeThickness = 1 };
         private readonly TextBlock _label, _glyph;
         private bool _hot, _down; private readonly bool _primary;
+        /// <summary>What a click does (settable after construction).</summary>
+        public Action Click;
+        /// <summary>Change the caption (e.g. "WORKING...").</summary>
+        public void SetLabel(string text) { if (_label != null) _label.Text = text; }
         public CzButton(string label, Action click, string glyph = null, bool primary = false, double height = 28, string tip = null)
         {
-            _primary = primary; Height = height; Cursor = Cursors.Hand; ToolTip = tip; Background = Brushes.Transparent;
+            Click = click; _primary = primary; Height = height; Cursor = Cursors.Hand; ToolTip = tip; Background = Brushes.Transparent;
             Children.Add(Cz.Under(_bg));
             var sp = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(label == null ? 7 : 10, 0, label == null ? 7 : 11, 0), VerticalAlignment = VerticalAlignment.Center };
             if (glyph != null) { _glyph = Cz.Icon(glyph, 11.5, primary ? "CzSelectBrush" : "CzAccentBrush"); sp.Children.Add(_glyph); }
@@ -271,7 +275,7 @@ namespace Catalyzer
             MouseLeftButtonUp += (s, e) =>
             {
                 bool was = _down; _down = false; ReleaseMouseCapture(); Look(); e.Handled = true;
-                if (was && IsMouseOver) click?.Invoke();
+                if (was && IsMouseOver && IsEnabled) Click?.Invoke();
             };
         }
         private void Look()

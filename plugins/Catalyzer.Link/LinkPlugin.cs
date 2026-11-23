@@ -27,7 +27,7 @@ namespace Catalyzer.Link
         public string Version => "1.0.0";
         public string Author => "Aaron Pierdon";
         public string Description => "LINK on a card gives that repo a hidden Windows terminal for Claude: commands run in the repo, no windows, every one shown in the feed.";
-        public int MinApi => 2;
+        public int MinApi => 3;
 
         internal ICatalyzerHost Host;
         internal Job Job;
@@ -36,6 +36,9 @@ namespace Catalyzer.Link
         private readonly object _gate = new object();
         private readonly Dictionary<string, Link> _links = new Dictionary<string, Link>(StringComparer.OrdinalIgnoreCase);
         private HashSet<string> _remember = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private string _options;
+        /// <summary>Linked projects come back on by themselves when Catalyzer starts (Settings → General).</summary>
+        private bool _relinkAtStart = true;
         public event Action Changed;
 
         public void Start(ICatalyzerHost host)
@@ -43,6 +46,16 @@ namespace Catalyzer.Link
             Host = host;
             var data = host.DataFolder(this);
             _state = Path.Combine(data, "linked.json");
+            _options = Path.Combine(data, "options.json");
+            try { if (File.Exists(_options)) _relinkAtStart = JsonDocument.Parse(File.ReadAllText(_options)).RootElement.TryGetProperty("relinkAtStart", out var r) ? r.GetBoolean() : true; }
+            catch (Exception ex) { host.Log(this, "options.json: " + ex.Message); }
+            host.AddSetting(this, new PluginSetting
+            {
+                Id = "relink", Label = "Relink linked projects when Catalyzer starts",
+                Note = "Off: every link starts OFF after a restart, until you click LINK. (A morning brief needs it on.)",
+                Get = () => _relinkAtStart,
+                Set = v => { _relinkAtStart = v; try { File.WriteAllText(_options, "{ \"relinkAtStart\": " + (v ? "true" : "false") + " }"); } catch (Exception ex) { Host.Log(this, "options.json: " + ex.Message); } },
+            });
             try { if (File.Exists(_state)) _remember = new HashSet<string>(JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_state)) ?? new List<string>(), StringComparer.OrdinalIgnoreCase); }
             catch (Exception ex) { host.Log(this, "linked.json: " + ex.Message); }
             if (!host.IsSnapshot)
@@ -95,6 +108,8 @@ namespace Catalyzer.Link
         private void Sync()
         {
             if (Host.IsSnapshot) { Host.UpdateBadges(); return; }
+            // remembered links come back by themselves, unless that's switched off (then only a click links)
+            if (!_relinkAtStart) { Host.UpdateBadges(); return; }
             foreach (var p in Host.Projects)
                 if (_remember.Contains(p.Folder))
                 {
@@ -305,6 +320,20 @@ namespace Catalyzer.Link
             finally { Interlocked.Exchange(ref _ticking, 0); }
         }
 
+        /// <summary>Requests git knows about came with the repo (a pull, a clone), not from a chat: never run them.</summary>
+        private bool Tracked(string file)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo("git", "-C \"" + Folder + "\" ls-files --error-unmatch -- \"" + Path.GetRelativePath(Folder, file).Replace('\\', '/') + "\"")
+                { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+                using var p = Process.Start(psi);
+                if (!p.WaitForExit(5000)) { try { p.Kill(); } catch { } return true; }   // can't tell: don't run it
+                return p.ExitCode == 0;
+            }
+            catch { return false; }   // no git: nothing is tracked
+        }
+
         private void PickUp()
         {
             foreach (var f in Directory.GetFiles(_in).OrderBy(x => x, StringComparer.Ordinal))
@@ -314,6 +343,13 @@ namespace Catalyzer.Link
                 var fi = new FileInfo(f);
                 if ((DateTime.UtcNow - fi.LastWriteTimeUtc).TotalMilliseconds < 250) continue;   // still being written
                 var id = Path.GetFileNameWithoutExtension(f);
+                if (Tracked(f))
+                {
+                    try { File.Move(f, Path.Combine(_out, "refused-" + Guid.NewGuid().ToString("N")[..8] + ext), true); } catch { }
+                    Say("REFUSED " + Path.GetFileName(f) + ": it's part of the repo (it came with a pull or a clone), not a request from a chat", Tone.Danger);
+                    _pl.Host.Log(_pl, Name + ": refused a request tracked by git: " + Path.GetFileName(f), show: true);
+                    continue;
+                }
                 if (!IdOk.IsMatch(id)) { try { File.Move(f, Path.Combine(_out, "rejected-" + Guid.NewGuid().ToString("N")[..8] + ext), true); } catch { } Say("rejected a request with a bad name: " + Path.GetFileName(f), Tone.Warn); continue; }
                 while (Directory.GetFiles(_out, id + ".*").Length > 0) id += "-2";
                 var r = new Req { Id = id, Script = Path.Combine(_out, id + ext), Log = Path.Combine(_out, id + ".log"), Done = Path.Combine(_out, id + ".done") };

@@ -5,8 +5,8 @@ One screen. How each part works is in [GUIDE.md](GUIDE.md).
 ## Parts
 | Part | Folder | Does |
 |---|---|---|
-| **App** | `src/Catalyzer` | the window, board, cards, drawers (settings, notes, feed), theme layer, tray, plugin host |
-| **SDK** | `src/Catalyzer.Sdk` | the plugin API (API 2): themes, card actions and badges, project sources, background work, feeds. Add-only |
+| **App** | `src/Catalyzer` | the window, board, cards, drawers (settings, notes, feed, GitHub), dialogs (welcome, new project, publish, cleanup), theme layer, tray, plugin host |
+| **SDK** | `src/Catalyzer.Sdk` | the plugin API (API 3): themes, card actions and badges, project sources, background work, feeds, plugin settings. Add-only |
 | **NexusPlugin** | `plugins/Catalyzer.Nexus` | the live Nexus theme (through `NexusPublicApi`), and the NEXUS button |
 | **LinkPlugin** | `plugins/Catalyzer.Link` | LINK per card: a hidden Windows terminal through a mailbox in the repo |
 | **HelpersPlugin** | `plugins/Catalyzer.Helpers` | a project's long-running scripts (`helpers` in `catalyzer.json`), hidden |
@@ -27,6 +27,11 @@ The app never references a plugin or Nexus. Plugins only see the SDK.
 ## Feature sets
 - **Board:** scan, cards, git state, activity, buttons, search, a folder watcher. Lives in `Projects`, `Board`,
   `ProjectCard` and `HubWindow`.
+- **GitHub:** `GitHub` (REST through `HttpClient`, the token borrowed from Git Credential Manager per request,
+  never stored or logged), `HubWindow.GitHub` (panel: clone / push / publish), `HubWindow.NewProject` (scaffold from
+  `principles/templates`, git init, create, push, handoff), `HubWindow.Welcome` (first run). GitHub is core, not a
+  plugin: managing repos is what Catalyzer is for.
+- **`_devSpace`:** `HubWindow.DevSpace` (size chip; cleanup to the Recycle Bin after a listed confirm).
 - **Notes:** the NOTES chip and the notes drawer over `docs/NOTES.md`, with git sync. Lives in `Notes` and
   `HubWindow.Notes`.
 - **Link:** `.catalyzer\link` mailbox → queue → hidden PowerShell runner → log, exit code and feed. Lives in

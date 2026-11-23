@@ -97,6 +97,12 @@ namespace Catalyzer
             w.NotesForSnapshot();
             await System.Threading.Tasks.Task.Delay(1000);
             Save(w, Path.Combine(dir, "catalyzer-notes.png"));
+            w.SnapshotDialogs(1);
+            await System.Threading.Tasks.Task.Delay(900);
+            Save(w, Path.Combine(dir, "catalyzer-welcome.png"));
+            w.SnapshotDialogs(2);
+            await System.Threading.Tasks.Task.Delay(900);
+            Save(w, Path.Combine(dir, "catalyzer-newproject.png"));
             Shutdown();
         }
 

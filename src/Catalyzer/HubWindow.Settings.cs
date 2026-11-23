@@ -81,6 +81,25 @@ namespace Catalyzer
             b.Children.Add(Section("General"));
             b.Children.Add(new CzToggle(Launch.AtStartup, on => Launch.AtStartup = on, "Run at Windows start") { Margin = new Thickness(0, 4, 0, 10) });
             b.Children.Add(new CzToggle(Prefs.Value.ReduceMotion, on => { Prefs.Save(p => p.ReduceMotion = on); }, "Reduce motion") { Margin = new Thickness(0, 0, 0, 4) });
+            b.Children.Add(Cz.Mono("GITHUB", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 12, 0, 6)));
+            var gh = new WrapPanel();
+            gh.Children.Add(Cz.Mono(Prefs.Value.GitHubLogin != null ? "SIGNED IN AS " + Prefs.Value.GitHubLogin.ToUpperInvariant() + "   " : "NOT SIGNED IN   ", 11, Prefs.Value.GitHubLogin != null ? "CzOkBrush" : "CzTextFaintBrush").Also(t => { t.VerticalAlignment = VerticalAlignment.Center; t.Margin = new Thickness(0, 0, 8, 8); }));
+            gh.Children.Add(new CzButton(Prefs.Value.GitHubLogin != null ? "CHECK" : "SIGN IN", async () =>
+            {
+                try { var login = await GitHub.Login(); Prefs.Save(p => p.GitHubLogin = login); Say("GITHUB  //  SIGNED IN AS " + login.ToUpperInvariant()); }
+                catch (Exception ex) { Log.Write("github: " + ex.Message, show: true); }
+                BuildSettings();
+            }, "\uE77B") { Margin = new Thickness(0, 0, 8, 8) });
+            gh.Children.Add(new CzButton("WELCOME AGAIN", () => { Drawer(false); Welcome(); }, "\uE80F") { Margin = new Thickness(0, 0, 8, 8) });
+            b.Children.Add(gh);
+            b.Children.Add(Note("GitHub uses the sign-in git already has on this PC. Catalyzer never stores or shows the key."));
+            foreach (var (plugin, ps) in PluginHost.I?.Settings ?? new List<(string, PluginSetting)>())
+            {
+                bool on; try { on = ps.Get(); } catch { on = false; }
+                var setting = ps;
+                b.Children.Add(new CzToggle(on, v => { try { setting.Set(v); } catch (Exception ex) { Log.Write(plugin + ": " + ex.Message, show: true); } }, setting.Label) { Margin = new Thickness(0, 8, 0, 2), ToolTip = plugin.ToUpperInvariant() + " PLUGIN" });
+                if (setting.Note != null) b.Children.Add(Note(setting.Note));
+            }
             b.Children.Add(new CzToggle(Prefs.Value.NotesAutoSync, on => { Prefs.Save(p => p.NotesAutoSync = on); PluginHost.I?.UpdateBadges(); }, "Auto-sync notes") { Margin = new Thickness(0, 8, 0, 4), ToolTip = "NOTES.MD ONLY: COMMITS AND PUSHES ITSELF A MINUTE AFTER YOUR LAST EDIT IN THE NOTES PANEL" });
             b.Children.Add(Note("Starting with Windows opens Catalyzer minimized."));
             b.Children.Add(Cz.Mono("CLOSING WHILE HELPERS RUN", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));

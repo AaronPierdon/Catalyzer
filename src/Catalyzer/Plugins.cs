@@ -79,6 +79,10 @@ namespace Catalyzer
             w.Changed += () => Application.Current?.Dispatcher.BeginInvoke(new Action(() => WorkChanged?.Invoke()));
         }
 
+        private readonly List<(string plugin, PluginSetting setting)> _settings = new List<(string, PluginSetting)>();
+        public IReadOnlyList<(string plugin, PluginSetting setting)> Settings => _settings;
+        public void AddSetting(ICatalyzerPlugin p, PluginSetting s) { if (s?.Get != null && s.Set != null) _settings.Add((p?.Name ?? "Plugin", s)); }
+
         /// <summary>A plugin asked for its feed drawer (UI thread).</summary>
         public event Action<IFeed> FeedRequested;
         public void ShowFeed(IFeed f) { if (f != null) Application.Current?.Dispatcher.BeginInvoke(new Action(() => FeedRequested?.Invoke(f))); }

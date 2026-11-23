@@ -25,6 +25,8 @@ way, then points at the files. The parts and where they live are in [ARCHITECTUR
 | `Projects` | `src/Catalyzer/Projects.cs` | finding projects, reading `catalyzer.json`, reading git |
 | `ProjectCard` | `src/Catalyzer/ProjectCard.cs` | one card: header, git line, activity, badges, buttons |
 | `HubWindow` (+ `.Settings` `.Work` `.Feed` `.Notes`) | `src/Catalyzer/HubWindow*.cs` | the window and its drawers, prompt, tray |
+| `GitHub` | `src/Catalyzer/GitHub.cs` | GitHub REST (repos, create) with the key borrowed from git's sign-in; hidden git for clone / push |
+| `HubWindow.Welcome` / `.GitHub` / `.NewProject` / `.DevSpace` / `.Dialog` | `src/Catalyzer/HubWindow.*.cs` | first run · the GitHub panel · NEW PROJECT + handoff · the DEV chip · the shared glass dialog |
 | `Notes` | `src/Catalyzer/Notes.cs` | reading and editing a repo's `docs/NOTES.md`, and syncing it |
 | `PluginHost` | `src/Catalyzer/Plugins.cs` | loads plugins and implements `ICatalyzerHost` |
 | `ThemeService`, `Cz` | `src/Catalyzer/Theme.cs`, `Controls.cs` | theme roles as `Cz*` resources; the drawn controls (Glass, CzButton, Chip, CzMenu...) |

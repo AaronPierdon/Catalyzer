@@ -55,6 +55,11 @@ public sealed class HelloPlugin : ICatalyzerPlugin
 | `ShowFeed(IFeed)` *(API 2)* | open the live log drawer: `Title`, `State`, `Lines()`, `Actions()` (its buttons), `Changed` |
 | `AddBackgroundWork(IBackgroundWork)` *(API 2)* | something you keep running. Catalyzer shows it in the header, asks before closing while any of it runs, and offers stop in the tray |
 
+## Plugin settings (API 3)
+`host.AddSetting(this, new PluginSetting { Id, Label, Note, Get, Set })` adds an on / off toggle to Settings →
+General, under the plugin's name. The plugin keeps the value itself, in its `DataFolder`. Example: Link's *Relink
+linked projects when Catalyzer starts*.
+
 ## Badges and background work (API 2)
 - **Badges.** A `ProjectBadge` has an `Id`, an `Order`, an `AppliesTo`, a `State` and a `Menu`. `State` returns a
   `BadgeState`: `Text` (short, capitals), `Tone` (`Faint`, `Dim`, `Accent`, `Select`, `Ok`, `Warn` or `Danger`; a
