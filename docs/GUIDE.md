@@ -41,7 +41,17 @@ way, then points at the files. The parts and where they live are in [ARCHITECTUR
    items.
 4. Enter → `Notes.Add` (Notes.cs:80) puts the note at the top of *Inbox*. Ticking → `Notes.Toggle` (Notes.cs:90)
    moves it to *Done* with a date.
-5. SYNC → `Notes.Sync` (Notes.cs:186) commits only NOTES.md, then pulls (rebase, autostash), then pushes.
+5. Sync → `Notes.Sync`. It:
+   - commits only NOTES.md, with a generated message;
+   - fetches;
+   - brings in GitHub's commits only if they touch nothing but NOTES.md (fast-forward, or a merge; a conflict is
+     aborted and reported);
+   - pushes only if every unpushed commit touches nothing but NOTES.md.
+
+   It's triggered by the SYNC chip on the card (`SyncBadge` / `SyncProject` in HubWindow.Notes.cs), by the drawer
+   button, and by auto-sync, 60 s after the last panel edit (`AutoSyncSoon`, setting `NotesAutoSync`).
+   `Notes.Status` reads where things stand: it runs at start, every 15 min with a fetch, and whenever the file
+   changes. Opening the drawer runs `Notes.PullIfSafe`.
 6. A `FileSystemWatcher` per `docs\` folder refreshes the chip and the drawer when a chat edits the file.
 
 ### LINK (a hidden terminal for a chat)

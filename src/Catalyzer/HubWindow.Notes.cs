@@ -34,11 +34,20 @@ namespace Catalyzer
         private TextBlock _notesTitle;
         private Project _notesFor;
         private Notes _notes;
-        private bool _raw, _syncing;
+        private bool _raw;
         private const double NotesWidth = 640;
         private readonly Dictionary<string, (DateTime when, int open, int inbox)> _noteCounts = new Dictionary<string, (DateTime, int, int)>(StringComparer.OrdinalIgnoreCase);
         private readonly List<FileSystemWatcher> _noteWatch = new List<FileSystemWatcher>();
         private DispatcherTimer _notesSoon;
+        /// <summary>Where each project's NOTES.md stands against GitHub (filled in the background).</summary>
+        private readonly Dictionary<string, Notes.SyncState> _syncOf = new Dictionary<string, Notes.SyncState>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _syncBusy = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _syncSaid = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>What changed through the panel since the last sync (for the commit message).</summary>
+        private readonly Dictionary<string, Dictionary<string, int>> _noteWhat = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, DispatcherTimer> _autoSync = new Dictionary<string, DispatcherTimer>(StringComparer.OrdinalIgnoreCase);
+        private DispatcherTimer _fetchTimer;
+        private const int AutoSyncSeconds = 60;
 
         private bool NotesOpen => _notesHost.Visibility == Visibility.Visible && _notesFor != null;
 
@@ -55,7 +64,99 @@ namespace Catalyzer
                     new MenuEntry { Text = "Open NOTES.md in the editor", Glyph = "", Hint = "docs\\NOTES.md", Run = () => { var n = new Notes(p.Folder); if (n.Exists) Launch.Shell(n.Path, null); else OpenNotes(p); } },
                 },
             });
+            PluginHost.I?.AddBadge(new ProjectBadge
+            {
+                Id = "notes-sync", Order = -9,
+                State = SyncBadge,
+                Click = p => SyncProject(p, auto: false),
+                Menu = p => new[]
+                {
+                    new MenuEntry { Text = "Sync notes now", Glyph = "\uE895", Hint = "commit NOTES.md, pull notes, push", Run = () => SyncProject(p, auto: false) },
+                    new MenuEntry { Text = "Open notes", Glyph = "\uE70B", Run = () => OpenNotes(p) },
+                },
+            });
             _board.Changed += WatchNotes;
+            // GitHub is asked now and then, so notes written elsewhere show up as "new" on the card
+            _fetchTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(15) };
+            _fetchTimer.Tick += (s, e) => { foreach (var p in _board.Items) RefreshSync(p.Folder, fetch: true); };
+            if (!Prefs.Offline) _fetchTimer.Start();
+        }
+
+        /// <summary>Ask git (in the background) where a project's notes stand; the chips redraw when it answers.</summary>
+        private async void RefreshSync(string folder, bool fetch)
+        {
+            if (Prefs.Offline || _syncBusy.Contains(folder)) return;
+            var n = new Notes(folder);
+            if (!n.Exists) { _syncOf.Remove(folder); return; }
+            try
+            {
+                var st = await System.Threading.Tasks.Task.Run(() => n.Status(fetch));
+                _syncOf[folder] = st;
+                PluginHost.I?.UpdateBadges();
+            }
+            catch (Exception ex) { Log.Write("notes status " + folder + ": " + ex.Message); }
+        }
+
+        private BadgeState SyncBadge(Project p)
+        {
+            if (_syncBusy.Contains(p.Folder)) return new BadgeState { Text = "SYNCING", Tone = Tone.Select, Pulse = true, Tip = "NOTES.MD  //  COMMIT, PULL, PUSH" };
+            if (!_syncOf.TryGetValue(p.Folder, out var st)) return null;
+            return st.Kind switch
+            {
+                Notes.SyncKind.Unsynced => new BadgeState { Text = "SYNC  \u2191", Tone = Tone.Warn, Pulse = true, Tip = "YOUR NOTES AREN'T ON GITHUB YET  //  CLICK TO PUSH" + (Prefs.Value.NotesAutoSync ? "\n(AUTO-SYNC PUSHES THEM A MINUTE AFTER YOUR LAST EDIT)" : "") },
+                Notes.SyncKind.Incoming => new BadgeState { Text = "SYNC  \u2193", Tone = Tone.Accent, Pulse = true, Tip = "GITHUB HAS NEWER NOTES (PHONE / ANOTHER PC)  //  CLICK TO BRING THEM IN" },
+                Notes.SyncKind.Both => new BadgeState { Text = "SYNC  \u2195", Tone = Tone.Warn, Pulse = true, Tip = "NEW NOTES HERE AND ON GITHUB  //  CLICK TO MERGE AND PUSH" },
+                _ => null,
+            };
+        }
+
+        /// <summary>SYNC for one project: the card chip, the drawer button, and auto-sync all come here.</summary>
+        private async void SyncProject(Project p, bool auto)
+        {
+            if (p == null || _syncBusy.Contains(p.Folder)) return;
+            if (_notesFor == p && _raw && !ConfirmLeaveRaw()) return;
+            if (_autoSync.TryGetValue(p.Folder, out var t)) t.Stop();
+            _syncBusy.Add(p.Folder);
+            PluginHost.I?.UpdateBadges(); if (_notesFor == p && NotesOpen) NotesRefresh(false);
+            var what = WhatChanged(p.Folder);
+            (bool ok, string say) r;
+            try { r = await new Notes(p.Folder).Sync(what, auto); }
+            catch (Exception ex) { r = (false, "SYNC FAILED  //  " + ex.Message); }
+            _syncBusy.Remove(p.Folder);
+            if (r.ok) _noteWhat.Remove(p.Folder);
+            _syncSaid[p.Folder] = r.say;
+            Log.Write(p.Name + " notes: " + r.say, show: !auto || !r.ok);
+            RefreshSync(p.Folder, fetch: false);
+            if (_notesFor == p && NotesOpen) NotesRefresh(true);
+            await Projects.LoadGit(p); _board.Touch(p);
+        }
+
+        /// <summary>"+2 inbox, 1 done": what the panel did since the last sync, for a readable commit message.</summary>
+        private string WhatChanged(string folder)
+        {
+            if (!_noteWhat.TryGetValue(folder, out var w) || w.Count == 0) return "updated";
+            return string.Join(", ", w.Select(kv => kv.Key == "inbox" ? "+" + kv.Value + " inbox" : kv.Value + " " + kv.Key));
+        }
+
+        private void Count(string folder, string what)
+        {
+            if (!_noteWhat.TryGetValue(folder, out var w)) _noteWhat[folder] = w = new Dictionary<string, int>();
+            w[what] = w.TryGetValue(what, out var n) ? n + 1 : 1;
+        }
+
+        /// <summary>An edit through the panel: auto-sync a minute after the last one (if it's on).</summary>
+        private void AutoSyncSoon(Project p)
+        {
+            RefreshSync(p.Folder, fetch: false);
+            if (!Prefs.Value.NotesAutoSync || Prefs.Offline) return;
+            if (!_autoSync.TryGetValue(p.Folder, out var t))
+            {
+                t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(AutoSyncSeconds) };
+                var pr = p;
+                t.Tick += (s, e) => { t.Stop(); SyncProject(pr, auto: true); };
+                _autoSync[p.Folder] = t;
+            }
+            t.Stop(); t.Start();
         }
 
         // ================================================================== the chip
@@ -75,6 +176,8 @@ namespace Catalyzer
                 else { n.Load(); (open, inbox) = n.Count(); _noteCounts[p.Folder] = (when, open, inbox); }
             }
             catch { }
+            if (_syncOf.TryGetValue(p.Folder, out var ss) && (ss.Kind == Notes.SyncKind.Unsynced || ss.Kind == Notes.SyncKind.Both) && !_syncBusy.Contains(p.Folder))
+                return new BadgeState { Text = "NOTES " + open + (inbox > 0 ? "  ·  " + inbox + " NEW" : ""), Tone = inbox > 0 ? Tone.Accent : Tone.Dim, Tip = "NOT ON GITHUB YET  //  SEE THE SYNC CHIP" };
             return inbox > 0
                 ? new BadgeState { Text = "NOTES " + open + "  ·  " + inbox + " NEW", Tone = Tone.Accent, Tip = inbox + " IN THE INBOX, " + open + " OPEN  //  CLICK TO OPEN" }
                 : new BadgeState { Text = "NOTES " + open, Tone = Tone.Dim, Tip = open + " OPEN  //  CLICK TO OPEN" };
@@ -84,6 +187,14 @@ namespace Catalyzer
         private void WatchNotes()
         {
             if (Prefs.Offline) return;
+            int i = 0;
+            foreach (var p in _board.Items.ToList())
+            {
+                var f = p.Folder; bool fetch = true;
+                var d = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400 + 250 * i++) };   // staggered: never a burst of git
+                d.Tick += (s, e) => { d.Stop(); RefreshSync(f, fetch); };
+                d.Start();
+            }
             foreach (var w in _noteWatch) { try { w.EnableRaisingEvents = false; w.Dispose(); } catch { } }
             _noteWatch.Clear();
             foreach (var p in _board.Items)
@@ -110,6 +221,7 @@ namespace Catalyzer
                 _notesSoon = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
                 _notesSoon.Tick += (s, e) => { _notesSoon.Stop(); PluginHost.I?.UpdateBadges(); if (NotesOpen && !_raw) NotesRefresh(true); };
             }
+            RefreshSync(folder, fetch: false);
             _notesSoon.Stop(); _notesSoon.Start();
         }
 
@@ -187,9 +299,23 @@ namespace Catalyzer
             Decode.Play(_notesTitle, (p.Name + "  //  NOTES").ToUpperInvariant(), 0.05, 0.4);
             NotesRefresh(false);
             _notesHost.Visibility = Visibility.Visible;
+            PullOnOpen(p);
             Dispatcher.BeginInvoke(new Action(() => { if (_notes.Exists) _noteInput.Focus(); }), DispatcherPriority.Input);
             if (Cz.Still) { _notesX.X = 0; return; }
             _notesX.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(NotesWidth + 20, 0, TimeSpan.FromMilliseconds(280)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        }
+
+        /// <summary>Opening the notes brings in notes written elsewhere, but only when that's all GitHub has.</summary>
+        private async void PullOnOpen(Project p)
+        {
+            if (Prefs.Offline || _syncBusy.Contains(p.Folder) || !new Notes(p.Folder).Exists) return;
+            _syncBusy.Add(p.Folder);
+            string said = null;
+            try { said = await new Notes(p.Folder).PullIfSafe(); } catch (Exception ex) { Log.Write("notes pull: " + ex.Message); }
+            _syncBusy.Remove(p.Folder);
+            if (said != null) { _syncSaid[p.Folder] = said; Say(said); }
+            RefreshSync(p.Folder, fetch: false);
+            if (_notesFor == p && NotesOpen && !_raw) NotesRefresh(true);
         }
 
         private void CloseNotes()
@@ -206,7 +332,7 @@ namespace Catalyzer
         /// <summary>RAW with unsaved edits: closing keeps them by saving (never throws your typing away).</summary>
         private bool ConfirmLeaveRaw()
         {
-            if (_notes != null && _noteRaw.Text != _notes.Raw) { try { _notes.SaveRaw(_noteRaw.Text); Say("NOTES SAVED"); } catch (Exception ex) { Log.Write("notes: " + ex.Message, show: true); return false; } }
+            if (_notes != null && _noteRaw.Text != _notes.Raw) { try { _notes.SaveRaw(_noteRaw.Text); Say("NOTES SAVED"); if (_notesFor != null) { Count(_notesFor.Folder, "edited by hand"); AutoSyncSoon(_notesFor); } } catch (Exception ex) { Log.Write("notes: " + ex.Message, show: true); return false; } }
             _raw = false; return true;
         }
 
@@ -215,14 +341,35 @@ namespace Catalyzer
             var n = _notes; var p = _notesFor; if (n == null || p == null) return;
             try { n.Load(); } catch (Exception ex) { Log.Write("notes " + n.Path + ": " + ex.Message, show: true); }
             var st = NotesBadge(p);
-            _notesChip.Set(st.Text, st.Tone, _syncing, n.Exists ? "DOCS\\NOTES.MD" : null);
+            _notesChip.Set(st.Text, st.Tone, _syncBusy.Contains(p.Folder), n.Exists ? "DOCS\\NOTES.MD" : null);
 
             _notesButtons.Children.Clear();
             if (n.Exists)
             {
-                _notesButtons.Children.Add(new CzButton(_syncing ? "SYNCING..." : "SYNC", SyncNotes, "", primary: true, height: 28, tip: "COMMIT NOTES.MD, PULL, PUSH  //  NOTES FROM YOUR PHONE ARRIVE, YOURS LEAVE") { Margin = new Thickness(0, 0, 8, 0) });
+                bool busy = _syncBusy.Contains(p.Folder);
+                _notesButtons.Children.Add(new CzButton(busy ? "SYNCING..." : "SYNC", () => SyncProject(p, auto: false), "", primary: true, height: 28, tip: "COMMIT NOTES.MD, PULL, PUSH  //  NOTES FROM YOUR PHONE ARRIVE, YOURS LEAVE") { Margin = new Thickness(0, 0, 8, 0) });
                 _notesButtons.Children.Add(new CzButton(_raw ? "LIST" : "RAW", ToggleRaw, _raw ? "" : "", height: 28, tip: _raw ? "BACK TO THE LIST (SAVES)" : "EDIT THE WHOLE FILE") { Margin = new Thickness(0, 0, 8, 0) });
                 _notesButtons.Children.Add(new CzButton("EDITOR", () => Launch.Shell(n.Path, null), "", height: 28, tip: "OPEN NOTES.MD IN YOUR EDITOR"));
+            }
+            if (n.Exists)
+            {
+                string line = _syncSaid.TryGetValue(p.Folder, out var said) ? said : null;
+                if (_syncOf.TryGetValue(p.Folder, out var ss))
+                    line ??= ss.Kind switch
+                    {
+                        Notes.SyncKind.Synced => "IN STEP WITH GITHUB",
+                        Notes.SyncKind.Unsynced => Prefs.Value.NotesAutoSync ? "NOT ON GITHUB YET  //  AUTO-SYNC IN A MINUTE" : "NOT ON GITHUB YET  //  PRESS SYNC",
+                        Notes.SyncKind.Incoming => "GITHUB HAS NEWER NOTES  //  PRESS SYNC",
+                        Notes.SyncKind.Both => "NEW NOTES HERE AND ON GITHUB  //  PRESS SYNC",
+                        Notes.SyncKind.NoUpstream => "NOT ON GITHUB (NO UPSTREAM)",
+                        _ => null,
+                    };
+                if (line != null)
+                {
+                    var tb = Cz.Mono(line, 9.5, "CzTextFaintBrush"); tb.VerticalAlignment = VerticalAlignment.Center; tb.Margin = new Thickness(8, 0, 0, 0);
+                    tb.TextTrimming = TextTrimming.CharacterEllipsis; tb.MaxWidth = 300; tb.ToolTip = line;
+                    _notesButtons.Children.Add(tb);
+                }
             }
             _noteInputRow.Visibility = n.Exists && !_raw ? Visibility.Visible : Visibility.Collapsed;
             _noteRaw.Visibility = _raw ? Visibility.Visible : Visibility.Collapsed;
@@ -282,7 +429,7 @@ namespace Catalyzer
             box.Children.Add(frame);
             if (it.Done) { var tick = Cz.Text("", 10, "CzOkBrush", "CzFontIcons"); tick.HorizontalAlignment = HorizontalAlignment.Center; tick.VerticalAlignment = VerticalAlignment.Center; box.Children.Add(tick); }
             if (!it.Check && !it.Done) frame.Opacity = 0.5;
-            box.MouseLeftButtonUp += (s, e) => { e.Handled = true; NoteEdit(() => _notes.Toggle(it), it.Done ? "BACK IN THE INBOX" : "DONE  //  MOVED TO DONE"); };
+            box.MouseLeftButtonUp += (s, e) => { e.Handled = true; NoteEdit(() => _notes.Toggle(it), it.Done ? "BACK IN THE INBOX" : "DONE  //  MOVED TO DONE", it.Done ? "reopened" : "done"); };
             row.Children.Add(box);
 
             var text = Cz.Text(it.Text, 13.5, it.Done ? "CzTextFaintBrush" : "CzTextBrush");
@@ -296,18 +443,18 @@ namespace Catalyzer
             {
                 e.Handled = true;
                 var items = Notes.Sections.Where(sec => !Notes.Is(sec, it.Section) && !Notes.Is(sec, "Done"))
-                    .Select(sec => new CzMenu.Item { Text = "Move to " + sec, Glyph = "", Click = () => NoteEdit(() => _notes.Move(it, sec), "MOVED TO " + sec.ToUpperInvariant()) }).ToList();
+                    .Select(sec => new CzMenu.Item { Text = "Move to " + sec, Glyph = "", Click = () => NoteEdit(() => _notes.Move(it, sec), "MOVED TO " + sec.ToUpperInvariant(), "moved") }).ToList();
                 items.Add(new CzMenu.Item { Separator = true });
-                items.Add(new CzMenu.Item { Text = it.Done ? "Not done" : "Done", Glyph = it.Done ? "" : "", Click = () => NoteEdit(() => _notes.Toggle(it), it.Done ? "BACK IN THE INBOX" : "DONE") });
+                items.Add(new CzMenu.Item { Text = it.Done ? "Not done" : "Done", Glyph = it.Done ? "" : "", Click = () => NoteEdit(() => _notes.Toggle(it), it.Done ? "BACK IN THE INBOX" : "DONE", it.Done ? "reopened" : "done") });
                 items.Add(new CzMenu.Item { Text = "Copy", Glyph = "", Click = () => { try { Clipboard.SetText(it.Text); } catch { } } });
                 new CzMenu().Show(row, "NOTE", items);
             };
             return row;
         }
 
-        private void NoteEdit(Action edit, string say)
+        private void NoteEdit(Action edit, string say, string what = "edited")
         {
-            try { edit(); Say(say); }
+            try { edit(); Say(say); if (_notesFor != null) { Count(_notesFor.Folder, what); _syncSaid.Remove(_notesFor.Folder); AutoSyncSoon(_notesFor); } }
             catch (Exception ex) { Log.Write("notes: " + ex.Message, show: true); }
             NotesRefresh(true);
             PluginHost.I?.UpdateBadges();
@@ -317,7 +464,7 @@ namespace Catalyzer
         {
             var t = _noteInput.Text.Trim(); if (t == "" || _notes == null) return;
             _noteInput.Text = "";
-            NoteEdit(() => _notes.Add(t), "NOTED  //  IN THE INBOX");
+            NoteEdit(() => _notes.Add(t), "NOTED  //  IN THE INBOX", "inbox");
         }
 
         private void ToggleRaw()
@@ -329,19 +476,6 @@ namespace Catalyzer
             _raw = true;
             NotesRefresh(false);
             _noteRaw.Focus();
-        }
-
-        private async void SyncNotes()
-        {
-            if (_notes == null || _syncing) return;
-            if (_raw && !ConfirmLeaveRaw()) return;
-            _syncing = true; NotesRefresh(false); Say("SYNCING NOTES...");
-            var (ok, say) = await _notes.Sync();
-            _syncing = false;
-            Log.Write((_notesFor?.Name ?? "") + " notes sync: " + say, show: true);
-            if (NotesOpen) NotesRefresh(true);
-            PluginHost.I?.UpdateBadges();
-            if (_notesFor != null) { var pr = _notesFor; await Projects.LoadGit(pr); _board.Touch(pr); }
         }
 
         /// <summary>--snapshot: the notes drawer for the first project that has notes.</summary>

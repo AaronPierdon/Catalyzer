@@ -181,31 +181,118 @@ namespace Catalyzer
             File.Move(tmp, Path, true);
         }
 
-        // ---------------------------------------------------------------- GitHub (one click, hidden git)
+        // ---------------------------------------------------------------- GitHub (hidden git, NOTES.md only)
+
+        /// <summary>Where NOTES.md stands against GitHub (after the last fetch).</summary>
+        public enum SyncKind { NoRepo, NoUpstream, Synced, Unsynced, Incoming, Both }
+
+        public sealed class SyncState
+        {
+            public SyncKind Kind;
+            /// <summary>NOTES.md has edits not committed yet.</summary>
+            public bool Dirty;
+            /// <summary>Commits here that GitHub doesn't have (any file).</summary>
+            public int Ahead;
+            /// <summary>Commits on GitHub we don't have (any file).</summary>
+            public int Behind;
+            /// <summary>Every commit GitHub has and we don't touches only NOTES.md (safe to bring in).</summary>
+            public bool IncomingNotesOnly;
+            /// <summary>Every commit we have and GitHub doesn't touches only NOTES.md (safe to push).</summary>
+            public bool OutgoingNotesOnly;
+            public DateTime When = DateTime.Now;
+        }
+
+        private static readonly string GitPath = RelPath.Replace('\\', '/');
+
+        /// <summary>Where we stand. <paramref name="fetch"/> asks GitHub first (network); otherwise uses the last fetch.</summary>
+        public SyncState Status(bool fetch)
+        {
+            var st = new SyncState();
+            if (Git("rev-parse --is-inside-work-tree").code != 0) { st.Kind = SyncKind.NoRepo; return st; }
+            st.Dirty = Git("status --porcelain -- \"" + GitPath + "\"").output.Trim() != "";
+            if (Git("rev-parse --abbrev-ref --symbolic-full-name @{u}").code != 0) { st.Kind = SyncKind.NoUpstream; return st; }
+            if (fetch) Git("fetch --quiet", 30000);
+            var lr = Git("rev-list --left-right --count @{u}...HEAD").output.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            if (lr.Length == 2) { int.TryParse(lr[0], out st.Behind); int.TryParse(lr[1], out st.Ahead); }
+            st.IncomingNotesOnly = st.Behind > 0 && OnlyNotes(Git("diff --name-only HEAD...@{u}").output);
+            st.OutgoingNotesOnly = st.Ahead == 0 || OnlyNotes(Git("log @{u}..HEAD --name-only --format=").output);
+            bool outNotes = st.Dirty || (st.Ahead > 0 && st.OutgoingNotesOnly) || (st.Ahead > 0 && Git("log @{u}..HEAD --format=%h -- \"" + GitPath + "\"").output.Trim() != "");
+            bool inNotes = st.Behind > 0 && Git("log HEAD..@{u} --format=%h -- \"" + GitPath + "\"").output.Trim() != "";
+            st.Kind = outNotes && inNotes ? SyncKind.Both : outNotes ? SyncKind.Unsynced : inNotes ? SyncKind.Incoming : SyncKind.Synced;
+            return st;
+        }
+
+        private static bool OnlyNotes(string names)
+        {
+            var files = (names ?? "").Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).Distinct().ToList();
+            return files.Count > 0 && files.All(f => string.Equals(f, GitPath, StringComparison.OrdinalIgnoreCase));
+        }
 
         /// <summary>
-        /// SYNC: commit NOTES.md if it changed, pull (rebase, autostash) so notes written elsewhere arrive, push. Only
-        /// NOTES.md is ever committed: anything else in progress in the repo is left alone.
+        /// SYNC (the button, or automatic after edits). Only ever about NOTES.md:
+        /// 1. commit NOTES.md alone if it changed (message: what happened + where + when, so it's readable and unique);
+        /// 2. fetch; bring in GitHub's new commits only if they touch nothing but NOTES.md (fast-forward, or a merge
+        ///    when both sides moved; a conflict is aborted and reported, nothing lost);
+        /// 3. push only if every commit we'd send touches nothing but NOTES.md, so a chat's unpushed work never
+        ///    leaves by accident (the notes commit then rides along with that chat's own push).
         /// </summary>
-        public Task<(bool ok, string say)> Sync() => Task.Run(() =>
+        public Task<(bool ok, string say)> Sync(string what, bool auto) => Task.Run(() =>
         {
-            if (Git("rev-parse --is-inside-work-tree").code != 0) return (false, "NOT A GIT REPO  //  NOTES SAVED TO DISK ONLY");
-            var changed = Git("status --porcelain -- \"" + RelPath.Replace('\\', '/') + "\"").output.Trim() != "";
-            if (changed)
+            if (Git("rev-parse --is-inside-work-tree").code != 0) return (false, "NOT A GIT REPO  //  NOTES ARE SAVED ON DISK ONLY");
+            foreach (var busy in new[] { "MERGE_HEAD", "rebase-merge", "rebase-apply" })
+                if (Git("rev-parse --git-path " + busy).output.Trim() is string gp && gp != "" && (File.Exists(System.IO.Path.Combine(Folder, gp)) || Directory.Exists(System.IO.Path.Combine(Folder, gp))))
+                    return (false, "THE REPO IS IN THE MIDDLE OF A MERGE OR REBASE  //  NOTES WAIT");
+            bool committed = false;
+            if (Git("status --porcelain -- \"" + GitPath + "\"").output.Trim() != "")
             {
-                var add = Git("add -- \"" + RelPath.Replace('\\', '/') + "\"");
-                if (add.code != 0) return (false, "GIT ADD FAILED  //  " + First(add.output));
-                var c = Git("commit -m \"Notes: updated from Catalyzer\" -- \"" + RelPath.Replace('\\', '/') + "\"");
+                var msg = "Notes: " + (string.IsNullOrWhiteSpace(what) ? "updated" : what) + " (Catalyzer, " + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + ")";
+                var c = Git("commit -m \"" + msg.Replace("\"", "'") + "\" -- \"" + GitPath + "\"");
                 if (c.code != 0) return (false, "COMMIT FAILED  //  " + First(c.output));
+                committed = true;
             }
             if (Git("rev-parse --abbrev-ref --symbolic-full-name @{u}").code != 0)
-                return (true, changed ? "COMMITTED  //  THIS BRANCH HAS NO UPSTREAM, SO NOTHING WAS PUSHED" : "NOTHING TO SYNC  //  NO UPSTREAM");
-            var pull = Git("pull --rebase --autostash", 60000);
-            if (pull.code != 0) { Git("rebase --abort"); return (false, "PULL FAILED  //  " + First(pull.output) + "  //  NOTES ARE SAFE ON DISK"); }
-            var push = Git("push", 60000);
-            if (push.code != 0) return (false, "PUSH FAILED  //  " + First(push.output));
-            return (true, changed ? "NOTES SYNCED  //  COMMITTED, PULLED, PUSHED" : "NOTES UP TO DATE  //  PULLED, PUSHED");
+                return (true, committed ? "NOTES COMMITTED  //  THIS BRANCH ISN'T ON GITHUB, SO NOTHING WAS PUSHED" : "NOTHING TO SYNC  //  NOT ON GITHUB");
+            var f = Git("fetch --quiet", 30000);
+            if (f.code != 0) return (committed, (committed ? "NOTES COMMITTED, " : "") + "GITHUB UNREACHABLE  //  " + First(f.output));
+            var st = Status(fetch: false);
+            string pulled = "";
+            if (st.Behind > 0)
+            {
+                if (!st.IncomingNotesOnly)
+                    pulled = "GITHUB ALSO HAS OTHER NEW WORK: PULL IT IN THE PROJECT'S CHAT";
+                else if (st.Ahead == 0)
+                {
+                    var m = Git("merge --ff-only @{u}");
+                    if (m.code != 0) return (false, "COULDN'T BRING IN NEW NOTES  //  " + First(m.output));
+                    pulled = "NEW NOTES IN";
+                }
+                else
+                {
+                    var m = Git("merge --no-edit @{u}");
+                    if (m.code != 0) { Git("merge --abort"); return (false, "NOTES CHANGED HERE AND ON GITHUB IN THE SAME LINES  //  OPEN RAW AND MERGE BY HAND, OR ASK A CHAT"); }
+                    pulled = "NEW NOTES MERGED IN";
+                }
+                st = Status(fetch: false);
+            }
+            if (st.Ahead == 0) return (true, Join(committed ? "NOTES COMMITTED" : null, pulled, "UP TO DATE"));
+            if (!st.OutgoingNotesOnly) return (true, Join(committed ? "NOTES COMMITTED HERE" : null, pulled, "NOT PUSHED: THIS REPO HAS OTHER UNPUSHED WORK, THE NOTES GO WITH ITS NEXT PUSH"));
+            var p = Git("push --quiet", 60000);
+            if (p.code != 0) return (false, "PUSH FAILED  //  " + First(p.output));
+            return (true, Join(auto ? "NOTES AUTO-SYNCED" : "NOTES SYNCED", pulled, "PUSHED " + DateTime.Now.ToString("HH:mm")));
         });
+
+        /// <summary>Opening the notes: bring in notes from elsewhere (phone, another PC) if that's all GitHub has.</summary>
+        public Task<string> PullIfSafe() => Task.Run(() =>
+        {
+            var st = Status(fetch: true);
+            if (st.Kind == SyncKind.NoRepo || st.Kind == SyncKind.NoUpstream || st.Behind == 0 || !st.IncomingNotesOnly) return (string)null;
+            if (st.Dirty) return "GITHUB HAS NEWER NOTES  //  SYNC TO BRING THEM IN WITH YOURS";
+            var m = st.Ahead == 0 ? Git("merge --ff-only @{u}") : Git("merge --no-edit @{u}");
+            if (m.code != 0) { if (st.Ahead > 0) Git("merge --abort"); return "COULDN'T BRING IN NEWER NOTES  //  " + First(m.output); }
+            return "NEWER NOTES FROM GITHUB ARE IN";
+        });
+
+        private static string Join(params string[] parts) => string.Join("  //  ", parts.Where(x => !string.IsNullOrEmpty(x)));
 
         private static string First(string s) => (s ?? "").Split('\n').Select(x => x.Trim()).FirstOrDefault(x => x.Length > 0 && !x.StartsWith("hint:")) ?? "";
 

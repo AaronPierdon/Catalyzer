@@ -81,6 +81,7 @@ namespace Catalyzer
             b.Children.Add(Section("General"));
             b.Children.Add(new CzToggle(Launch.AtStartup, on => Launch.AtStartup = on, "Run at Windows start") { Margin = new Thickness(0, 4, 0, 10) });
             b.Children.Add(new CzToggle(Prefs.Value.ReduceMotion, on => { Prefs.Save(p => p.ReduceMotion = on); }, "Reduce motion") { Margin = new Thickness(0, 0, 0, 4) });
+            b.Children.Add(new CzToggle(Prefs.Value.NotesAutoSync, on => { Prefs.Save(p => p.NotesAutoSync = on); PluginHost.I?.UpdateBadges(); }, "Auto-sync notes") { Margin = new Thickness(0, 8, 0, 4), ToolTip = "NOTES.MD ONLY: COMMITS AND PUSHES ITSELF A MINUTE AFTER YOUR LAST EDIT IN THE NOTES PANEL" });
             b.Children.Add(Note("Starting with Windows opens Catalyzer minimized."));
             b.Children.Add(Cz.Mono("CLOSING WHILE HELPERS RUN", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
             var close = new WrapPanel();

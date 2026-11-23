@@ -5,6 +5,8 @@ them into the other sections. Never delete Aaron's words. Done items move to *Do
 
 ## Inbox
 
+- [ ] This isa test note for Claude to get. My favorite number is 21. (Aaron, 2026-11-23)
+
 ## Next up
 - [ ] **NEW PROJECT: every project starts here** (Aaron, 2026-11-23). He never makes a repo or folder by hand again.
       One dialog: name, purpose, public / private. Then Catalyzer, automatically:
@@ -64,6 +66,7 @@ them into the other sections. Never delete Aaron's words. Done items move to *Do
 ## Bugs
 
 ## Done
+- [x] Notes auto-sync: NOTES.md only, a minute after the last edit, generated commit messages; SYNC ↑/↓ chip on the card; pull on open when safe; Settings toggle — done 2026-11-23
 - [x] Notes panel: the NOTES chip on every card plus the notes drawer, with add / tick / move / RAW / SYNC — done 2026-11-22
 - [x] Link: a hidden Windows terminal per repo for chats — done 2026-11-22
 - [x] Helpers: hidden long-running scripts per card, close prompt, tray — done 2026-11-22

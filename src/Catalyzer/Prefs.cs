@@ -26,6 +26,8 @@ namespace Catalyzer
         public bool ReduceMotion { get; set; }
         /// <summary>Closing while helpers (plugins' background work) run: "ask", "stop" (stop all and exit) or "tray".</summary>
         public string CloseWithWork { get; set; } = "ask";
+        /// <summary>Notes edited in the panel commit (NOTES.md only) and push themselves a minute after the last edit.</summary>
+        public bool NotesAutoSync { get; set; } = true;
     }
 
     public static class Prefs

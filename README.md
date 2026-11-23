@@ -33,8 +33,14 @@ A project describes itself with an optional `catalyzer.json` (name, description,
 
 ## Notes
 Every card has a **NOTES** chip for its repo's `docs/NOTES.md`, the notepad you and every chat share. Click the chip to
-add a note (it lands in the Inbox), tick things done, or move them between sections. **SYNC** commits, pulls and
-pushes just that file, so notes added from your phone arrive and yours go out.
+add a note (it lands in the Inbox), tick things done, or move them between sections. Notes **sync themselves**:
+- a minute after your last edit, Catalyzer commits only `docs/NOTES.md` (with a message like
+  `Notes: +1 inbox, 2 done (Catalyzer, 2026-11-23 15:31)`) and pushes it;
+- opening the notes brings in notes written elsewhere;
+- a **SYNC ↑ / ↓** chip on the card shows whenever notes and GitHub differ, and clicking it syncs now.
+
+It never pushes anyone else's unpushed work, and never pulls in anything but notes. You can turn auto-sync off in
+Settings → General.
 
 ## Link
 Click **LINK** on a project's card and that repo gets a hidden Windows terminal that a chat (Claude) can use for
