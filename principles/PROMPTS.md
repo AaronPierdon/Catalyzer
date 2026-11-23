@@ -46,6 +46,21 @@ app go into these principles instead.
 >
 > Then tell me to click LINK on its card in Catalyzer.
 
+## Project instructions (paste into each Claude project's settings)
+Keep this short. The detail lives in the repo (CLAUDE.md, the docs) and in these principles, so it can't drift.
+> Project repo: github.com/AaronPierdon/<App> (PC: `C:\Users\Aaron\source\repos\<App>`)
+> Rules: Catalyzer Development Principles, github.com/AaronPierdon/Catalyzer/tree/main/principles
+> (PC: `C:\Users\Aaron\source\repos\Catalyzer\principles`)
+>
+> Every chat:
+> 1. Read CLAUDE.md and follow its new-chat steps (handover, notes, state, git log).
+> 2. Check the Catalyzer link: `bash .catalyzer/link/run.sh --status`. If it's OFF, ask me to click LINK on the card.
+>    Builds, git and installs go through the link.
+> 3. Follow the principles for the look, the workflow and the repo docs. Never bring back anything in STATE →
+>    *Removed / decided against*.
+> 4. Tell me in a few lines what you understood and what you'll do, then start.
+> 5. End every piece of work by updating HANDOFF (and NOTES / STATE if they changed), committing and pushing.
+
 ## Kickoff (Catalyzer hands this out for a new app)
 Catalyzer fills in `<App>`, `<what it's for>` and the paths, and shows the setup steps from 04 *Setting up a project
 in Claude* next to it. Paste it into the first chat of the new project.

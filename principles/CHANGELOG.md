@@ -2,6 +2,13 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 3.1.0 — 2026-11-23
+**A standard *Project instructions* block** (PROMPTS) for each app's Claude project. It's a few lines that point
+to the repo and these principles, and it says: read CLAUDE.md, check the link, follow the principles, push at the end.
+
+**What an app should do:** replace its Claude project's instructions with the block, filled in. Bump
+`.catalyzer-principles` to `3.1.0`.
+
 ## 3.0.0 — 2026-11-23
 **Catalyzer Development Principles.** The rulebook moved into the hub it serves. It was *Nexus Development
 Principles* in its own repo; it's now the `principles/` folder of the Catalyzer repo, with the full history kept.

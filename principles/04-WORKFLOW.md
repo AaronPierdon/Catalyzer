@@ -24,7 +24,8 @@ steps and the whole kickoff prompt at once (PROMPTS → *Kickoff*).
      the project and every new chat in it starts linked.
    - A folder belongs to one computer, and folder links only work while that computer's desktop app is open. A
      chat started from the phone in a project with no folder has no file access.
-   - Project instructions: the repo's GitHub link, *"read CLAUDE.md first"*, and these principles' GitHub link (github.com/AaronPierdon/Catalyzer/tree/main/principles).
+   - Project instructions: PROMPTS → *Project instructions* (the repo, these principles, read CLAUDE.md first,
+     check the link, push at the end).
 3. **Morning brief:** a scheduled task inside that project (PROMPTS → *Morning brief*), with the repo folder chosen,
    so *Require this computer* is on.
    - Runs every morning, or on demand with **Run now** from the phone. Each run is a fresh, full chat in the project.
