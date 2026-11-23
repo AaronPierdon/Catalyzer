@@ -6,7 +6,7 @@ NexusPlugin (live Nexus theme + Open in Nexus Explorer) · 4 built-in themes · 
 `--snapshot` · `tools/install.ps1`.
 
 ## On branch `pc/2026-11-22-helpers` (not merged yet)
-Link (hidden Windows terminal per repo for chats) · Helpers (hidden long-running scripts per card) · SDK API 2
+Notes (NOTES chip + drawer over docs/NOTES.md, git sync) · Link (hidden Windows terminal per repo for chats) · Helpers (hidden long-running scripts per card) · SDK API 2
 (badges, background work, feeds) · close prompt + tray · folder watcher · feed drawer · `tools/snap.ps1`.
 
 ## Removed / decided against — don't bring back

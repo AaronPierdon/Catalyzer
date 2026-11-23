@@ -26,6 +26,11 @@ You can add more folders in Settings, or with **+**:
 
 A project describes itself with an optional `catalyzer.json` (name, description, colour, glyph, its own buttons, its helper scripts). See [docs/MANIFEST.md](docs/MANIFEST.md). New projects need no code changes, and a new repo shows up on the board by itself.
 
+## Notes
+Every card has a **NOTES** chip for its repo's `docs/NOTES.md`, the notepad you and every chat share. Click the chip to
+add a note (it lands in the Inbox), tick things done, or move them between sections. **SYNC** commits, pulls and
+pushes just that file, so notes added from your phone arrive and yours go out.
+
 ## Link
 Click **LINK** on a project's card and that repo gets a hidden Windows terminal that a chat (Claude) can use for
 builds, git and installs. There are no windows, and every command shows in the card's feed. See

@@ -94,6 +94,9 @@ namespace Catalyzer
             w.FeedForSnapshot();
             await System.Threading.Tasks.Task.Delay(900);
             Save(w, Path.Combine(dir, "catalyzer-feed.png"));
+            w.NotesForSnapshot();
+            await System.Threading.Tasks.Task.Delay(1000);
+            Save(w, Path.Combine(dir, "catalyzer-notes.png"));
             Shutdown();
         }
 

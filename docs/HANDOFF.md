@@ -32,7 +32,19 @@ Each chat rewrites its own section at the end (git keeps history).
     - a folder watcher, so new repos appear by themselves;
     - the feed drawer.
   - `tools/snap.ps1`: Catalyzer builds and snapshots itself, so it no longer needs Nexus's script once linked.
-- **Principles 1.1.0** (in their own repo): chats work through the Catalyzer link. See their CHANGELOG.
+- **Principles 1.1.0, then 2.0.0** (their own repo, pushed). 1.1.0: chats work through the Catalyzer link. 2.0.0: the
+  principles cover how apps are developed:
+  - every app keeps `docs/NOTES.md` (BACKLOG is merged in), `VISION.md`, `ARCHITECTURE.md` and `GUIDE.md`;
+  - starter files are in `templates/`;
+  - every chat reads two repos and runs a sync check;
+  - 08-ASSETS sets the direction for reusable assets.
+- **Notes panel:**
+  - a NOTES chip on every card (open items; "n NEW" when the Inbox has some);
+  - the notes drawer: add with Enter (goes to the Inbox), tick (moves to Done with a date), right-click to move,
+    RAW to edit the whole file, SYNC (commit NOTES.md only, then pull --rebase --autostash, then push);
+  - repos still on BACKLOG.md get a warning chip.
+- **Catalyzer conforms to 2.0.0:** NOTES (from BACKLOG), VISION, ARCHITECTURE and GUIDE are written from the code,
+  and CLAUDE.md has the new reading order.
 
 ### Verified
 - On the PC: the build, an install of the helpers stage, and a Heartbeat test helper running hidden (its log ticks
@@ -47,12 +59,14 @@ Each chat rewrites its own section at the end (git keeps history).
   2. `bash .catalyzer/link/run.sh 'git status'`
   3. `bash .catalyzer/link/run.sh -t 600 -f tools/snap.ps1`
   4. check that the feed shows all three.
+- **Notes:** click NOTES on the Catalyzer card. Add a note, tick one, right-click and move one, try RAW, then SYNC
+  (it commits `docs/NOTES.md` on the current branch and pushes).
 
 ### Next
 1. Aaron's live look, then: restore `catalyzer.json`, merge to `main`, install through the link (`-s`), push.
 2. Aaron links his other projects: the phone app and the two desktop apps. Each repo's CLAUDE.md gets the
    "running things on the PC" lines (Principles 1.1.0 → *update to the latest principles* in each app's chat).
-3. Principles badge on cards (BACKLOG).
+3. Principles badge on cards (NOTES → Next up).
 
 ## From the first chat — 2026-11-22 (built in the Nexus PC chat, then retired)
 

@@ -2,7 +2,16 @@
 
 Follows **Nexus Development Principles** (`repos\Nexus Development Principles`, github.com/AaronPierdon/Nexus-Development-Principles);
 this repo's version is in `.nexus-principles`. Read them before working (at least the CHANGELOG since that version).
-Rules below only add to them. New chat: read this, then `docs/HANDOFF.md`, `docs/STATE.md`, `docs/BACKLOG.md`, `git log --oneline -20`.
+Rules below only add to them.
+
+New chat:
+1. Check the link (below).
+2. Read this file, the principles, then `docs/HANDOFF.md`, `docs/NOTES.md`, `docs/STATE.md` and
+   `git log --oneline -20`.
+3. Skim `docs/VISION.md` and `docs/ARCHITECTURE.md`. Read `docs/GUIDE.md` for the part you'll touch.
+
+Catalyzer is the hub the principles assume (07-APP-REPO), so a change to the conventions it reads changes both repos
+together: `catalyzer.json`, `docs/NOTES.md`, `.catalyzer/link`.
 
 Catalyzer is Aaron's project command center: a WPF / .NET 10 dashboard, extensible through plugins. GitHub: `AaronPierdon/Catalyzer`, branch `main`. On the PC it lives at `C:\Users\Aaron\source\repos\Catalyzer`, next to `Nexus`.
 
@@ -15,7 +24,9 @@ Catalyzer is Aaron's project command center: a WPF / .NET 10 dashboard, extensib
   - `Catalyzer.Nexus` → `NexusPlugin.dll`. It uses Nexus only through `Nexus.UI.Wpf.NexusPublicApi` (Nexus repo, `src/Nexus.Kit/Parts/NexusPublicApi.cs`).
   - `Catalyzer.Link` → `LinkPlugin.dll`. The LINK chip: a hidden Windows terminal per repo, for chats (`docs/LINK.md`).
   - `Catalyzer.Helpers` → `HelpersPlugin.dll`. A project's long-running scripts, hidden, from its card.
-- Docs: `docs/LINK.md` (the link), `docs/PLUGINS.md` (plugin API), `docs/MANIFEST.md` (catalyzer.json).
+- Docs:
+  - `docs/VISION.md` · `ARCHITECTURE.md` · `GUIDE.md` · `NOTES.md` (the shared notepad; the NOTES chip edits it);
+  - `docs/LINK.md` (the link) · `PLUGINS.md` (plugin API) · `MANIFEST.md` (catalyzer.json).
 
 ## Running things on the PC (start here)
 ```bash

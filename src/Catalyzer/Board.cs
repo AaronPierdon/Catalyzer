@@ -50,6 +50,9 @@ namespace Catalyzer
             finally { Scanning = false; }
         }
 
+        /// <summary>One project's git was read again: tell its card.</summary>
+        public void Touch(Project p) => GitLoaded?.Invoke(p);
+
         /// <summary>Git again for every card (no rescan of folders).</summary>
         public async void RefreshGit()
         {
