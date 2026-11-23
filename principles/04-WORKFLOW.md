@@ -24,7 +24,7 @@ steps and the whole kickoff prompt at once (PROMPTS → *Kickoff*).
      the project and every new chat in it starts linked.
    - A folder belongs to one computer, and folder links only work while that computer's desktop app is open. A
      chat started from the phone in a project with no folder has no file access.
-   - Project instructions: the repo's GitHub link, *"read CLAUDE.md first"*, and these principles' GitHub link.
+   - Project instructions: the repo's GitHub link, *"read CLAUDE.md first"*, and these principles' GitHub link (github.com/AaronPierdon/Catalyzer/tree/main/principles).
 3. **Morning brief:** a scheduled task inside that project (PROMPTS → *Morning brief*), with the repo folder chosen,
    so *Require this computer* is on.
    - Runs every morning, or on demand with **Run now** from the phone. Each run is a fresh, full chat in the project.
@@ -56,10 +56,10 @@ hand, and one terminal per project, so parallel chats never share one.
   old `_tools` queue helper stays only until the app adopts the link.
 
 ## Starting a chat
-Every chat works with **two repos**: its app, and these principles.
+Every chat works with **two repos**: its app, and Catalyzer (the hub, with these principles in `principles/`).
 0. Check the Catalyzer link (`bash .catalyzer/link/run.sh --status`). Say in your first lines whether it's on.
 1. Read the app's `CLAUDE.md`, then these principles: the README and 05-RULES always, and the CHANGELOG since the
-   app's `.nexus-principles`.
+   app's `.catalyzer-principles`.
 2. Read `docs/HANDOFF.md`, `docs/NOTES.md` (Inbox and Next up) and `docs/STATE.md`, then run
    `git log --oneline -30`. Skim `VISION.md` and `ARCHITECTURE.md`. Read `GUIDE.md` for the part you'll touch.
 3. **Sync check:** is the app behind the principles VERSION? Are any of the 07 files missing? Is the NOTES Inbox

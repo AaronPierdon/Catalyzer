@@ -1,8 +1,18 @@
 # CLAUDE.md — working in the Catalyzer repo
 
-Follows **Nexus Development Principles** (`repos\Nexus Development Principles`, github.com/AaronPierdon/Nexus-Development-Principles);
-this repo's version is in `.nexus-principles`. Read them before working (at least the CHANGELOG since that version).
-Rules below only add to them.
+Follows **Catalyzer Development Principles**, which live in this repo in `principles/` (README first;
+github.com/AaronPierdon/Catalyzer/tree/main/principles). This app's own version is in `.catalyzer-principles`. Read
+them before working (at least the CHANGELOG since that version). Rules below only add to them.
+
+This repo is two things:
+- **the app** (`src/`, `plugins/`, `tools/`, `docs/`);
+- **the rulebook every app follows** (`principles/`).
+
+Changing `principles/` changes the rules for every app:
+- use `principles/PROMPTS.md` → *Change the principles*: pick MAJOR / MINOR / PATCH, bump `principles/VERSION`, and
+  add a CHANGELOG entry that says what an app must do;
+- never edit a rule without a changelog entry;
+- when the app adopts a change itself, bump `.catalyzer-principles` too.
 
 New chat:
 1. Check the link (below).

@@ -1,5 +1,13 @@
 # 02 — Design: the look
 
+## Where the look comes from
+**The Catalyzer look** is the house style of every app, whatever it is (a shell, a player, a phone app, a utility).
+- It was born in **Nexus**. The default palette is still called **Nexus** (emerald accent, electric blue select).
+- **Nexus.Kit** is today's WPF implementation, for Nexus apps and anything that links the kit. Catalyzer draws the
+  same look with its own theme layer, and follows the live Nexus theme through NexusPlugin.
+- **This document is the source of truth.** The kit implements it. Nexus follows these principles like any other
+  app. When the kit and this page disagree, fix one of them, with a changelog entry if it's this page.
+
 Short and binding. The full reference (laws, all themes, components, motion maths) is the Nexus UI kit
 (`Nexus/kit/docs`, skill `nexus-ui`).
 

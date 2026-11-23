@@ -7,7 +7,7 @@ hub, the work scatters:
 - notes in text files on the file server;
 - an ugly command prompt left open just so Claude can build and install.
 
-Catalyzer is the **developer hub**: every project in one beautiful place, with its notes, its state and a hidden
+Catalyzer is the **developer hub**, and the home of the rulebook every app follows (`principles/`): every project in one beautiful place, with its notes, its state and a hidden
 terminal, so building feels like the rest of the Nexus world, not like Windows plumbing.
 
 ## What it is now (0.2)
@@ -37,5 +37,7 @@ terminal, so building feels like the rest of the Nexus world, not like Windows p
 
 ## Fits with
 - **Nexus:** NexusPlugin follows the live Nexus look; the NEXUS button opens Nexus Explorer.
-- **Nexus Development Principles:** Catalyzer is the hub the principles assume (07): `catalyzer.json`, NOTES, the link.
+- **Catalyzer Development Principles** (`principles/`, in this repo): the rulebook every app follows (look, process,
+  repo docs). Catalyzer is the hub they assume (07): `catalyzer.json`, NOTES, the link, new projects. The app and its
+  rules ship together.
 - **Every app:** reads its `catalyzer.json`, `docs/NOTES.md` and `.catalyzer/link`.

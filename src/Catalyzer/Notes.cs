@@ -10,7 +10,7 @@ using Catalyzer.Sdk;
 namespace Catalyzer
 {
     /// <summary>
-    /// A project's docs/NOTES.md: the shared notepad of the Nexus Development Principles (2.0.0, 07-APP-REPO). Aaron,
+    /// A project's docs/NOTES.md: the shared notepad of the Catalyzer Development Principles (07-APP-REPO). Aaron,
     /// Claude and Catalyzer all write to it. Sections: Inbox / Next up / Ideas / Bugs / Done; items are "- [ ]" lines.
     /// Catalyzer only ever adds lines, flips a checkbox, or moves a line between sections. It never deletes your words,
     /// and it keeps whatever else is in the file exactly as it was.

@@ -32,7 +32,7 @@ them into the other sections. Never delete Aaron's words. Done items move to *Do
 - [ ] Aaron links the phone app and the two desktop apps. Each one's chat runs "update to the latest principles"
       (2.0.0: NOTES, VISION, ARCHITECTURE, GUIDE).
 - [ ] Helpers: add real `helpers` to the projects that have them (ask Aaron which).
-- [ ] Principles badge: show each repo's `.nexus-principles` version against the current principles VERSION
+- [ ] Principles badge: show each repo's `.catalyzer-principles` (or old `.nexus-principles`) version against the current principles VERSION
       (behind = warn).
 
 ## Ideas
@@ -44,6 +44,7 @@ them into the other sections. Never delete Aaron's words. Done items move to *Do
       repos that hand playback to each other. A group card, linked together.
 - [ ] A CLAUDE button per card that opens Claude Code in that repo (and recent sessions), as an alternative to the
       chat + link (Aaron, 2026-11-22).
+- [x] The principles moved into this repo as Catalyzer Development Principles 3.0.0 (Aaron, 2026-11-23) — done 2026-11-23
 - [ ] Rename to "Nexus Catalyzer", and maybe the principles to a brand name. Parked: naming later is cheap, and
       GitHub redirects old links (Aaron, 2026-11-22).
 - [ ] Repo plugin: pull / push / fetch-all buttons.

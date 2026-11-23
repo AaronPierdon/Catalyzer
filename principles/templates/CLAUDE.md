@@ -1,7 +1,7 @@
 # CLAUDE.md — <App>
 
-Follows **Nexus Development Principles** (`repos\Nexus Development Principles`,
-github.com/AaronPierdon/Nexus-Development-Principles); this repo's version is in `.nexus-principles`. Read them
+Follows **Catalyzer Development Principles** (`repos\Catalyzer\principles`,
+github.com/AaronPierdon/Catalyzer/tree/main/principles); this repo's version is in `.catalyzer-principles`. Read them
 before working (at least the CHANGELOG since that version). Rules below only add to them; exceptions are marked
 **EXCEPTION** with the reason.
 

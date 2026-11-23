@@ -1,7 +1,7 @@
 # 08 — Reusable assets (growing)
 
 Make something once, use it everywhere. Nothing here is required yet. The direction is:
-- **Look:** the Nexus kit (`Nexus.Kit`) is the shared source for theme roles, controls, glass, glow and motion.
+- **Look:** 02 defines it; the Nexus kit (`Nexus.Kit`) is the shared WPF source for theme roles, controls, glass, glow and motion.
   An app uses the kit, or a thin bridge to it (Catalyzer's NexusPlugin), and never copies it.
 - **Templates:** [`templates/`](templates/) here, for the repo docs. New apps start from them.
 - **Candidates to collect** (add to this list when one shows up twice):

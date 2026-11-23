@@ -9,7 +9,7 @@
   - Visual Studio or the .NET 10 SDK (`dotnet build <sln>`);
   - solutions build every app with one command;
   - Linux cloud builds use `-p:EnableWindowsTargeting=true`.
-- **Shared look:** the Nexus kit (`Nexus.Kit`). An app either references it directly (Nexus apps) or reaches it
+- **Shared look:** defined in 02; implemented in WPF by the Nexus kit (`Nexus.Kit`). An app either references it directly (Nexus apps) or reaches it
   through a plugin (Catalyzer). It never copies colours out of it.
 
 ## Theme layer

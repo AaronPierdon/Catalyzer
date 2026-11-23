@@ -33,6 +33,6 @@ bash .catalyzer/link/run.sh -s -f tools/install.ps1   # survive: outlives Cataly
 - `out/` keeps 3 days. This whole folder is git-ignored (`.catalyzer/.gitignore`).
 
 ## Rules that still apply
-The repo's CLAUDE.md and the Nexus Development Principles: never print secrets, never touch `repos\archives`, warn
+The repo's CLAUDE.md and the Catalyzer Development Principles (`repos\Catalyzer\principles`): never print secrets, never touch `repos\archives`, warn
 Aaron before installs that restart something he's using, destructive git (force-push, branch deletes) only after he
 says yes. The link makes commands possible; it doesn't make them approved.

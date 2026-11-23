@@ -19,9 +19,9 @@ Beautiful and cool is a requirement, not a polish pass. But these are tools Aaro
 | Layer | What |
 |---|---|
 | **Nexus** | the Windows shell: bar, Start, Command Center, Explorer, Tasks, wallpaper, groups, InputShare |
-| **Nexus kit** | the shared look and the Nexus API (theme, visual settings, energy) every app subscribes to |
+| **Nexus kit** | today's WPF implementation of the look (02), plus the Nexus API (theme, visual settings, energy) Nexus apps subscribe to |
 | **MAWP** | the cornerstone media player and archive (music now; video, photos, e-reader later) |
-| **Catalyzer** | the developer hub: every repo on glass, its notes, its hidden terminal (the link), live themes |
+| **Catalyzer** | the developer hub: every repo on glass, its notes, its hidden terminal (the link), new projects, and the home of these principles |
 | **Everything else** | utilities and apps, adopting the kit and these principles one by one |
 
 ## Principles

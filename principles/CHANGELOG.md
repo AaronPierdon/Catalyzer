@@ -2,6 +2,23 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 3.0.0 — 2026-11-23
+**Catalyzer Development Principles.** The rulebook moved into the hub it serves. It was *Nexus Development
+Principles* in its own repo; it's now the `principles/` folder of the Catalyzer repo, with the full history kept.
+- **New home:** `repos\Catalyzer\principles` on the PC, github.com/AaronPierdon/Catalyzer/tree/main/principles on GitHub. The old repo
+  only points here. Don't change it.
+- **New marker:** apps record their version in `.catalyzer-principles`; `.nexus-principles` is the old name.
+- **The look is the Catalyzer look** (02 → *Where the look comes from*). It was born in Nexus, and the palette is
+  still called Nexus. This page is the source of truth; Nexus.Kit is today's WPF implementation, and Nexus follows
+  these principles like any other app.
+- **Every chat's second repo is now Catalyzer**, which holds both the hub and these principles.
+
+**What an app must do** (in its next chat):
+1. Rename `.nexus-principles` to `.catalyzer-principles`, containing `3.0.0`.
+2. CLAUDE.md header → the template's: *Follows Catalyzer Development Principles*, with the new path and link.
+3. Point any other links to the old repo (README, project instructions in Claude, Kickoff text) at the new home.
+4. If it's behind 2.0.0 or 2.1.0, do those entries first.
+
 ## 2.1.0 — 2026-11-23
 **Projects start in Catalyzer and wake up briefed.** Each app has a Claude project per computer, made in that
 computer's desktop app from the repo folder, so every chat starts linked. A scheduled **Morning brief** inside the

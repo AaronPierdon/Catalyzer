@@ -14,7 +14,7 @@ using Catalyzer.Sdk;
 namespace Catalyzer
 {
     /// <summary>
-    /// NOTES: each card's docs/NOTES.md (Nexus Development Principles 2.0.0), the notepad Aaron and every chat share.
+    /// NOTES: each card's docs/NOTES.md (Catalyzer Development Principles, 07), the notepad Aaron and every chat share.
     /// The card's NOTES chip shows what's open (and what's new in the Inbox); clicking it slides in the notes drawer:
     /// type a note + Enter (it lands in the Inbox), tick to move it to Done, right-click to move it to another section,
     /// RAW to edit the whole file, SYNC to commit + pull + push just NOTES.md, so notes written from the phone arrive
@@ -234,7 +234,7 @@ namespace Catalyzer
             if (!n.Exists)
             {
                 var msg = Cz.Text(n.Legacy
-                    ? "This repo still keeps its list in docs\\BACKLOG.md. The Nexus Development Principles 2.0.0 merge it into docs\\NOTES.md. Ask the project's chat to \"update to the latest principles\", or start a fresh NOTES.md here (BACKLOG.md stays as it is)."
+                    ? "This repo still keeps its list in docs\\BACKLOG.md. The Catalyzer Development Principles (2.0.0 and later) merge it into docs\\NOTES.md. Ask the project's chat to \"update to the latest principles\", or start a fresh NOTES.md here (BACKLOG.md stays as it is)."
                     : "No docs\\NOTES.md in this repo yet. Start one: it gets the Inbox / Next up / Ideas / Bugs / Done sections every chat and Catalyzer understand.", 13.5, "CzTextDimBrush");
                 msg.TextWrapping = TextWrapping.Wrap; msg.TextTrimming = TextTrimming.None; msg.Margin = new Thickness(0, 6, 0, 16);
                 _notesList.Children.Add(msg);

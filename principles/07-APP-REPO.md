@@ -9,7 +9,7 @@ The repo is the single source of truth. Chat memory isn't.
 
 ```
 <App>/
-  .nexus-principles        the principles version it follows, e.g. 2.0.0 (one line)
+  .catalyzer-principles        the principles version it follows, e.g. 2.0.0 (one line)
   CLAUDE.md                how to work here: rules, build / run, what to read (template)
   README.md                what it is, how to install and run, where its data lives
   catalyzer.json           its card in Catalyzer (name, description, accent, glyph, buttons, helpers)

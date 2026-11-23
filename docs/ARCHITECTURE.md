@@ -10,6 +10,7 @@ One screen. How each part works is in [GUIDE.md](GUIDE.md).
 | **NexusPlugin** | `plugins/Catalyzer.Nexus` | the live Nexus theme (through `NexusPublicApi`), and the NEXUS button |
 | **LinkPlugin** | `plugins/Catalyzer.Link` | LINK per card: a hidden Windows terminal through a mailbox in the repo |
 | **HelpersPlugin** | `plugins/Catalyzer.Helpers` | a project's long-running scripts (`helpers` in `catalyzer.json`), hidden |
+| **Principles** | `principles/` | the Catalyzer Development Principles (look, engineering, workflow, rules, repo layout, templates). Docs only, versioned in `principles/VERSION` |
 | **tools** | `tools/` | `install.ps1` (Release to `%LOCALAPPDATA%\Programs\Catalyzer`), `snap.ps1` (build + snapshots) |
 
 The app never references a plugin or Nexus. Plugins only see the SDK.

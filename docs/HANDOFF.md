@@ -2,6 +2,31 @@
 
 Each chat rewrites its own section at the end (git keeps history).
 
+## From the helpers / link chat, day 2 — 2026-11-23 (cloud chat linked to the PC)
+
+### What this chat did
+- **Pulled and merged** the phone chat's two commits on `main` (the NEW PROJECT and GitHub dashboard specs) into the
+  helpers / link / notes branch. BACKLOG had already become NOTES here, so the two items now sit in NOTES → Next up,
+  word for word.
+  - That chat's *sync check* (Catalyzer on 1.0.0) is resolved: Catalyzer now has NOTES, VISION, ARCHITECTURE and
+    GUIDE.
+- **The principles moved in.** *Nexus Development Principles* (2.1.0, with full history through a subtree merge) is
+  now `principles/` here, renamed **Catalyzer Development Principles 3.0.0**:
+  - new home and links;
+  - the marker is now `.catalyzer-principles`;
+  - the look is "the Catalyzer look" (born in Nexus, palette still called Nexus; 02 is the source of truth, and
+    Nexus.Kit is the WPF implementation).
+  - The old GitHub repo gets one last commit: a README that points here.
+- **`main` now has everything:** helpers, link, notes, principles. It's what's installed. Other chats (the phone
+  ones included) branch from it, so they don't start on stale docs again.
+
+### Next (first move first)
+1. **Aaron clicks LINK** on the Catalyzer card. Then test through the link: git, `tools/snap.ps1`, a cancel, and the
+   feed. Try the NOTES panel.
+2. Every other app: "update to the latest principles" in its chat (3.0.0: the new marker and header; 2.0.0 docs if
+   missing). Nexus's CLAUDE.md still points to the old principles repo until its chat does this.
+3. NEW PROJECT, then the GitHub dashboard (NOTES → Next up).
+
 ## From the "how I work with Claude" chat — 2026-11-23 (phone, via GitHub; no PC access)
 
 ### Decided

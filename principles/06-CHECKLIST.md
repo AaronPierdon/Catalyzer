@@ -30,7 +30,7 @@
 - [ ] An install script to `%LOCALAPPDATA%\Programs\<App>` + a Start menu shortcut.
 
 **Repo**
-- [ ] The files from [07-APP-REPO](07-APP-REPO.md): `CLAUDE.md`, `.nexus-principles`, README, `catalyzer.json`, and
+- [ ] The files from [07-APP-REPO](07-APP-REPO.md): `CLAUDE.md`, `.catalyzer-principles`, README, `catalyzer.json`, and
       docs (NOTES, VISION, ARCHITECTURE, GUIDE, HANDOFF, STATE), filled in with no placeholders left.
 - [ ] Its own GitHub repo (`AaronPierdon/<App>`), with `main` pushed. Shows up in Catalyzer.
 - [ ] Build, snap and install are `tools\` scripts that a linked chat can run.

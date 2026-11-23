@@ -35,6 +35,6 @@ bash .catalyzer/link/run.sh 'dotnet build'
 
 ## What it is not
 - **Not a permission system.** The link runs what it's sent, as Aaron. The chat's own rules still decide what's
-  allowed: the CLAUDE.md, the Nexus Development Principles, and asking before installs, deletes and force-pushes.
+  allowed: the CLAUDE.md, the Catalyzer Development Principles, and asking before installs, deletes and force-pushes.
   The feed is how Aaron sees what happened.
 - **Not for the Nexus helper.** Nexus keeps its own `_tools` helper until it adopts the link.

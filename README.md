@@ -1,6 +1,11 @@
 # Catalyzer
 
-A project command center for Windows. Every repo you own floats on the board as a glass card showing:
+**The hub for making and maintaining Aaron's software.** Two things live in this repo:
+- **the app**, a project command center for Windows;
+- **the Catalyzer Development Principles** in [`principles/`](principles/README.md), the rulebook every app
+  follows: the look, how apps are built, the workflow with Claude, and what every repo contains.
+
+The app is a project command center for Windows. Every repo you own floats on the board as a glass card showing:
 - what it is;
 - where its git stands (branch, changes, commits to push or pull, the last commit);
 - three weeks of activity;
