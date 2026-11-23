@@ -16,7 +16,7 @@ $code = 0
 try {
     Set-Location -LiteralPath $Root
     $global:LASTEXITCODE = 0
-    & $Script 2>&1 | ForEach-Object { Out-Line $_ }
+    & $Script *>&1 | ForEach-Object { Out-Line $_ }
     $code = $global:LASTEXITCODE
     if ($null -eq $code) { $code = 0 }
 }
