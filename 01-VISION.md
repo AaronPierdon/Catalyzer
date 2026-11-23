@@ -21,7 +21,7 @@ Beautiful and cool is a requirement, not a polish pass. But these are tools Aaro
 | **Nexus** | the Windows shell: bar, Start, Command Center, Explorer, Tasks, wallpaper, groups, InputShare |
 | **Nexus kit** | the shared look and the Nexus API (theme, visual settings, energy) every app subscribes to |
 | **MAWP** | the cornerstone media player and archive (music now; video, photos, e-reader later) |
-| **Catalyzer** | the project command center: every repo on glass, plugins, live themes |
+| **Catalyzer** | the developer hub: every repo on glass, its notes, its hidden terminal (the link), live themes |
 | **Everything else** | utilities and apps, adopting the kit and these principles one by one |
 
 ## Principles
@@ -37,5 +37,7 @@ Beautiful and cool is a requirement, not a polish pass. But these are tools Aaro
 6. **Extensible, not hardwired.** Apps expose small, stable APIs and plugin points. Integrations (Nexus ↔ Catalyzer,
    themes, repos) live in plugins, not in base code.
 7. **Many devices, one system.** Settings sync, data is shared where it should be, installs are one step.
-8. **It's a real product.** Even when built for one person, it's built so someone else could pick it up: docs,
+8. **One hub for building.** Every app lives in its own GitHub repo, shows up in Catalyzer, and carries its own
+   notes and docs. Any machine and any chat can pick it up from there, even from the phone.
+9. **It's a real product.** Even when built for one person, it's built so someone else could pick it up: docs,
    versioned APIs, clean installs, no secrets in the repo.

@@ -6,8 +6,9 @@ Copy and paste these into a chat that's linked to the app's repo.
 > Read the Nexus Development Principles (repos\Nexus Development Principles, or
 > github.com/AaronPierdon/Nexus-Development-Principles), all of it. Then audit this app against 06-CHECKLIST: list
 > what passes, what fails and what's an intentional exception, and estimate the effort for each fix. Don't change
-> code yet. After I pick, add the repo files from 07-APP-REPO (CLAUDE.md header, `.nexus-principles` with the
-> current VERSION, docs, catalyzer.json) and fix in the order I chose.
+> code yet. After I pick, add the repo files from 07-APP-REPO, starting from `templates/`: CLAUDE.md,
+> `.nexus-principles` with the current VERSION, catalyzer.json, and the docs. Fill VISION, ARCHITECTURE and GUIDE
+> from the actual code. Create the GitHub repo if it's missing. Then fix things in the order I chose.
 
 ## Update (the principles moved on)
 > Update this app to the latest Nexus Development Principles. Read `.nexus-principles` for our version, then
@@ -30,9 +31,24 @@ Copy and paste these into a chat that's linked to the app's repo.
 >
 > Then list which apps need the Update prompt.
 
+## Note this (from anywhere, even the phone)
+> Note this for <App>: <the idea>.
+
+The chat adds it to `docs/NOTES.md` → *Inbox* in that app's repo, commits and pushes. Notes that apply to every
+app go into these principles instead.
+
+## New app
+> Start a new app called <App>: <what it's for>. Follow the Nexus Development Principles from the start:
+> - create the repo from `templates/` and `AaronPierdon/<App>` on GitHub;
+> - write VISION from what I said;
+> - add catalyzer.json;
+> - set up `tools\` build and install scripts.
+>
+> Then tell me to click LINK on its card in Catalyzer.
+
 ## Retire a thread
 > We're retiring this thread. Update the docs and handover first:
-> - update HANDOFF / STATE / BACKLOG;
+> - update HANDOFF / STATE / NOTES (and ARCHITECTURE / GUIDE if the shape changed);
 > - write anything unfinished into HANDOFF → *Next*;
 > - push.
 >

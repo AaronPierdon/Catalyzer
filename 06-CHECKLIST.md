@@ -7,7 +7,10 @@
       about look or motion.
 - [ ] Reduce motion and the Static / efficient tier still usable.
 - [ ] No colour literals, no stock dialogs or controls, no console windows.
-- [ ] Nothing removed came back; STATE / BACKLOG / HANDOFF updated; pushed.
+- [ ] Nothing removed came back.
+- [ ] HANDOFF / STATE / NOTES updated. ARCHITECTURE / GUIDE updated if a part, library, class or flow changed.
+      VISION updated if the scope did.
+- [ ] Pushed.
 
 ## Every app (conformance)
 **Look**
@@ -27,6 +30,7 @@
 - [ ] An install script to `%LOCALAPPDATA%\Programs\<App>` + a Start menu shortcut.
 
 **Repo**
-- [ ] The files from [07-APP-REPO](07-APP-REPO.md): `CLAUDE.md`, `.nexus-principles`, docs (HANDOFF, STATE,
-      BACKLOG), README, `catalyzer.json`.
-- [ ] Its own GitHub repo; `main` pushed.
+- [ ] The files from [07-APP-REPO](07-APP-REPO.md): `CLAUDE.md`, `.nexus-principles`, README, `catalyzer.json`, and
+      docs (NOTES, VISION, ARCHITECTURE, GUIDE, HANDOFF, STATE), filled in with no placeholders left.
+- [ ] Its own GitHub repo (`AaronPierdon/<App>`), with `main` pushed. Shows up in Catalyzer.
+- [ ] Build, snap and install are `tools\` scripts that a linked chat can run.

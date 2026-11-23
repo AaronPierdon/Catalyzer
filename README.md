@@ -3,7 +3,9 @@
 The rulebook for every app Aaron builds: Nexus, Catalyzer, MAWP and whatever comes next. It covers:
 - **one look:** the sci-fi console;
 - **one way to build:** how code, settings, plugins and performance work;
-- **one way to work:** chats, branches, handovers, safety.
+- **one way to work:** chats, branches, handovers, safety, and the docs every app keeps;
+- **one hub:** every app is built with Catalyzer in mind (GitHub repo, `catalyzer.json`, notes in the repo, the
+  link for running things).
 
 Every app repo points here and records which version of these principles it follows. When the principles change,
 each app can be told "update to the latest principles", and it knows what changed since its version.
@@ -19,7 +21,9 @@ each app can be told "update to the latest principles", and it knows what change
 | 04 | [WORKFLOW](04-WORKFLOW.md) | how work happens: chats, branches, handovers, testing, shipping |
 | 05 | [RULES](05-RULES.md) | the hard rules: safety, privacy, never-dos |
 | 06 | [CHECKLIST](06-CHECKLIST.md) | definition of done: what every app and every change must pass |
-| 07 | [APP REPO](07-APP-REPO.md) | what every app repo contains, its CLAUDE.md and marker file |
+| 07 | [APP REPO](07-APP-REPO.md) | what every app repo contains: notes, vision, architecture, guide, handover, GitHub, Catalyzer |
+| 08 | [ASSETS](08-ASSETS.md) | reusable assets: what's shared, and where it lives (growing) |
+| — | [templates/](templates/) | starter files for a new app's CLAUDE.md and docs |
 | — | [PROMPTS](PROMPTS.md) | copy-paste prompts: adopt the principles, update to a new version, audit an app |
 
 ## How apps follow it

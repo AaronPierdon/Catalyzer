@@ -2,6 +2,29 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 2.0.0 — 2026-11-22
+The principles now cover **how apps are developed**, not only how they look. Every app is built with Catalyzer in
+mind and explains itself in its repo.
+- **New required docs** (07):
+  - `docs/NOTES.md`: the shared notepad for Aaron, Claude and Catalyzer's notes panel, with sections *Inbox*,
+    *Next up*, *Ideas*, *Bugs* and *Done*;
+  - `docs/VISION.md`: purpose, scope now and later, what it won't do;
+  - `docs/ARCHITECTURE.md`: a one-screen map of the parts, libraries, feature sets and data flow;
+  - `docs/GUIDE.md`: the "for dummies" tour, with main classes, key methods and `file:line` pointers.
+- **BACKLOG.md is merged into NOTES.md** and retired.
+- **Starter files** are in `templates/`.
+- **Every chat works with two repos**, the app and these principles. It runs a *sync check* at start (04).
+- A change updates the doc that describes it in the same commit (04, 06).
+- **New:** 08-ASSETS, a direction for reusable assets (nothing required yet).
+- **New prompts:** *Note this* and *New app*.
+
+**What an app must do:**
+1. Move `docs/BACKLOG.md` into `docs/NOTES.md`, using the sections in 07, and delete BACKLOG.md. Keep every item.
+2. Add VISION, ARCHITECTURE and GUIDE from `templates/`, filled in from the actual code. Leave no placeholders.
+3. Update CLAUDE.md to the template: the new-chat reading order, and *Build / install / run* through the link.
+4. Make sure it has a GitHub repo and a `catalyzer.json`.
+5. Bump `.nexus-principles` to `2.0.0`.
+
 ## 1.1.0 — 2026-11-22
 **The Catalyzer link** replaces per-repo `_tools` queue helpers. Aaron clicks LINK on a project's card, and that
 repo gets a hidden Windows terminal that its chat drives with `bash .catalyzer/link/run.sh '<PowerShell>'`. There's
