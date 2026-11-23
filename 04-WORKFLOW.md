@@ -14,6 +14,31 @@
   Small apps may use a single PC chat.
 - When a thread gets long, write the handover and start a new one. Don't let context run out mid-change.
 
+## Setting up a project in Claude (once per app, per computer)
+The goal: Aaron opens his phone and a chat is already waiting, linked to the right computer, briefed and ready. No
+remote desktop, no clicking around in the desktop app. **Every new app starts in Catalyzer**: it gives Aaron the setup
+steps and the whole kickoff prompt at once (PROMPTS → *Kickoff*).
+1. **GitHub repo** `AaronPierdon/<App>`, made from `templates/`.
+2. **A Claude project per app, per computer:** `<App>` for the PC, plus `<App> – VM` if the app uses the lab.
+   - Create it **in the Claude desktop app on that computer**, from the repo folder, so the folder link belongs to
+     the project and every new chat in it starts linked.
+   - A folder belongs to one computer, and folder links only work while that computer's desktop app is open. A
+     chat started from the phone in a project with no folder has no file access.
+   - Project instructions: the repo's GitHub link, *"read CLAUDE.md first"*, and these principles' GitHub link.
+3. **Morning brief:** a scheduled task inside that project (PROMPTS → *Morning brief*), with the repo folder chosen,
+   so *Require this computer* is on.
+   - Runs every morning, or on demand with **Run now** from the phone. Each run is a fresh, full chat in the project.
+   - Use a lighter model for the brief. Switch up when the real work starts.
+4. Keep that computer awake with the Claude desktop app open. That's all the brief needs.
+
+**Saving usage:** the brief reads only CLAUDE.md, HANDOFF, NOTES (Inbox / Next up), STATE and the git log, never the
+whole codebase. It stops after the summary and waits for Aaron. HANDOFF → *Next* starts with **one first move**, so
+the brief has nothing to dig for. Code is read when the day's work touches it, and only the part it touches.
+
+**Watching over remote desktop** (optional): set the client to scale, not resize (Windows App: *Fit session to
+window*; mstsc: *Smart sizing*), so Claude's screen stays a fixed resolution at any window size. While Claude drives
+the mouse, Aaron only watches.
+
 ## Running things on the PC: the Catalyzer link
 Each app chat has its own repo folder linked. Catalyzer (always running, started with Windows) gives that repo a
 hidden Windows terminal when Aaron clicks **LINK** on its card. There's no console window, nothing to start by

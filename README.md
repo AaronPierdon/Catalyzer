@@ -24,7 +24,7 @@ each app can be told "update to the latest principles", and it knows what change
 | 07 | [APP REPO](07-APP-REPO.md) | what every app repo contains: notes, vision, architecture, guide, handover, GitHub, Catalyzer |
 | 08 | [ASSETS](08-ASSETS.md) | reusable assets: what's shared, and where it lives (growing) |
 | — | [templates/](templates/) | starter files for a new app's CLAUDE.md and docs |
-| — | [PROMPTS](PROMPTS.md) | copy-paste prompts: adopt the principles, update to a new version, audit an app |
+| — | [PROMPTS](PROMPTS.md) | copy-paste prompts: kickoff a new app, morning brief, adopt, update, audit |
 
 ## How apps follow it
 1. Each app repo has a `.nexus-principles` file at its root containing the version it conforms to, e.g. `1.0.0`.

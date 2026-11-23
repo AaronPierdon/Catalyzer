@@ -2,6 +2,19 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 2.1.0 — 2026-11-23
+**Projects start in Catalyzer and wake up briefed.** Each app has a Claude project per computer, made in that
+computer's desktop app from the repo folder, so every chat starts linked. A scheduled **Morning brief** inside the
+project opens a fresh chat each morning (or on demand from the phone with Run now) that reads only the handover
+files and git, never the whole codebase, then waits. New apps start from Catalyzer's **Kickoff** prompt. (04 *Setting
+up a project in Claude*, PROMPTS → *Kickoff*, *Morning brief*.)
+
+**What an app should do** (when next touched):
+- Make sure its Claude project was created from the repo folder on the computer where it's built.
+- Add the Morning brief as a scheduled task in that project, with a lighter model.
+- Start HANDOFF → *Next* with one first move.
+- Bump `.nexus-principles` to `2.1.0`.
+
 ## 2.0.0 — 2026-11-22
 The principles now cover **how apps are developed**, not only how they look. Every app is built with Catalyzer in
 mind and explains itself in its repo.

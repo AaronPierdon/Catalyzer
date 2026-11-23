@@ -46,6 +46,30 @@ app go into these principles instead.
 >
 > Then tell me to click LINK on its card in Catalyzer.
 
+## Kickoff (Catalyzer hands this out for a new app)
+Catalyzer fills in `<App>`, `<what it's for>` and the paths, and shows the setup steps from 04 *Setting up a project
+in Claude* next to it. Paste it into the first chat of the new project.
+> This is the first chat for <App>: <what it's for>.
+> - App repo: github.com/AaronPierdon/<App> (create it from the principles' `templates/` if it's empty). On the PC:
+>   `C:\Users\Aaron\source\repos\<App>`.
+> - Principles: github.com/AaronPierdon/Nexus-Development-Principles (`repos\Nexus Development Principles`). Read
+>   README, 04-WORKFLOW, 05-RULES and 07-APP-REPO first.
+> - Hub: github.com/AaronPierdon/Catalyzer (`repos\Catalyzer`). Add `catalyzer.json` so the app gets a card, and set
+>   up `tools\` build and install scripts so the Catalyzer link can run them.
+> - Write VISION from what I said, fill CLAUDE.md, HANDOFF, NOTES and STATE, and set `.nexus-principles` to the
+>   current VERSION. Push.
+> - Then give me the project instructions to paste and the Morning brief task to schedule.
+
+## Morning brief (the project's scheduled task)
+> Morning brief for <App>. Read only CLAUDE.md, docs/HANDOFF.md, docs/NOTES.md (Inbox, Next up), docs/STATE.md and
+> `git log --oneline -20`. Don't read source code, build or test. Check the Catalyzer link (`--status`) and whether
+> the app is behind the principles VERSION. Then tell me in under 10 lines:
+> - where things stand and what's waiting to test;
+> - the first move from HANDOFF → Next, and the next two after it;
+> - anything blocked on me.
+>
+> Then stop and wait.
+
 ## Retire a thread
 > We're retiring this thread. Update the docs and handover first:
 > - update HANDOFF / STATE / NOTES (and ARCHITECTURE / GUIDE if the shape changed);
