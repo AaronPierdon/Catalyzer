@@ -5,6 +5,7 @@ them into the other sections. Never delete Aaron's words. Done items move to *Do
 
 ## Inbox
 
+- [ ] Tst 3 (Aaron, 2026-11-23)
 - [ ] This isa test note for Claude to get. My favorite number is 21. (Aaron, 2026-11-23)
 - [ ] This is a second test. (NO TIME STAMP MUAHAHHA)
 
