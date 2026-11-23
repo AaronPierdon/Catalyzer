@@ -2,6 +2,24 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 3.2.0 — 2026-11-23
+**Wiring an app to Catalyzer** (07): the once-per-app recipe:
+- a GitHub repo and folder;
+- a `catalyzer.json`;
+- `tools\` scripts, each with a double-click `.cmd`;
+- the docs;
+- LINK, then the first build through it, then a push.
+
+Also in 07: how to retire an old `_tools` queue helper. **New templates:** `templates/catalyzer.json`,
+`templates/tools/` (`build` and `install`, as `.ps1` + `.cmd`). Link requests now run at below-normal priority (add
+`-n` for normal).
+
+**What an app should do** (when next touched):
+- add `tools\build.ps1` and `install.ps1` if it doesn't have them;
+- run them through the link;
+- retire its queue helper once the link has worked;
+- bump `.catalyzer-principles` to `3.2.0`.
+
 ## 3.1.0 — 2026-11-23
 **A standard *Project instructions* block** (PROMPTS) for each app's Claude project. It's a few lines that point
 to the repo and these principles, and it says: read CLAUDE.md, check the link, follow the principles, push at the end.

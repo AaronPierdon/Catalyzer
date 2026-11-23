@@ -1,0 +1,9 @@
+{
+  "name": "<App>",
+  "description": "<one line: what it is>",
+  "accent": "#1BF28C",
+  "actions": [
+    { "label": "Build",   "glyph": "", "run": "tools\\build.cmd",   "tip": "BUILD (DEBUG)" },
+    { "label": "Install", "glyph": "", "run": "tools\\install.cmd", "tip": "BUILD RELEASE + INSTALL" }
+  ]
+}

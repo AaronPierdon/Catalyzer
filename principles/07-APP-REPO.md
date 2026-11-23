@@ -65,6 +65,35 @@ See [`templates/CLAUDE.md`](templates/CLAUDE.md). It always starts with the prin
 - *App-specific rules*;
 - *Exceptions* (**EXCEPTION** + reason).
 
+## Wiring an app to Catalyzer (do this once per app)
+A chat that's been handed the Catalyzer repo and told "let's build something" follows these steps:
+1. **GitHub repo** `AaronPierdon/<App>`, and the folder `C:\Users\Aaron\source\repos\<App>`. The folder is
+   enough for Catalyzer to show a card (it scans `repos`).
+2. **`catalyzer.json`** at the root, from [`templates/catalyzer.json`](templates/catalyzer.json): name,
+   description, accent, and buttons for build and install.
+3. **`tools\` scripts** from [`templates/tools/`](templates/tools/):
+   - `build.ps1` and `install.ps1` (plus `snap.ps1` for UI apps);
+   - a `.cmd` beside each, so Aaron can double-click it;
+   - every script prints a short result and exits non-zero on failure.
+4. **The docs** from `templates/`. CLAUDE.md's *Build / install / run* names the tools scripts and the link.
+5. **Ask Aaron to click LINK** on the new card. Check it with `bash .catalyzer/link/run.sh --status`, then run
+   `bash .catalyzer/link/run.sh -f tools/build.ps1`. That's the proof the wiring works.
+6. **Push.** The card shows the repo, its git state, its NOTES and its link.
+
+**Using the link:** `.catalyzer/link/README.md` (Catalyzer writes it into the repo the first time LINK is on) and
+04 → *Running things on the PC*. In short:
+- `run.sh '<PowerShell>'` or `run.sh -f <script>`;
+- it runs hidden, in the repo root, at below-normal priority, inside Catalyzer's kill-on-close job;
+- every command shows in the card's feed.
+
+**Retiring a `_tools` queue helper** (MAWP, Nexus, apps from before the link):
+- The scripts stay. `bash .catalyzer/link/run.sh -f _tools/scripts/<x>.ps1` runs any of them directly, with no
+  queue, no list of allowed actions, and no window.
+- Move the everyday ones (build, install, snap, test) into `tools\` as the app is next touched. Old double-click
+  `.cmd` files can stay.
+- Stop starting the helper window once the link has worked for that app. Delete `queue\`, `out\` and
+  `run-action.sh` when nothing uses them. Then say so in HANDOFF and STATE.
+
 ## GitHub and Catalyzer
 - **GitHub:** each app has its own repo, `AaronPierdon/<App>`, created before the first handover, with `main` pushed.
   Large binaries (media, builds) stay off GitHub: they live on the file server, and the repo says where.

@@ -19,13 +19,17 @@ bash .catalyzer/link/run.sh -s -f tools/install.ps1   # survive: outlives Cataly
 - Each call is a fresh PowerShell (Windows PowerShell 5.1) started in the repo root. Chain steps in one call:
   `'cd src; dotnet test; git status'`.
 - Requests run **one at a time, in order** (background ones excepted). Default PC timeout 15 min.
+- They run at **below-normal priority** (everything they start inherits it), so Aaron's games and music never
+  stutter. Add `-n` for normal priority when it matters, e.g. a timing test.
+- **The repo's own scripts work as they are.** If it has a `_tools\scripts\x.ps1` or a `tools\x.ps1`, run it with
+  `-f`. There's no need to go through an old `_tools` queue helper: the link replaces it.
 - Output lines starting with `! ` came from the error stream (git prints progress there: not always a failure —
   trust the exit code).
 - No input: anything that waits for a key or a password gets end-of-input. Git never prompts (`GIT_TERMINAL_PROMPT=0`).
 
 ## How it works (if run.sh isn't usable)
 - Write a PowerShell script to `in/<id>.ps1` (write `<id>.ps1.part`, then rename). `<id>`: letters, digits, `-`, `_`.
-  Optional first line: `# catalyzer: timeout=<seconds> [background] [survive]`. `.cmd` files work too.
+  Optional first line: `# catalyzer: timeout=<seconds> [background] [survive] [priority=normal]`. `.cmd` files work too.
 - Catalyzer picks it up within a second, moves it to `out/<id>.ps1`, streams output to `out/<id>.log`, and writes the
   exit code to `out/<id>.done`. `in/<id>.cancel` stops it.
 - `STATUS`: first line `ACTIVE` (rewritten every 15 s) or `OFF`. ACTIVE older than ~2 min means Catalyzer isn't running.

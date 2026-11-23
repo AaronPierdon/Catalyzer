@@ -179,7 +179,7 @@ namespace Catalyzer.Link
     {
         public string Id, Script, Log, Done, Preview;
         public int Timeout = 900;
-        public bool Background, Survive;
+        public bool Background, Survive, Normal;
         public Process Proc;
         public DateTime Started;
         public long Offset;
@@ -349,6 +349,7 @@ namespace Catalyzer.Link
                 var m = Regex.Match(head, @"timeout\s*=\s*(\d+)"); if (m.Success) r.Timeout = int.Parse(m.Groups[1].Value);
                 r.Background = Regex.IsMatch(head, @"\bbackground\b", RegexOptions.IgnoreCase);
                 r.Survive = Regex.IsMatch(head, @"\bsurvive\b", RegexOptions.IgnoreCase);
+                r.Normal = Regex.IsMatch(head, @"\bpriority\s*=\s*normal\b", RegexOptions.IgnoreCase);
             }
             var first = lines.Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0 && !l.StartsWith("#")) ?? "(empty)";
             r.Preview = first.Length > 140 ? first[..140] + "…" : first;
@@ -388,6 +389,8 @@ namespace Catalyzer.Link
                 r.Started = DateTime.Now;
                 p.Start();
                 if (!r.Survive) { try { _pl.Job?.Add(p); } catch (Exception ex) { _pl.Host.Log(_pl, "job: " + ex.Message); } }
+                // below normal by default (children inherit it): builds never make games or music stutter
+                if (!r.Normal) { try { p.PriorityClass = ProcessPriorityClass.BelowNormal; } catch { } }
                 lock (_gate) r.Proc = p;
                 Beat();
             }

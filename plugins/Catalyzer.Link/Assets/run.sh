@@ -12,9 +12,10 @@
 #   -t <s>  timeout on the PC (default 900)        -w <s>  how long to wait here (default 170, then use --wait)
 #   -b      background: keeps running and doesn't block the queue (dev servers, watchers); stops when unlinked
 #   -s      survive: outlives Catalyzer itself (installing Catalyzer); its output still lands in out/<id>.log
+#   -n      normal priority (requests run below normal by default, so games and music never stutter)
 set -u
 L="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-timeout=900; wait=170; bg=""; sv=""; file=""
+timeout=900; wait=170; bg=""; sv=""; pr=""; file=""
 
 status() {
   local s="$L/STATUS"
@@ -61,6 +62,7 @@ while [ $# -gt 0 ]; do
     -w) wait=$2; shift 2 ;;
     -b) bg=" background"; shift ;;
     -s) sv=" survive"; shift ;;
+    -n) pr=" priority=normal"; shift ;;
     -f) file=$2; shift 2; [ "${1:-}" = "--" ] && shift; break ;;
     --) shift; break ;;
     *) break ;;
@@ -78,7 +80,7 @@ else
   body="$*"
 fi
 [ -z "$body" ] && { echo "nothing to run"; exit 2; }
-printf '# catalyzer: timeout=%s%s%s\n%s\n' "$timeout" "$bg" "$sv" "$body" > "$L/in/$id.ps1.part"
+printf '# catalyzer: timeout=%s%s%s%s\n%s\n' "$timeout" "$bg" "$sv" "$pr" "$body" > "$L/in/$id.ps1.part"
 mv "$L/in/$id.ps1.part" "$L/in/$id.ps1"
 echo "[catalyzer] $id: $(echo "$body" | head -1 | cut -c1-160)"
 if [ -n "$bg" ]; then
