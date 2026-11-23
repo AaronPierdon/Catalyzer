@@ -2,6 +2,33 @@
 
 Each chat rewrites its own section at the end (git keeps history).
 
+## From the "how I work with Claude" chat — 2026-11-23 (phone, via GitHub; no PC access)
+
+### Decided
+Catalyzer is **where every new project starts**. Aaron's pipeline, now written into the principles (2.1.0, 04 *Setting
+up a project in Claude*, PROMPTS → *Kickoff* and *Morning brief*):
+1. Open Catalyzer → new project. It shows the setup steps and one complete kickoff prompt: the GitHub link, how to
+   structure the repo, how to work with Catalyzer, and the paths of the Catalyzer and principles repos.
+2. Aaron makes the GitHub repo and a Claude project **in the desktop app on that computer, from the repo folder**, so
+   every chat in the project starts linked. A folder link belongs to one computer and needs that computer's desktop
+   app open.
+3. A scheduled **Morning brief** inside the project, with the folder chosen ("Require this computer"), opens a fresh,
+   briefed chat each morning, or on demand from the phone with Run now. It reads only the handover files and git, to
+   save usage.
+
+Checked in the docs: `claude://` links only **prefill** prompts and always ask before using a folder. So a launcher that
+automates the desktop app is out. Scheduled tasks do the job.
+
+### Sync check
+This repo is on principles **1.0.0** and current is **2.1.0**. 2.0.0's work (BACKLOG → NOTES, VISION / ARCHITECTURE /
+GUIDE) isn't done. Run PROMPTS → *Update* in the next Catalyzer chat.
+
+### Next (first move first)
+1. **Update to principles 2.1.0** (PROMPTS → *Update*).
+2. **Kickoff generator** (BACKLOG): a NEW PROJECT button that asks for name and purpose, then shows the 04 setup
+   steps plus the filled-in Kickoff prompt with copy buttons.
+3. Everything under the first chat's *Next* below still stands.
+
 ## From the first chat — 2026-11-22 (built in the Nexus PC chat, then retired)
 
 ### What exists
