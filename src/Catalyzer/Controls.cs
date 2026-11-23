@@ -81,7 +81,8 @@ namespace Catalyzer
         public static bool IsInteractive(DependencyObject src, DependencyObject stop)
         {
             for (var d = src; d != null && d != stop; d = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
-                if (d is ButtonBase || d is TextBoxBase || d is CzButton || d is CzToggle || d is Chip) return true;
+                // anything clickable: pressing it must never start a window drag (the drag swallows the click)
+                if (d is ButtonBase || d is TextBoxBase || d is CzButton || d is CzToggle || d is Chip || d is CzIconButton || d is WinButton) return true;
             return false;
         }
 
@@ -476,7 +477,13 @@ namespace Catalyzer
             var p = new Pen(c.Brush(), 1.3); double x = ActualWidth / 2, y = ActualHeight / 2;
             if (_k == Kind.Min) dc.DrawLine(p, new Point(x - 6, y), new Point(x + 6, y));
             else if (_k == Kind.Close) { dc.DrawLine(p, new Point(x - 5.5, y - 5.5), new Point(x + 5.5, y + 5.5)); dc.DrawLine(p, new Point(x + 5.5, y - 5.5), new Point(x - 5.5, y + 5.5)); }
-            else if (Window?.WindowState == WindowState.Maximized) { dc.DrawGeometry(null, p, Cz.Chamfer(10, 10, 3)); dc.DrawLine(p, new Point(x - 2, y - 7), new Point(x + 7, y - 7)); dc.DrawLine(p, new Point(x + 7, y - 7), new Point(x + 7, y + 2)); }
+            else if (Window?.WindowState == WindowState.Maximized)
+            {
+                // restore: a chamfered square in front, the corner of a second one behind it
+                dc.DrawGeometry(null, p, Cz.Chamfer(10, 10, 3).CloneCurrentValue().Also(g => g.Transform = new TranslateTransform(x - 6.5, y - 3.5)));
+                dc.DrawLine(p, new Point(x - 3.5, y - 6.5), new Point(x + 6.5, y - 6.5));
+                dc.DrawLine(p, new Point(x + 6.5, y - 6.5), new Point(x + 6.5, y + 3.5));
+            }
             else dc.DrawGeometry(null, p, Cz.Chamfer(12, 12, 3.5).CloneCurrentValue().Also(g => g.Transform = new TranslateTransform(x - 6, y - 6)));
         }
     }
