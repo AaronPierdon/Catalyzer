@@ -10,17 +10,42 @@ using Catalyzer.Sdk;
 namespace Catalyzer
 {
     /// <summary>
-    /// A project's docs/NOTES.md: the shared notepad of the Catalyzer Development Principles (07-APP-REPO). Aaron,
-    /// Claude and Catalyzer all write to it. Sections: Inbox / Next up / Ideas / Bugs / Done; items are "- [ ]" lines.
-    /// Catalyzer only ever adds lines, flips a checkbox, or moves a line between sections. It never deletes your words,
-    /// and it keeps whatever else is in the file exactly as it was.
+    /// A project's docs/NOTES.md: Aaron's own notes (Catalyzer Development Principles 5.0.0, 07-APP-REPO). One
+    /// <c>## Notes</c> section, newest first, each line stamped: <c>- 2026-11-24 14:57 — the note</c>. Chats read it
+    /// when asked and never edit it; Aaron wipes it for a fresh slate (WIPE + SYNC), and <see cref="NotesCache"/>
+    /// keeps every version. Older files (Inbox / Next up / Ideas / Bugs / Done, "- [ ]" items) still read and edit
+    /// fine. Catalyzer keeps whatever else is in the file exactly as it was.
     /// </summary>
     public sealed class Notes
     {
         public const string RelPath = "docs\\NOTES.md";
-        public static readonly string[] Sections = { "Inbox", "Next up", "Ideas", "Bugs", "Done" };
+        /// <summary>The one section of a 5.0.0 NOTES.md.</summary>
+        public const string Main = "Notes";
+        /// <summary>The stamp every note starts with.</summary>
+        public const string StampFormat = "yyyy-MM-dd HH:mm";
+        public const string Intro =
+            "Aaron's notes: ideas, features, things to remember. Only Aaron writes here (by hand, or from Catalyzer's notes\n" +
+            "panel). A chat reads them when he asks, carries what it takes into ROADMAP or HANDOFF, and never edits this file.\n" +
+            "Aaron wipes it for a fresh slate (Catalyzer: WIPE + SYNC); Catalyzer keeps a backup of every version.\n" +
+            "Every note starts with when it was written: `- 2026-11-24 14:57 — the note`.";
 
-        public sealed class Item { public string Section; public int Line; public string Text; public bool Done; public bool Check; }
+        public sealed class Item
+        {
+            public string Section; public int Line; public string Text; public bool Done; public bool Check;
+            /// <summary>"2026-11-24 14:57" (or just the date) when the note starts with a stamp; Text is then the rest.</summary>
+            public string Stamp;
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex StampRx =
+            new System.Text.RegularExpressions.Regex(@"^(\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2})?)\s+[—–-]\s+(.*)$");
+
+        /// <summary>The sections in the order the file has them ("" first if there are items above any heading).</summary>
+        public List<string> SectionsInFile()
+        {
+            var list = new List<string>();
+            foreach (var l in _lines) { var t = l.Trim(); if (t.StartsWith("## ")) { var s = t.Substring(3).Trim(); if (!list.Any(x => Is(x, s))) list.Add(s); } }
+            return list;
+        }
 
         public string Folder { get; }
         public string Path => System.IO.Path.Combine(Folder, RelPath);
@@ -64,29 +89,62 @@ namespace Catalyzer
                 // a note that wraps onto indented lines (not a sub-list) is still one note
                 for (int j = i + 1; j < _lines.Count && (_lines[j].StartsWith("  ") || _lines[j].StartsWith("\t")) && !_lines[j].TrimStart().StartsWith("- "); j++)
                     text += " " + _lines[j].Trim();
-                list.Add(new Item { Section = sec, Line = i, Check = check, Done = done, Text = text });
+                string stamp = null;
+                var m = StampRx.Match(text);
+                if (m.Success) { stamp = m.Groups[1].Value; text = m.Groups[2].Value; }
+                list.Add(new Item { Section = sec, Line = i, Check = check, Done = done, Text = text, Stamp = stamp });
             }
             return list;
         }
 
-        /// <summary>Open items in the sections that mean "to do", and how many are still waiting in the Inbox.</summary>
+        /// <summary>How many notes (not ticked, not in an old Done section), and how many sit in an old Inbox.</summary>
         public (int open, int inbox) Count()
         {
-            var it = Items().Where(i => !i.Done && !Is(i.Section, "Done") && !Is(i.Section, "Ideas")).ToList();
+            var it = Items().Where(i => !i.Done && !Is(i.Section, "Done")).ToList();
             return (it.Count, it.Count(i => Is(i.Section, "Inbox")));
         }
+
+        /// <summary>Where a new note goes: <c>## Notes</c>, or an old file's Inbox, or a new <c>## Notes</c>.</summary>
+        private string AddTo() => SectionsInFile().Any(s => Is(s, Main)) ? Main : SectionsInFile().Any(s => Is(s, "Inbox")) ? "Inbox" : Main;
 
         public static bool Is(string a, string b) => string.Equals(a?.Trim(), b, StringComparison.OrdinalIgnoreCase);
 
         // ---------------------------------------------------------------- edits (each one reads, changes, writes)
 
-        /// <summary>A new note at the top of the Inbox, marked as Aaron's.</summary>
+        /// <summary>A new note at the top, stamped with the date and time.</summary>
         public void Add(string text)
         {
             text = (text ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
             if (text == "") return;
             Load();
-            Put("Inbox", new List<string> { "- [ ] " + text + " (Aaron, " + DateTime.Now.ToString("yyyy-MM-dd") + ")" });
+            Put(AddTo(), new List<string> { "- " + DateTime.Now.ToString(StampFormat) + " — " + text });
+            Save();
+        }
+
+        /// <summary>Take one note (and its indented lines) out of the file.</summary>
+        public void Remove(Item it)
+        {
+            Load();
+            if (it.Line >= _lines.Count || !_lines[it.Line].StartsWith("- ")) return;
+            int n = 1;
+            for (int j = it.Line + 1; j < _lines.Count && (_lines[j].StartsWith("  ") || _lines[j].StartsWith("\t")); j++) n++;
+            _lines.RemoveRange(it.Line, n);
+            Save();
+        }
+
+        /// <summary>The fresh slate: the file's intro (or the standard one) and an empty <c>## Notes</c>. Every other
+        /// section and note goes; the caller backs the file up first.</summary>
+        public void Wipe(string appName)
+        {
+            Load();
+            int h = _lines.FindIndex(l => l.Trim().StartsWith("## "));
+            var keep = h < 0 ? _lines.ToList() : _lines.Take(h).ToList();
+            while (keep.Count > 0 && keep[^1].Trim() == "") keep.RemoveAt(keep.Count - 1);
+            if (keep.Count == 0 || !keep[0].TrimStart().StartsWith("# ")) keep.InsertRange(0, new[] { "# NOTES — " + appName, "", Intro });
+            // an old shared-notepad intro is replaced with the 5.0.0 one
+            if (!keep.Any(l => l.Contains("Only Aaron writes here"))) { keep = keep.Take(1).ToList(); keep.Add(""); keep.AddRange(Intro.Split('\n')); }
+            keep.Add(""); keep.Add("## " + Main); keep.Add("");
+            _lines = keep;
             Save();
         }
 
@@ -111,7 +169,7 @@ namespace Catalyzer
             {
                 int k = body.LastIndexOf(" — done ", StringComparison.Ordinal);
                 block[0] = "- [ ] " + (k > 0 ? body.Substring(0, k) : body);
-                Put("Inbox", block);
+                Put(AddTo(), block);
             }
             Save();
         }
@@ -135,18 +193,14 @@ namespace Catalyzer
             Save();
         }
 
-        /// <summary>A fresh NOTES.md from the principles' template (the headings every tool expects).</summary>
+        /// <summary>A fresh NOTES.md, as the principles' template has it.</summary>
         public void Create(string appName)
         {
             if (Exists) return;
             _nl = "\n";
-            _lines = new List<string>
-            {
-                "# NOTES — " + appName, "",
-                "The shared notepad: Aaron, Claude and Catalyzer's notes panel all write here. New things go in *Inbox*; chats sort",
-                "them into the other sections. Never delete Aaron's words. Done items move to *Done* with a date.", "",
-            };
-            foreach (var s in Sections) { _lines.Add("## " + s); _lines.Add(""); }
+            _lines = new List<string> { "# NOTES — " + appName, "" };
+            _lines.AddRange(Intro.Split('\n'));
+            _lines.Add(""); _lines.Add("## " + Main); _lines.Add("");
             Save();
         }
 

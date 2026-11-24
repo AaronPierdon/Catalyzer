@@ -101,6 +101,16 @@ namespace Catalyzer
                 if (setting.Note != null) b.Children.Add(Note(setting.Note));
             }
             b.Children.Add(new CzToggle(Prefs.Value.NotesAutoSync, on => { Prefs.Save(p => p.NotesAutoSync = on); PluginHost.I?.UpdateBadges(); }, "Auto-sync notes") { Margin = new Thickness(0, 8, 0, 4), ToolTip = "NOTES.MD ONLY: COMMITS AND PUSHES ITSELF A MINUTE AFTER YOUR LAST EDIT IN THE NOTES PANEL" });
+            b.Children.Add(Cz.Mono("NOTES BACKUPS, PER PROJECT", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
+            var nb = new WrapPanel();
+            foreach (var (mb, label) in new[] { (0, "OFF"), (25, "25 MB"), (100, "100 MB"), (500, "500 MB") })
+            {
+                var v = mb;
+                nb.Children.Add(new CzButton(label, () => { Prefs.Save(p => p.NotesCacheMB = v); BuildSettings(); }, null, primary: Prefs.Value.NotesCacheMB == v) { Margin = new Thickness(0, 0, 8, 8) });
+            }
+            nb.Children.Add(new CzButton("OPEN", () => { Directory.CreateDirectory(NotesCache.Root); Launch.Shell("explorer.exe", "\"" + NotesCache.Root + "\""); }, "\uE838", tip: "%LOCALAPPDATA%\\CATALYZER\\NOTES-CACHE") { Margin = new Thickness(0, 0, 8, 8) });
+            b.Children.Add(nb);
+            b.Children.Add(Note("Every version of a project's NOTES.md that Catalyzer sees, the oldest dropped first past the cap. A project's backups go when it leaves the board (hidden projects keep theirs). OFF takes no new backups. In use now: " + Size(NotesCache.Size()) + "."));
             b.Children.Add(Note("Starting with Windows opens Catalyzer minimized."));
             b.Children.Add(Cz.Mono("CLOSING WHILE HELPERS RUN", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
             var close = new WrapPanel();

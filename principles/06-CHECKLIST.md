@@ -8,8 +8,8 @@
 - [ ] Reduce motion and the Static / efficient tier still usable.
 - [ ] No colour literals, no stock dialogs or controls, no console windows.
 - [ ] Nothing removed came back.
-- [ ] HANDOFF / STATE / NOTES updated. ARCHITECTURE / GUIDE updated if a part, library, class or flow changed.
-      VISION updated if the scope did.
+- [ ] HANDOFF updated. SUMMARY updated if a feature changed; ARCHITECTURE if a part, library, class, flow or
+      decision did; ROADMAP if a chunk started or shipped or an idea was dropped. NOTES untouched.
 - [ ] Pushed.
 
 ## Every app (conformance)
@@ -31,7 +31,7 @@
 
 **Repo**
 - [ ] The files from [07-APP-REPO](07-APP-REPO.md): `CLAUDE.md`, `.catalyzer-principles`, README, `catalyzer.json`, and
-      docs (NOTES, VISION, ARCHITECTURE, GUIDE, HANDOFF, STATE), filled in with no placeholders left.
+      docs (NOTES, SUMMARY, ARCHITECTURE, HANDOFF, ROADMAP), filled in with no placeholders left.
 - [ ] Its own GitHub repo (`AaronPierdon/<App>`), with `main` pushed. Shows up in Catalyzer.
 - [ ] Build, snap and install are `tools\` scripts that a linked chat can run.
 - [ ] Spartan (07): nothing at the root beyond the listed files; one solution; `_devSpace/` ignored; no

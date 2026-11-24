@@ -28,13 +28,13 @@ each app can be told "update to the latest principles", and it knows what change
 | 04 | [WORKFLOW](04-WORKFLOW.md) | how work happens: chats, branches, handovers, testing, shipping |
 | 05 | [RULES](05-RULES.md) | the hard rules: safety, privacy, never-dos |
 | 06 | [CHECKLIST](06-CHECKLIST.md) | definition of done: what every app and every change must pass |
-| 07 | [APP REPO](07-APP-REPO.md) | what every app repo contains: notes, vision, architecture, guide, handover, GitHub, Catalyzer |
+| 07 | [APP REPO](07-APP-REPO.md) | what every app repo contains: the five docs (notes, summary, architecture, handoff, roadmap), GitHub, Catalyzer |
 | 08 | [ASSETS](08-ASSETS.md) | reusable assets: what's shared, and where it lives (growing) |
 | — | [templates/](templates/) | starter files for a new app's CLAUDE.md and docs |
 | — | [PROMPTS](PROMPTS.md) | copy-paste prompts: kickoff a new app, morning brief, adopt, update, audit |
 
 ## How apps follow it
-1. Each app repo has a `.catalyzer-principles` file at its root containing the version it conforms to, e.g. `3.0.0`.
+1. Each app repo has a `.catalyzer-principles` file at its root containing the version it conforms to, e.g. `5.0.0`.
    Apps from before 3.0.0 have `.nexus-principles` instead; they rename it on their next update.
 2. Its `CLAUDE.md` starts with: *"Follows Catalyzer Development Principles (github.com/AaronPierdon/Catalyzer/tree/main/principles),
    version in `.catalyzer-principles`. Read them before working; app-specific rules below only add to them."*

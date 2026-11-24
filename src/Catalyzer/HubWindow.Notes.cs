@@ -14,11 +14,11 @@ using Catalyzer.Sdk;
 namespace Catalyzer
 {
     /// <summary>
-    /// NOTES: each card's docs/NOTES.md (Catalyzer Development Principles, 07), the notepad Aaron and every chat share.
-    /// The card's NOTES chip shows what's open (and what's new in the Inbox); clicking it slides in the notes drawer:
-    /// type a note + Enter (it lands in the Inbox), tick to move it to Done, right-click to move it to another section,
-    /// RAW to edit the whole file, SYNC to commit + pull + push just NOTES.md, so notes written from the phone arrive
-    /// and yours leave. Changes on disk (a chat editing the file) show up live.
+    /// NOTES: each card's docs/NOTES.md (Catalyzer Development Principles 5.0.0, 07): Aaron's own notes.
+    /// The card's NOTES chip shows how many there are; clicking it slides in the notes drawer: type a note + Enter (it
+    /// lands at the top, stamped with the time), right-click to copy or remove one, RAW to edit the whole file, SYNC to
+    /// commit + pull + push just NOTES.md, WIPE + SYNC for a fresh slate once a chat has pulled them in, BACKUPS for
+    /// every version NotesCache kept. Changes on disk show up live, and each new version is backed up.
     /// </summary>
     public sealed partial class HubWindow
     {
@@ -26,7 +26,7 @@ namespace Catalyzer
         private readonly TranslateTransform _notesX = new TranslateTransform();
         private readonly StackPanel _notesList = new StackPanel();
         private readonly ScrollViewer _notesScroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
-        private readonly StackPanel _notesButtons = new StackPanel { Orientation = Orientation.Horizontal };
+        private readonly WrapPanel _notesButtons = new WrapPanel();
         private readonly Chip _notesChip = new Chip(24) { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
         private readonly TextBox _noteInput = new TextBox();
         private readonly TextBox _noteRaw = new TextBox();
@@ -111,14 +111,14 @@ namespace Catalyzer
         }
 
         /// <summary>SYNC for one project: the card chip, the drawer button, and auto-sync all come here.</summary>
-        private async void SyncProject(Project p, bool auto)
+        private async void SyncProject(Project p, bool auto, string what = null)
         {
             if (p == null || _syncBusy.Contains(p.Folder)) return;
             if (_notesFor == p && _raw && !ConfirmLeaveRaw()) return;
             if (_autoSync.TryGetValue(p.Folder, out var t)) t.Stop();
             _syncBusy.Add(p.Folder);
             PluginHost.I?.UpdateBadges(); if (_notesFor == p && NotesOpen) NotesRefresh(false);
-            var what = WhatChanged(p.Folder);
+            what ??= WhatChanged(p.Folder);
             (bool ok, string say) r;
             try { r = await new Notes(p.Folder).Sync(what, auto); }
             catch (Exception ex) { r = (false, "SYNC FAILED  //  " + ex.Message); }
@@ -135,7 +135,7 @@ namespace Catalyzer
         private string WhatChanged(string folder)
         {
             if (!_noteWhat.TryGetValue(folder, out var w) || w.Count == 0) return "updated";
-            return string.Join(", ", w.Select(kv => kv.Key == "inbox" ? "+" + kv.Value + " inbox" : kv.Value + " " + kv.Key));
+            return string.Join(", ", w.Select(kv => kv.Key == "added" ? "+" + kv.Value : kv.Value + " " + kv.Key));
         }
 
         private void Count(string folder, string what)
@@ -167,7 +167,7 @@ namespace Catalyzer
             if (!n.Exists)
                 return n.Legacy
                     ? new BadgeState { Text = "NOTES  ·  BACKLOG", Tone = Tone.Warn, Tip = "THIS REPO STILL USES BACKLOG.MD (PRINCIPLES < 2.0.0)\nASK ITS CHAT: UPDATE TO THE LATEST PRINCIPLES" }
-                    : new BadgeState { Text = "NOTES  +", Tone = Tone.Faint, Tip = "NO DOCS\\NOTES.MD YET  //  CLICK TO START ONE" };
+                    : new BadgeState { Text = "NOTES  +", Tone = Tone.Faint, Tip = "NO DOCS\\NOTES.MD YET  //  CLICK TO START YOUR NOTES" };
             int open = 0, inbox = 0;
             try
             {
@@ -180,7 +180,7 @@ namespace Catalyzer
                 return new BadgeState { Text = "NOTES " + open + (inbox > 0 ? "  ·  " + inbox + " NEW" : ""), Tone = inbox > 0 ? Tone.Accent : Tone.Dim, Tip = "NOT ON GITHUB YET  //  SEE THE SYNC CHIP" };
             return inbox > 0
                 ? new BadgeState { Text = "NOTES " + open + "  ·  " + inbox + " NEW", Tone = Tone.Accent, Tip = inbox + " IN THE INBOX, " + open + " OPEN  //  CLICK TO OPEN" }
-                : new BadgeState { Text = "NOTES " + open, Tone = Tone.Dim, Tip = open + " OPEN  //  CLICK TO OPEN" };
+                : new BadgeState { Text = "NOTES " + open, Tone = open > 0 ? Tone.Accent : Tone.Dim, Tip = open + " NOTE(S)  //  CLICK TO OPEN" };
         }
 
         /// <summary>Each project's docs folder, for NOTES.md only: a chat or an editor changing it updates the chip and the drawer.</summary>
@@ -195,6 +195,13 @@ namespace Catalyzer
                 d.Tick += (s, e) => { d.Stop(); RefreshSync(f, fetch); };
                 d.Start();
             }
+            var folders = _board.Items.Select(p => p.Folder).ToList();
+            if (!_board.Scanning)
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    NotesCache.Purge(KeepBackups);
+                    foreach (var f in folders) NotesCache.Snapshot(f, "seen");
+                });
             foreach (var w in _noteWatch) { try { w.EnableRaisingEvents = false; w.Dispose(); } catch { } }
             _noteWatch.Clear();
             foreach (var p in _board.Items)
@@ -214,8 +221,23 @@ namespace Catalyzer
             }
         }
 
+        /// <summary>Keep a project's notes backups while it's on the board, hidden, or its drive is away (offline drives
+        /// aren't a removal). They go when the folder is gone or no longer under a project folder in Settings.</summary>
+        private bool KeepBackups(string folder)
+        {
+            static bool Same(string a, string b) => string.Equals(a?.TrimEnd('\\', '/'), b?.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase);
+            if (_board.Items.ToList().Any(p => Same(p.Folder, folder))) return true;
+            var pr = Prefs.Value;
+            if (pr.Hidden.Any(h => Same(h, folder))) return true;
+            var parent = System.IO.Path.GetDirectoryName(folder.TrimEnd('\\', '/'));
+            if (parent == null || !Directory.Exists(parent)) return true;
+            if (!Directory.Exists(folder)) return false;
+            return pr.Roots.Any(r => Same(r, parent)) || pr.Extra.Any(e => Same(e, folder));
+        }
+
         private void NotesTouched(string folder)
         {
+            System.Threading.Tasks.Task.Run(() => NotesCache.Snapshot(folder, "changed"));
             if (_notesSoon == null)
             {
                 _notesSoon = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
@@ -259,7 +281,7 @@ namespace Catalyzer
             _noteInputRow.Children.Add(plus);
             Field(_noteInput, 13.5, "CzFontUi");
             _noteInput.Margin = new Thickness(40, 0, 12, 0); _noteInput.VerticalContentAlignment = VerticalAlignment.Center;
-            _noteInput.ToolTip = "A NEW NOTE  //  ENTER ADDS IT TO THE INBOX";
+            _noteInput.ToolTip = "A NEW NOTE  //  ENTER ADDS IT AT THE TOP, STAMPED WITH THE TIME";
             _noteInput.KeyDown += (s, e) => { if (e.Key == Key.Enter) { AddNote(); e.Handled = true; } };
             var hint = Cz.Text("Note this...  (Enter)", 13, "CzTextFaintBrush"); hint.Margin = new Thickness(42, 0, 0, 0); hint.VerticalAlignment = VerticalAlignment.Center; hint.IsHitTestVisible = false;
             _noteInput.TextChanged += (s, e) => hint.Visibility = _noteInput.Text == "" ? Visibility.Visible : Visibility.Collapsed;
@@ -347,9 +369,12 @@ namespace Catalyzer
             if (n.Exists)
             {
                 bool busy = _syncBusy.Contains(p.Folder);
-                _notesButtons.Children.Add(new CzButton(busy ? "SYNCING..." : "SYNC", () => SyncProject(p, auto: false), "", primary: true, height: 28, tip: "COMMIT NOTES.MD, PULL, PUSH  //  NOTES FROM YOUR PHONE ARRIVE, YOURS LEAVE") { Margin = new Thickness(0, 0, 8, 0) });
-                _notesButtons.Children.Add(new CzButton(_raw ? "LIST" : "RAW", ToggleRaw, _raw ? "" : "", height: 28, tip: _raw ? "BACK TO THE LIST (SAVES)" : "EDIT THE WHOLE FILE") { Margin = new Thickness(0, 0, 8, 0) });
-                _notesButtons.Children.Add(new CzButton("EDITOR", () => Launch.Shell(n.Path, null), "", height: 28, tip: "OPEN NOTES.MD IN YOUR EDITOR"));
+                var gap = new Thickness(0, 0, 8, 6);
+                _notesButtons.Children.Add(new CzButton(busy ? "SYNCING..." : "SYNC", () => SyncProject(p, auto: false), "", primary: true, height: 28, tip: "COMMIT NOTES.MD, PULL, PUSH  //  NOTES FROM YOUR PHONE ARRIVE, YOURS LEAVE") { Margin = gap });
+                _notesButtons.Children.Add(new CzButton("WIPE + SYNC", () => WipeNotes(p), "\uE74D", height: 28, tip: "A FRESH SLATE: CLEAR EVERY NOTE (BACKED UP FIRST) AND SYNC  //  AFTER A CHAT HAS PULLED THEM IN") { Margin = gap, IsEnabled = !busy });
+                _notesButtons.Children.Add(new CzButton(_raw ? "LIST" : "RAW", ToggleRaw, _raw ? "" : "", height: 28, tip: _raw ? "BACK TO THE LIST (SAVES)" : "EDIT THE WHOLE FILE") { Margin = gap });
+                _notesButtons.Children.Add(new CzButton("EDITOR", () => Launch.Shell(n.Path, null), "", height: 28, tip: "OPEN NOTES.MD IN YOUR EDITOR") { Margin = gap });
+                _notesButtons.Children.Add(new CzButton("BACKUPS", () => OpenBackups(p), "\uE81C", height: 28, tip: "EVERY VERSION OF THESE NOTES CATALYZER KEPT  //  " + NotesCache.DirFor(p.Folder).ToUpperInvariant()) { Margin = gap });
             }
             if (n.Exists)
             {
@@ -366,8 +391,8 @@ namespace Catalyzer
                     };
                 if (line != null)
                 {
-                    var tb = Cz.Mono(line, 9.5, "CzTextFaintBrush"); tb.VerticalAlignment = VerticalAlignment.Center; tb.Margin = new Thickness(8, 0, 0, 0);
-                    tb.TextTrimming = TextTrimming.CharacterEllipsis; tb.MaxWidth = 300; tb.ToolTip = line;
+                    var tb = Cz.Mono(line, 9.5, "CzTextFaintBrush"); tb.VerticalAlignment = VerticalAlignment.Center; tb.Margin = new Thickness(2, 6, 0, 6);
+                    tb.TextTrimming = TextTrimming.CharacterEllipsis; tb.MaxWidth = NotesWidth - 60; tb.ToolTip = line;
                     _notesButtons.Children.Add(tb);
                 }
             }
@@ -382,7 +407,7 @@ namespace Catalyzer
             {
                 var msg = Cz.Text(n.Legacy
                     ? "This repo still keeps its list in docs\\BACKLOG.md. The Catalyzer Development Principles (2.0.0 and later) merge it into docs\\NOTES.md. Ask the project's chat to \"update to the latest principles\", or start a fresh NOTES.md here (BACKLOG.md stays as it is)."
-                    : "No docs\\NOTES.md in this repo yet. Start one: it gets the Inbox / Next up / Ideas / Bugs / Done sections every chat and Catalyzer understand.", 13.5, "CzTextDimBrush");
+                    : "No docs\\NOTES.md in this repo yet. Start one: your own notepad for this project. Every note is stamped with the time; chats read it when you ask and never edit it.", 13.5, "CzTextDimBrush");
                 msg.TextWrapping = TextWrapping.Wrap; msg.TextTrimming = TextTrimming.None; msg.Margin = new Thickness(0, 6, 0, 16);
                 _notesList.Children.Add(msg);
                 _notesList.Children.Add(new CzButton("START NOTES.MD", () => { try { n.Create(p.Name); NotesRefresh(true); PluginHost.I?.UpdateBadges(); _noteInput.Focus(); } catch (Exception ex) { Log.Write("notes: " + ex.Message, show: true); } }, "", primary: true, height: 32) { HorizontalAlignment = HorizontalAlignment.Left });
@@ -390,19 +415,21 @@ namespace Catalyzer
             }
 
             var items = n.Items();
-            var order = Notes.Sections.Concat(items.Select(i => i.Section).Where(s => s != "" && !Notes.Sections.Any(x => Notes.Is(x, s))).Distinct()).ToList();
+            var order = n.SectionsInFile();
+            if (order.Count == 0) order.Add(Notes.Main);
             if (items.Any(i => i.Section == "")) order.Insert(0, "");
             int delay = 0;
             foreach (var sec in order)
             {
                 var mine = items.Where(i => Notes.Is(i.Section, sec) || (sec == "" && i.Section == "")).ToList();
                 bool done = Notes.Is(sec, "Done");
-                if (mine.Count == 0 && (done || Notes.Is(sec, "Ideas") || Notes.Is(sec, "Bugs") || Notes.Is(sec, "Next up"))) continue;
+                bool main = Notes.Is(sec, Notes.Main) || Notes.Is(sec, "Inbox");
+                if (mine.Count == 0 && !main) continue;
                 var head = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, _notesList.Children.Count == 0 ? 0 : 16, 0, 6) };
-                head.Children.Add(Cz.Mono((sec == "" ? "TOP" : sec).ToUpperInvariant(), 10.5, Notes.Is(sec, "Inbox") && mine.Count > 0 ? "CzAccentBrush" : "CzTextDimBrush"));
+                head.Children.Add(Cz.Mono((sec == "" ? "TOP" : sec).ToUpperInvariant(), 10.5, main && mine.Count > 0 ? "CzAccentBrush" : "CzTextDimBrush"));
                 head.Children.Add(Cz.Mono("  ·  " + mine.Count(i => !i.Done), 10.5, "CzTextFaintBrush"));
                 _notesList.Children.Add(head);
-                if (mine.Count == 0) { _notesList.Children.Add(Cz.Text(Notes.Is(sec, "Inbox") ? "Empty. Type above and press Enter." : "—", 12.5, "CzTextFaintBrush").Also(t => t.Margin = new Thickness(30, 0, 0, 4))); continue; }
+                if (mine.Count == 0) { _notesList.Children.Add(Cz.Text(main ? "A fresh slate. Type above and press Enter." : "—", 12.5, "CzTextFaintBrush").Also(t => t.Margin = new Thickness(30, 0, 0, 4))); continue; }
                 foreach (var it in done ? mine.Take(20) : mine)
                 {
                     var row = NoteRow(it);
@@ -414,7 +441,8 @@ namespace Catalyzer
             _notesScroll.ScrollToVerticalOffset(keep);
         }
 
-        /// <summary>One note: a drawn check box, the text (wraps), hover glow; right-click moves it between sections.</summary>
+        /// <summary>One note: its stamp and text (wraps), a drawn check box only for old "- [ ]" items, hover glow;
+        /// right-click copies or removes it (and moves it, in an old file with several sections).</summary>
         private FrameworkElement NoteRow(Notes.Item it)
         {
             var row = new Grid { Background = Brushes.Transparent, Margin = new Thickness(0, 2, 0, 2), MinHeight = 30 };
@@ -428,25 +456,34 @@ namespace Catalyzer
             frame.SetResourceReference(Shape.StrokeProperty, it.Done ? "CzOkBrush" : "CzTextDimBrush");
             box.Children.Add(frame);
             if (it.Done) { var tick = Cz.Text("", 10, "CzOkBrush", "CzFontIcons"); tick.HorizontalAlignment = HorizontalAlignment.Center; tick.VerticalAlignment = VerticalAlignment.Center; box.Children.Add(tick); }
-            if (!it.Check && !it.Done) frame.Opacity = 0.5;
-            box.MouseLeftButtonUp += (s, e) => { e.Handled = true; NoteEdit(() => _notes.Toggle(it), it.Done ? "BACK IN THE INBOX" : "DONE  //  MOVED TO DONE", it.Done ? "reopened" : "done"); };
-            row.Children.Add(box);
+            box.MouseLeftButtonUp += (s, e) => { e.Handled = true; NoteEdit(() => _notes.Toggle(it), it.Done ? "REOPENED" : "DONE  //  MOVED TO DONE", it.Done ? "reopened" : "done"); };
+            if (it.Check || it.Done) row.Children.Add(box);
+            else
+            {
+                var dot = new System.Windows.Shapes.Path { Data = Cz.Chamfer(6, 6, 2), Width = 6, Height = 6, VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(9, it.Stamp != null ? 7 : 11, 0, 0), IsHitTestVisible = false };
+                dot.SetResourceReference(Shape.FillProperty, "CzAccentBrush");
+                row.Children.Add(dot);
+            }
 
+            var col = new StackPanel { Margin = new Thickness(0, 4, 0, 5) };
+            if (it.Stamp != null) col.Children.Add(Cz.Mono(it.Stamp, 9.5, "CzTextFaintBrush").Also(s => s.Margin = new Thickness(0, 0, 0, 1)));
             var text = Cz.Text(it.Text, 13.5, it.Done ? "CzTextFaintBrush" : "CzTextBrush");
-            text.TextWrapping = TextWrapping.Wrap; text.TextTrimming = TextTrimming.None; text.Margin = new Thickness(0, 5, 0, 5);
+            text.TextWrapping = TextWrapping.Wrap; text.TextTrimming = TextTrimming.None;
             if (it.Done) text.TextDecorations = null;
-            Grid.SetColumn(text, 1); row.Children.Add(text);
+            col.Children.Add(text);
+            Grid.SetColumn(col, 1); row.Children.Add(col);
 
             row.MouseEnter += (s, e) => wash.BeginAnimation(OpacityProperty, new DoubleAnimation(0.08, TimeSpan.FromMilliseconds(Cz.Still ? 0 : 120)));
             row.MouseLeave += (s, e) => wash.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(Cz.Still ? 0 : 200)));
             row.MouseRightButtonUp += (s, e) =>
             {
                 e.Handled = true;
-                var items = Notes.Sections.Where(sec => !Notes.Is(sec, it.Section) && !Notes.Is(sec, "Done"))
+                var items = _notes.SectionsInFile().Where(sec => !Notes.Is(sec, it.Section) && !Notes.Is(sec, "Done"))
                     .Select(sec => new CzMenu.Item { Text = "Move to " + sec, Glyph = "", Click = () => NoteEdit(() => _notes.Move(it, sec), "MOVED TO " + sec.ToUpperInvariant(), "moved") }).ToList();
-                items.Add(new CzMenu.Item { Separator = true });
-                items.Add(new CzMenu.Item { Text = it.Done ? "Not done" : "Done", Glyph = it.Done ? "" : "", Click = () => NoteEdit(() => _notes.Toggle(it), it.Done ? "BACK IN THE INBOX" : "DONE", it.Done ? "reopened" : "done") });
+                if (items.Count > 0) items.Add(new CzMenu.Item { Separator = true });
+                if (it.Check || it.Done) items.Add(new CzMenu.Item { Text = it.Done ? "Not done" : "Done", Glyph = it.Done ? "" : "", Click = () => NoteEdit(() => _notes.Toggle(it), it.Done ? "REOPENED" : "DONE", it.Done ? "reopened" : "done") });
                 items.Add(new CzMenu.Item { Text = "Copy", Glyph = "", Click = () => { try { Clipboard.SetText(it.Text); } catch { } } });
+                items.Add(new CzMenu.Item { Text = "Remove", Glyph = "\uE74D", Click = () => NoteEdit(() => { NotesCache.Snapshot(_notes.Folder, "before-remove"); _notes.Remove(it); }, "REMOVED  //  IT'S IN BACKUPS", "removed") });
                 new CzMenu().Show(row, "NOTE", items);
             };
             return row;
@@ -464,7 +501,66 @@ namespace Catalyzer
         {
             var t = _noteInput.Text.Trim(); if (t == "" || _notes == null) return;
             _noteInput.Text = "";
-            NoteEdit(() => _notes.Add(t), "NOTED  //  IN THE INBOX", "inbox");
+            NoteEdit(() => _notes.Add(t), "NOTED", "added");
+        }
+
+        /// <summary>WIPE + SYNC: confirm, then bring in anything new from GitHub (if something arrives, stop: Aaron hasn't
+        /// seen it), back the file up, clear it to the fresh slate, and sync.</summary>
+        private void WipeNotes(Project p)
+        {
+            if (p == null || _syncBusy.Contains(p.Folder)) return;
+            if (_notesFor == p && _raw && !ConfirmLeaveRaw()) return;
+            var n = new Notes(p.Folder);
+            try { n.Load(); } catch (Exception ex) { Log.Write("notes: " + ex.Message, show: true); return; }
+            int count = n.Items().Count;
+            if (count == 0 && n.SectionsInFile().All(s => Notes.Is(s, Notes.Main))) { Say("NOTHING TO WIPE  //  ALREADY A FRESH SLATE"); return; }
+            bool backups = Prefs.Value.NotesCacheMB > 0;
+            var d = Dialog("Wipe " + p.Name + " notes", 600, onEsc: null);
+            d.Body.Children.Add(Para(count + " note(s) will be cleared from docs\\NOTES.md, and the fresh file synced to GitHub. Do this once a chat has pulled them in.", 13.5, "CzTextBrush"));
+            d.Body.Children.Add(Para(backups
+                ? "A copy goes to the notes backups first (BACKUPS in the drawer), and git history keeps every pushed version."
+                : "Notes backups are OFF in Settings, so only git history keeps the old version.", 12.5, "CzTextDimBrush"));
+            d.Buttons.Children.Add(Btn("KEEP THEM", d.Close));
+            var go = Btn("WIPE + SYNC", null, "\uE74D", primary: true);
+            go.Click = () => { d.Close(); DoWipe(p, count); };
+            d.Buttons.Children.Add(go);
+        }
+
+        private async void DoWipe(Project p, int count)
+        {
+            if (_syncBusy.Contains(p.Folder)) { Say("A SYNC IS RUNNING  //  TRY AGAIN IN A MOMENT"); return; }
+            _syncBusy.Add(p.Folder);
+            PluginHost.I?.UpdateBadges(); if (_notesFor == p && NotesOpen) NotesRefresh(false);
+            string arrived = null;
+            try { if (!Prefs.Offline) arrived = await new Notes(p.Folder).PullIfSafe(); }
+            catch (Exception ex) { arrived = "COULDN'T CHECK GITHUB  //  " + ex.Message; }
+            if (arrived != null)
+            {
+                _syncBusy.Remove(p.Folder);
+                Say("NOT WIPED  //  " + arrived + "  //  LOOK, THEN WIPE AGAIN");
+                RefreshSync(p.Folder, fetch: false);
+                if (_notesFor == p && NotesOpen) NotesRefresh(true);
+                return;
+            }
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() => { NotesCache.Snapshot(p.Folder, "before-wipe"); new Notes(p.Folder).Wipe(p.Name); });
+            }
+            catch (Exception ex) { _syncBusy.Remove(p.Folder); Log.Write("notes wipe: " + ex.Message, show: true); return; }
+            _syncBusy.Remove(p.Folder);
+            _noteWhat.Remove(p.Folder);
+            Log.Write(p.Name + " notes: wiped " + count + " (backed up)");
+            if (_notesFor == p && NotesOpen) NotesRefresh(true);
+            PluginHost.I?.UpdateBadges();
+            SyncProject(p, auto: false, what: "wiped " + count + " note(s) for a fresh slate (backed up)");
+        }
+
+        private void OpenBackups(Project p)
+        {
+            var dir = NotesCache.DirFor(p.Folder);
+            if (!Directory.Exists(dir)) NotesCache.Snapshot(p.Folder, "seen");
+            if (!Directory.Exists(dir)) { Say(Prefs.Value.NotesCacheMB > 0 ? "NO BACKUPS YET" : "NOTES BACKUPS ARE OFF  //  SETTINGS"); return; }
+            Launch.Shell("explorer.exe", "\"" + dir + "\"");
         }
 
         private void ToggleRaw()

@@ -23,7 +23,7 @@ doc someone reads, or a tool that builds or installs it. Here's the whole pictur
   plugins/                 only for apps with a plugin SDK: one folder per bundled plugin
   tests/                   test projects (inside the same solution)
   tools/                   build / install / snap scripts + a double-click .cmd beside each
-  docs/                    NOTES, VISION, ARCHITECTURE, GUIDE, HANDOFF, STATE (+ a few topic docs, see below)
+  docs/                    NOTES, SUMMARY, ARCHITECTURE, HANDOFF, ROADMAP (+ design/ for contracts, see below)
   _devSpace/               scratch: git-ignored, never committed, cleaned at milestones
   .catalyzer/              Catalyzer's link mailbox (it git-ignores itself; never commit it)
 ```
@@ -35,11 +35,12 @@ doc someone reads, or a tool that builds or installs it. Here's the whole pictur
   CLAUDE.md says why.
 - **A project (`.csproj`) is one output** (an exe or a dll). Split code into projects for reuse or clear boundaries
   (a `Core` used by the app, its agents and its tests), not for tidiness.
-- **Topic docs are few.** Beyond the six standard docs, keep a topic doc only when it describes something that
-  *exists*. Examples: a protocol (`CONTRACT.md`), a runbook for live data, a subsystem's design. Plans and roadmaps
-  go in VISION and NOTES. A finished plan is deleted, not archived: git remembers it.
-- **Retired code and old prototypes are deleted, not kept in `docs/history/`.** Git keeps them, and STATE →
-  *Removed / decided against* records the decision.
+- **Extra docs only for live contracts.** Beyond the five standard docs, a doc earns a file in `docs/design/` only
+  when other code, repos or people depend on it staying exact: a protocol (`CONTRACT.md`), a runbook for live data,
+  a file format or plugin API. Plans never get their own file: they go in ROADMAP, and once built they shrink into
+  ARCHITECTURE. A finished plan is deleted, not archived: git remembers it.
+- **Retired code and old prototypes are deleted, not kept in `docs/history/`.** Git keeps them, and ROADMAP →
+  *Decided against* records the decision.
 - **Prototypes you care about** live on a git branch (`proto/<name>`), so they're backed up. A prototype that wins
   moves into `src/`.
 - **Big files** (media, test images, datasets, builds) stay out of git. They go on the file server or in
@@ -52,7 +53,7 @@ doc someone reads, or a tool that builds or installs it. Here's the whole pictur
   A chat writes its one-offs here, not in `tools/` or `src/`.
 - **Git-ignored:** `.gitignore` has `_devSpace/`. That means it is **not backed up**. Anything worth keeping
   graduates into `src/`, `tools/`, `docs/` or a `proto/` branch.
-- **Cleaned at milestones.** When a feature ships (HANDOFF / STATE updated), the chat lists what's in `_devSpace` and
+- **Cleaned at milestones.** When a feature ships (HANDOFF updated), the chat lists what's in `_devSpace` and
   what it plans to delete. Aaron says yes before anything goes. Catalyzer can show its size on the card and suggest
   a cleanup of files untouched since well before the last commit: it always shows the list first and never deletes
   silently.
@@ -61,12 +62,12 @@ doc someone reads, or a tool that builds or installs it. Here's the whole pictur
 Some apps are a family: one product across several repos that talk to each other. MAWP is one: the PC app, the
 Android app and the TV app, sharing a backend and a device-link protocol.
 - **One contract doc** describes what the members share: the protocol, messages, ports, discovery, the shared data
-  shapes. It lives in the lead repo as `docs/CONTRACT.md` (for MAWP: the PC repo), and the others link to it rather
+  shapes. It lives in the lead repo as `docs/design/CONTRACT.md` (for MAWP: the PC repo), and the others link to it rather
   than keeping copies.
 - **A chat works in one member and reads the rest only when it needs to.** When the work touches the contract, it:
   - reads CONTRACT and the other members' HANDOFF;
   - updates CONTRACT;
-  - notes the change in each affected member's NOTES → *Inbox*.
+  - adds the follow-up to each affected member's HANDOFF → *Next*.
 
   It never loads the other codebases unless asked. That keeps family-aware work cheap.
 - **One Claude project and one Morning brief for the family**, with every member's folder attached. The brief reads
@@ -78,36 +79,51 @@ Starter files for all of these (`.gitignore` included) are in [`templates/`](tem
 placeholders in a pushed repo.
 
 ## The docs, and who keeps them true
-| File | Holds | Updated when |
-|---|---|---|
-| **NOTES.md** | everything to do or remember: *Inbox*, *Next up*, *Ideas*, *Bugs*, *Done* | any time. "Add to the list / note this" → *Inbox* |
-| **VISION.md** | why it exists, what it's for now, where it could go, what it won't do | the scope changes, or Aaron dreams out loud |
-| **ARCHITECTURE.md** | one screen: the parts, the libraries, the feature sets, the data flow, external links (APIs, other apps) | a part, library or integration is added or removed |
-| **GUIDE.md** | the "for dummies" tour: how a feature works end to end, main classes and what they do, key methods, `file:line` pointers; not a full reference | a main class or flow changes |
-| **HANDOFF.md** | what the last chat did, what's ready to test, what's next | every chat, before it ends |
-| **STATE.md** | what's live, *Removed / decided against*, known gaps | a feature ships or is dropped |
+Five standard docs, the same in every repo. Catalyzer's NEW PROJECT makes them from [`templates/`](templates/).
+
+| File | Holds | Owner | Updated when |
+|---|---|---|---|
+| **NOTES.md** | Aaron's raw ideas and notes, each timestamped | **Aaron only** | any time; wiped by Aaron for a fresh slate |
+| **SUMMARY.md** | what the app does for a user, every feature it offers: an informal functional spec | Claude | a feature ships, changes or is removed |
+| **ARCHITECTURE.md** | the inventory and the reasons: stack, libraries, parts, main classes, flows, data, decisions and why each was chosen | Claude | a part, library, class, flow or decision changes |
+| **HANDOFF.md** | *Last session*, *Next* (Claude's working list), *Bugs*, *Known gaps* | Claude | every chat, before it ends |
+| **ROADMAP.md** | agreed ideas with their decisions, in chunks: *Now*, *Next*, *Later*, *Decided against* | both | an idea is agreed, a chunk starts or ships, an idea is dropped |
+
+Plus `README.md` (GitHub's front page) and `CLAUDE.md` (how to work here) at the root, and `docs/design/` for live
+contracts only.
 
 **Short and current beats long and stale.** Each doc stays readable in a few minutes, and a chat that changes the
-code updates the doc that describes it in the same commit.
+code updates the doc that describes it in the same commit. Nothing is kept twice: what's built is in SUMMARY and
+ARCHITECTURE, what's planned is in ROADMAP, what's in hand is in HANDOFF.
 
 ## NOTES.md rules
-- **One file for the whole list.** It replaces BACKLOG.md (principles 2.0.0).
-- **Sections:**
-  - *Inbox*: raw, undated notes, newest first;
-  - *Next up*;
-  - *Ideas*;
-  - *Bugs*;
-  - *Done* (the last ~20, with dates).
-- **Items are `- [ ]` lines.** Bugs use the format in [04](04-WORKFLOW.md). Who added an item can be marked
-  `(Aaron)` / `(Claude)`.
-- **Chats triage the Inbox:** move items into the right section. Never delete Aaron's words. Rewording is fine;
-  dropping is not.
-- **Catalyzer reads and writes the file** from the card (its notes panel). Keep the headings exactly as above, so
-  every tool finds them.
+- **Aaron's alone.** He writes it by hand or from Catalyzer's notes panel. A chat never edits, sorts, ticks or
+  deletes anything in it.
+- **Every note is timestamped:** `- 2026-11-24 14:57 — the note`. Catalyzer's panel does this itself; anything else
+  that adds a note for Aaron (a phone chat told "note this for <App>") does too.
+- **Pulling notes in:** when Aaron asks, a chat reads NOTES, talks through what's unclear, and carries each note
+  into ROADMAP (an agreed idea), HANDOFF → *Next* or *Bugs* (work in hand), or ROADMAP → *Decided against*. It
+  tells Aaron where each one went. Then Aaron wipes the file (Catalyzer: **WIPE + SYNC**).
+- **Backups:** Catalyzer keeps every version it sees in `%LOCALAPPDATA%\Catalyzer\notes-cache\<project>\`
+  (one timestamped file per version, up to a size cap set in Settings, 100 MB by default), and deletes a project's
+  backups when the project leaves the board. "Find my notes between X and Y" means a chat reads that folder through
+  the link. Git history has every pushed version too.
+- **Layout:** the intro, then `## Notes`, newest first. Catalyzer still reads older files with other `##`
+  sections.
 
-## CLAUDE.md template
-See [`templates/CLAUDE.md`](templates/CLAUDE.md). It always starts with the principles header, then:
-- *What it is* (one paragraph, pointing to VISION);
+## ROADMAP.md rules
+- **Chunks:** objectives that ship together sit together under one `###` heading. Work goes one chunk at a time:
+  *Now* holds one chunk, *Next* the ones that are ready, *Later* the ones still being decided.
+- **Objectives** have an ID (`R1`, `R2`…, never reused), a one-line goal, *Decided*, *Open* and a size.
+- **Decided against is kept forever.** Every dropped idea stays there with its reason and date, so it isn't
+  proposed again. Nothing in it comes back unless Aaron asks (05).
+- When a chunk ships, its objectives are deleted from ROADMAP and described in SUMMARY and ARCHITECTURE.
+
+## CLAUDE.md
+See [`templates/CLAUDE.md`](templates/CLAUDE.md). It's the project's instructions, and the Claude project's own
+instructions only point to it (PROMPTS → *Project instructions*). It always starts with the principles header, then:
+- *New chat* steps;
+- *What it is* (one paragraph, pointing to SUMMARY);
 - *Shape* (pointing to ARCHITECTURE);
 - *Build / install / run* (through the Catalyzer link);
 - *App-specific rules*;
@@ -140,12 +156,12 @@ A chat that's been handed the Catalyzer repo and told "let's build something" fo
 - Move the everyday ones (build, install, snap, test) into `tools\` as the app is next touched. Old double-click
   `.cmd` files can stay.
 - Stop starting the helper window once the link has worked for that app. Delete `queue\`, `out\` and
-  `run-action.sh` when nothing uses them. Then say so in HANDOFF and STATE.
+  `run-action.sh` when nothing uses them. Then say so in HANDOFF.
 
 ## GitHub and Catalyzer
 - **GitHub:** each app has its own repo, `AaronPierdon/<App>`, created before the first handover, with `main` pushed.
   Large binaries (media, builds) stay off GitHub: they live on the file server, and the repo says where.
-- **catalyzer.json:** see `Catalyzer/docs/MANIFEST.md`.
+- **catalyzer.json:** see `Catalyzer/docs/design/MANIFEST.md`.
   - At minimum: `name`, `description`, `accent`.
   - Add buttons for build, install and run.
   - Add `helpers` for anything that should run in the background.

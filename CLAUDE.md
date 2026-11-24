@@ -16,12 +16,16 @@ Changing `principles/` changes the rules for every app:
 
 New chat:
 1. Check the link (below).
-2. Read this file, the principles, then `docs/HANDOFF.md`, `docs/NOTES.md`, `docs/STATE.md` and
-   `git log --oneline -20`.
-3. Skim `docs/VISION.md` and `docs/ARCHITECTURE.md`. Read `docs/GUIDE.md` for the part you'll touch.
+2. Read this file, the principles (README, 05-RULES, the CHANGELOG since `.catalyzer-principles`), then
+   `docs/HANDOFF.md`, `docs/ROADMAP.md` (*Now*) and `git log --oneline -20`.
+3. Skim `docs/SUMMARY.md`, and read `docs/ARCHITECTURE.md` for the part you'll touch.
+4. `docs/NOTES.md` is Aaron's. Read it when he asks you to pull his notes in; never edit it.
+
+This file is the project's instructions: the Claude project's own instructions only point here.
 
 Catalyzer is the hub the principles assume (07-APP-REPO), so a change to the conventions it reads changes both repos
-together: `catalyzer.json`, `docs/NOTES.md`, `.catalyzer/link`.
+together: `catalyzer.json`, `docs/NOTES.md` (its format and the notes drawer), `.catalyzer/link`, `principles/templates/`
+(NEW PROJECT copies them).
 
 Catalyzer is Aaron's project command center: a WPF / .NET 10 dashboard, extensible through plugins. GitHub: `AaronPierdon/Catalyzer`, branch `main`. On the PC it lives at `C:\Users\Aaron\source\repos\Catalyzer`, next to `Nexus`.
 
@@ -32,11 +36,12 @@ Catalyzer is Aaron's project command center: a WPF / .NET 10 dashboard, extensib
   - Owns its theme layer (`Cz*` resources). It must never reference Nexus or any plugin.
 - `plugins/*` — plugins. Each builds to `<install>\plugins\<Name>\`.
   - `Catalyzer.Nexus` → `NexusPlugin.dll`. It uses Nexus only through `Nexus.UI.Wpf.NexusPublicApi` (Nexus repo, `src/Nexus.Kit/Parts/NexusPublicApi.cs`).
-  - `Catalyzer.Link` → `LinkPlugin.dll`. The LINK chip: a hidden Windows terminal per repo, for chats (`docs/LINK.md`).
+  - `Catalyzer.Link` → `LinkPlugin.dll`. The LINK chip: a hidden Windows terminal per repo, for chats (`docs/design/LINK.md`).
   - `Catalyzer.Helpers` → `HelpersPlugin.dll`. A project's long-running scripts, hidden, from its card.
-- Docs:
-  - `docs/VISION.md` · `ARCHITECTURE.md` · `GUIDE.md` · `NOTES.md` (the shared notepad; the NOTES chip edits it);
-  - `docs/LINK.md` (the link) · `PLUGINS.md` (plugin API) · `MANIFEST.md` (catalyzer.json).
+- Docs (principles 07):
+  - `docs/SUMMARY.md` (what it does) · `ARCHITECTURE.md` (what it's built from, and why) · `HANDOFF.md` (last
+    session, next, bugs, gaps) · `ROADMAP.md` (agreed ideas in chunks, decided against) · `NOTES.md` (Aaron's);
+  - contracts in `docs/design/`: `LINK.md` (the link) · `PLUGINS.md` (plugin API) · `MANIFEST.md` (catalyzer.json).
 
 ## Running things on the PC (start here)
 ```bash
@@ -52,8 +57,7 @@ bash .catalyzer/link/run.sh -s -f tools/install.ps1           # install: survive
   its lock files there). The tarball sync in HANDOFF is only for when nothing else works.
 
 ## Rules
-- Scratch goes in `_devSpace/` (git-ignored). The old `.scratch/` folder holds past chats' tarballs and test rigs:
-  ask Aaron before clearing it.
+- Scratch goes in `_devSpace/` (git-ignored).
 - Root layout follows principles 07, with two extra folders: `plugins/` (bundled plugins) and `principles/` (the
   rulebook lives here). That's an **EXCEPTION** to "nothing else at the root", because this repo is the hub.
 - Look matters: chamfered glass, glow, decode-in text, nothing pops. Every colour comes from the theme. No literals in UI code.

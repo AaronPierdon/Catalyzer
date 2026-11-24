@@ -12,7 +12,7 @@ namespace Catalyzer
 {
     /// <summary>
     /// Finds projects: every git repo (or folder with a catalyzer.json) directly under each root folder, plus folders
-    /// you added and those plugins bring. A project describes itself in its own catalyzer.json (docs/MANIFEST.md) - so
+    /// you added and those plugins bring. A project describes itself in its own catalyzer.json (docs/design/MANIFEST.md) - so
     /// a new project only touches its own repo, never Catalyzer.
     /// </summary>
     public static class Projects

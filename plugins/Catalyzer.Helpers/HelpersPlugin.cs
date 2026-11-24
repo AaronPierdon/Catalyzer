@@ -13,7 +13,7 @@ namespace Catalyzer.Helpers
 {
     /// <summary>
     /// Helpers: each project's own helper scripts (build agents, watchers, local servers...), started hidden from its card.
-    ///   * Listed in the project's catalyzer.json under "helpers" (docs/MANIFEST.md). Catalyzer never needs to change.
+    ///   * Listed in the project's catalyzer.json under "helpers" (docs/design/MANIFEST.md). Catalyzer never needs to change.
     ///   * Never a console window: every helper runs with CreateNoWindow, its output goes to a log file.
     ///   * Contained: every helper sits in one Windows job object that kills its members when Catalyzer goes - closed,
     ///     crashed or killed. Nothing is left running behind your back.

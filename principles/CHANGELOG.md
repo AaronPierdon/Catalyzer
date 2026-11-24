@@ -2,6 +2,38 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 5.0.0 — 2026-11-24
+**Five docs, one owner each** (07). The standard set is now:
+- `docs/NOTES.md` — **Aaron's alone.** Raw ideas, each one timestamped (`- 2026-11-24 14:57 — …`). Chats never edit
+  it; they pull notes in when asked (PROMPTS → *Pull my notes in*), and Aaron wipes it with Catalyzer's
+  **WIPE + SYNC**. Catalyzer backs up every version in `%LOCALAPPDATA%\Catalyzer\notes-cache\`.
+- `docs/SUMMARY.md` — what the app does for a user and every feature: an informal functional spec. Replaces VISION
+  and STATE → *What's live*.
+- `docs/ARCHITECTURE.md` — the inventory and the reasons (stack, libraries, parts, main classes, flows, data,
+  decisions). Absorbs GUIDE.
+- `docs/HANDOFF.md` — *Last session*, *Next*, *Bugs*, *Known gaps*: the baton and Claude's working list. Short,
+  rewritten each chat, no history log. Absorbs NOTES → *Next up* / *Bugs* and STATE → *Known gaps*.
+- `docs/ROADMAP.md` — agreed ideas with their decisions, in chunks: *Now*, *Next*, *Later*, and *Decided against*
+  (kept forever). Absorbs NOTES → *Ideas*, VISION → *Where it could go*, STATE → *Removed / decided against*, and
+  every plan doc.
+
+**Gone:** VISION, GUIDE, STATE, and plan / topic docs. **New:** `docs/design/` holds only live contracts (a protocol,
+a runbook for live data, a file format, a plugin API). App families keep their contract at `docs/design/CONTRACT.md`.
+CLAUDE.md is the project's instructions; the Claude project's instructions only point to it (PROMPTS).
+
+**What an app must do** (in its next chat, as its own commit, listing what it deletes first):
+1. Make SUMMARY, ARCHITECTURE, HANDOFF and ROADMAP from `templates/`, moving every true fact out of the old docs:
+   VISION → SUMMARY + ROADMAP; GUIDE → ARCHITECTURE; STATE → SUMMARY / HANDOFF *Known gaps* / ROADMAP *Decided
+   against*; old HANDOFF → keep only what's still true in *Last session* / *Next*; plan docs → ROADMAP chunks (built
+   parts → ARCHITECTURE).
+2. NOTES: Claude's items (*Next up*, *Bugs*, *Ideas*, *Done*) move to HANDOFF / ROADMAP or are dropped if done.
+   Aaron's own notes stay, converted to the timestamped format under `## Notes` (use the date they carry, or the
+   git date). Ask Aaron before dropping any of his words.
+3. Keep only live contracts as `docs/design/*.md`; delete VISION, GUIDE, STATE and the finished plans.
+4. Update CLAUDE.md's *New chat* steps to the template, and the Claude project's instructions to PROMPTS →
+   *Project instructions*.
+5. Bump `.catalyzer-principles` to `5.0.0`.
+
 ## 4.0.0 — 2026-11-23
 **Spartan repos** (07). The repo layout is now a rule, not a suggestion:
 - the root holds only README, CLAUDE, `catalyzer.json`, the marker, the solution and the git files;

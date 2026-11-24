@@ -32,7 +32,7 @@ steps and the whole kickoff prompt at once (PROMPTS → *Kickoff*).
    - Use a lighter model for the brief. Switch up when the real work starts.
 4. Keep that computer awake with the Claude desktop app open. That's all the brief needs.
 
-**Saving usage:** the brief reads only CLAUDE.md, HANDOFF, NOTES (Inbox / Next up), STATE and the git log, never the
+**Saving usage:** the brief reads only CLAUDE.md, HANDOFF, ROADMAP → *Now* and the git log, never the
 whole codebase. It stops after the summary and waits for Aaron. HANDOFF → *Next* starts with **one first move**, so
 the brief has nothing to dig for. Code is read when the day's work touches it, and only the part it touches.
 
@@ -61,12 +61,12 @@ Every chat works with **two repos**: its app, and Catalyzer (the hub, with these
 0. Check the Catalyzer link (`bash .catalyzer/link/run.sh --status`). Say in your first lines whether it's on.
 1. Read the app's `CLAUDE.md`, then these principles: the README and 05-RULES always, and the CHANGELOG since the
    app's `.catalyzer-principles`.
-2. Read `docs/HANDOFF.md`, `docs/NOTES.md` (Inbox and Next up) and `docs/STATE.md`, then run
-   `git log --oneline -30`. Skim `VISION.md` and `ARCHITECTURE.md`. Read `GUIDE.md` for the part you'll touch.
+2. Read `docs/HANDOFF.md` and `docs/ROADMAP.md` (*Now*), then run `git log --oneline -30`. Skim `SUMMARY.md`, and
+   read `ARCHITECTURE.md` for the part you'll touch. `NOTES.md` is Aaron's: read it when he asks.
 3. **Scratch goes in `_devSpace/`.** One-off scripts, dumps, screenshots and experiments never land in `tools/`,
    `src/` or the root.
-4. **Sync check:** is the app behind the principles VERSION? Are any of the 07 files missing? Is the NOTES Inbox
-   unsorted? Say so in one line, and offer the Update prompt rather than silently fixing it.
+4. **Sync check:** is the app behind the principles VERSION? Are any of the 07 files missing? Does
+   NOTES have notes Aaron hasn't asked about yet? Say so in one line, and offer the Update prompt rather than silently fixing it.
 5. Study how the part you'll touch already works, and reuse its mechanisms. Don't build a parallel one.
 6. Tell Aaron in a few lines what you understood and what you'll do, then start.
 
@@ -80,18 +80,13 @@ Every chat works with **two repos**: its app, and Catalyzer (the hub, with these
 - **Push before a chat ends.** Each app has its own GitHub repo under `AaronPierdon`.
 
 ## Handover files (every app repo)
-- `docs/HANDOFF.md` — the baton. Covers:
-  - what this chat did;
-  - what's ready to test and how;
-  - what failed;
-  - what's next.
-
-  Each chat rewrites its own section; git keeps history.
-- `docs/STATE.md` — what exists, *Removed / decided against*, known gaps.
-- `docs/NOTES.md` — the shared notepad (07). **"Add to the list / note this: …"** means add it to *Inbox*. Aaron may
-  also write there himself, from Catalyzer's notes panel or any editor.
-- `docs/VISION.md`, `ARCHITECTURE.md`, `GUIDE.md` — the app explained (07). **A change that alters what they
-  describe updates them in the same commit.**
+- `docs/HANDOFF.md` — the baton and Claude's working list: *Last session* (did, verified, ready to test),
+  *Next*, *Bugs*, *Known gaps*. Each chat rewrites *Last session*; git keeps history.
+- `docs/ROADMAP.md` — agreed ideas in chunks (*Now*, *Next*, *Later*) and *Decided against* (07).
+- `docs/NOTES.md` — Aaron's own notes (07). A chat never edits it. **"Add to the list / do this: …"** goes to
+  HANDOFF → *Next*; **"note this for <App>"** from a phone chat adds a timestamped line to NOTES on his behalf.
+- `docs/SUMMARY.md`, `ARCHITECTURE.md` — the app explained (07). **A change that alters what they describe updates
+  them in the same commit.**
 - **Ideas that apply to every app** (a new rule, a preference, a shared asset) go into these principles, not one
   app's notes. Aaron's latest word becomes a rule here.
 - A thread being retired writes a **handover doc** plus a **prompt for the next thread** (see PROMPTS.md).
@@ -127,8 +122,8 @@ The lab's stress battery covers:
 - an hour-long run for leaks;
 - recovery (kill it: does the user get their stuff back?).
 
-Bug format in NOTES → *Bugs*: `- [ ] <app>: <what happens> — steps: … — expected: … — VM/PC — added <date>`.
+Bug format in HANDOFF → *Bugs*: `- [ ] <app>: <what happens> — steps: … — expected: … — VM/PC — added <date>`.
 
 ## Shipping
 Build → snapshot and look → install (warned) → check on the real screen (sharpness, motion, CPU/GPU) → update
-HANDOFF / STATE / NOTES (and VISION / ARCHITECTURE / GUIDE if the shape changed) → merge → push.
+HANDOFF, SUMMARY, ARCHITECTURE and ROADMAP as needed → merge → push.

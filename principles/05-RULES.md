@@ -16,7 +16,7 @@ These are never broken. An app's CLAUDE.md can add rules but never loosen these.
    - Work in short bursts and release control when done.
    - Never inject fake mouse or keyboard input with scripts to get around the permission system.
    - Screenshot and crop scripts are fine, and so is closing our own windows.
-7. **Nothing removed comes back** unless Aaron asks. Check *Removed / decided against* in the app's `STATE.md`
+7. **Nothing removed comes back** unless Aaron asks. Check *Decided against* in the app's `ROADMAP.md`
    before restoring anything found in history or old docs.
 8. **Never leave Aaron without his tools.** Shell replacements keep a way back (watchdog, panic key, restore
    command). Destructive actions (delete, force-push, branch deletes) are confirmed first.

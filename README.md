@@ -43,23 +43,23 @@ You can add more folders in Settings, or with **+**:
 - pick a project folder and Catalyzer adds that project;
 - pick a folder of projects and Catalyzer scans it.
 
-A project describes itself with an optional `catalyzer.json` (name, description, colour, glyph, its own buttons, its helper scripts). See [docs/MANIFEST.md](docs/MANIFEST.md). New projects need no code changes, and a new repo shows up on the board by itself.
+A project describes itself with an optional `catalyzer.json` (name, description, colour, glyph, its own buttons, its helper scripts). See [docs/design/MANIFEST.md](docs/design/MANIFEST.md). New projects need no code changes, and a new repo shows up on the board by itself.
 
 ## Notes
-Every card has a **NOTES** chip for its repo's `docs/NOTES.md`, the notepad you and every chat share. Click the chip to
-add a note (it lands in the Inbox), tick things done, or move them between sections. Notes **sync themselves**:
-- a minute after your last edit, Catalyzer commits only `docs/NOTES.md` (with a message like
-  `Notes: +1 inbox, 2 done (Catalyzer, 2026-11-23 15:31)`) and pushes it;
-- opening the notes brings in notes written elsewhere;
-- a **SYNC ↑ / ↓** chip on the card shows whenever notes and GitHub differ, and clicking it syncs now.
-
-It never pushes anyone else's unpushed work, and never pulls in anything but notes. You can turn auto-sync off in
-Settings → General.
+Every card has a **NOTES** chip for its repo's `docs/NOTES.md`: your own notepad for that project. Click the chip,
+type, press Enter: the note lands at the top, stamped with the date and time. Chats read your notes when you ask
+("pull my notes in") and never edit them; once they're pulled in, **WIPE + SYNC** clears the file for a fresh slate.
+- **Sync:** a minute after your last edit, Catalyzer commits only `docs/NOTES.md` and pushes it; opening the notes
+  brings in notes written elsewhere; a **SYNC ↑ / ↓** chip shows when notes and GitHub differ. It never pushes anyone
+  else's unpushed work, and never pulls in anything but notes. Auto-sync can be turned off in Settings → General.
+- **Backups:** every version Catalyzer sees is kept in `%LOCALAPPDATA%\Catalyzer\notes-cache\`, up to a cap per
+  project (Settings → General, 100 MB by default; OFF takes none). **BACKUPS** in the drawer opens a project's.
+  A project's backups are deleted when it leaves the board.
 
 ## Link
 Click **LINK** on a project's card and that repo gets a hidden Windows terminal that a chat (Claude) can use for
 builds, git and installs. There are no windows, and every command shows in the card's feed. See
-[docs/LINK.md](docs/LINK.md).
+[docs/design/LINK.md](docs/design/LINK.md).
 
 ## Helpers
 List a project's long-running scripts under `helpers` in its `catalyzer.json`. Catalyzer then:
@@ -68,7 +68,7 @@ List a project's long-running scripts under `helpers` in its `catalyzer.json`. C
 - keeps them in a job that stops them if Catalyzer stops.
 
 Closing with helpers running asks whether to stop them all or keep them running in the tray. See
-[docs/MANIFEST.md](docs/MANIFEST.md).
+[docs/design/MANIFEST.md](docs/design/MANIFEST.md).
 
 ## Extending it
 - **Plugins** are .NET dlls built on `Catalyzer.Sdk`. They can:
@@ -77,7 +77,7 @@ Closing with helpers running asks whether to stop them all or keep them running 
   - add themes, including live ones that repaint as they change;
   - log to the info bar.
 
-  Manage them under Settings → Plugins: switch each on or off, or use Add / Import (a .dll with its folder, or a .zip). See [docs/PLUGINS.md](docs/PLUGINS.md).
+  Manage them under Settings → Plugins: switch each on or off, or use Add / Import (a .dll with its folder, or a .zip). See [docs/design/PLUGINS.md](docs/design/PLUGINS.md).
 - **Themes** live in Catalyzer's own theme layer (`CatalyzerTheme`: colours, fonts, glow, cut, scan lines, backdrop). Four themes are built in. Plugins register more.
 - **NexusPlugin** (`plugins/Catalyzer.Nexus`) shows the pattern:
   - it reads Nexus through Nexus's public `NexusPublicApi`;

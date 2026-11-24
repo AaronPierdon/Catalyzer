@@ -123,20 +123,22 @@ namespace Catalyzer
             Directory.CreateDirectory(Path.Combine(dir, "src"));
             Directory.CreateDirectory(Path.Combine(dir, "_devSpace"));
             string Fill(string s) => s.Replace("<App>", name).Replace("<one line: what it is>", what == "" ? name : what)
-                                     .Replace("<one paragraph. The why and the where-next are in docs/VISION.md>", (what == "" ? name : what) + " The why and the where-next are in docs/VISION.md.");
+                                     .Replace("<one paragraph. The full feature list is in docs/SUMMARY.md>", (what == "" ? name : what) + " The full feature list is in docs/SUMMARY.md.");
             void Copy(string from, string to) { var src = Path.Combine(t, from); if (File.Exists(src)) File.WriteAllText(Path.Combine(dir, to), Fill(File.ReadAllText(src)), new UTF8Encoding(false)); }
             Copy("CLAUDE.md", "CLAUDE.md");
             Copy(".gitignore", ".gitignore");
             Copy("catalyzer.json", "catalyzer.json");
-            foreach (var doc in new[] { "NOTES", "VISION", "ARCHITECTURE", "GUIDE", "HANDOFF", "STATE" }) Copy(doc + ".md", Path.Combine("docs", doc + ".md"));
+            foreach (var doc in new[] { "NOTES", "SUMMARY", "ARCHITECTURE", "HANDOFF", "ROADMAP" }) Copy(doc + ".md", Path.Combine("docs", doc + ".md"));
             foreach (var f in Directory.Exists(Path.Combine(t, "tools")) ? Directory.GetFiles(Path.Combine(t, "tools")) : Array.Empty<string>())
                 File.WriteAllText(Path.Combine(dir, "tools", Path.GetFileName(f)), Fill(File.ReadAllText(f)), new UTF8Encoding(false));
             File.WriteAllText(Path.Combine(dir, ".catalyzer-principles"), version + "\n");
             File.WriteAllText(Path.Combine(dir, "README.md"), "# " + name + "\n\n" + (what == "" ? "" : what + "\n\n") +
                 "Started in Catalyzer on " + DateTime.Now.ToString("yyyy-MM-dd") + ". Follows the Catalyzer Development Principles " + version + ".\n" +
                 "How to build, install and run: see CLAUDE.md (Build / install / run).\n", new UTF8Encoding(false));
-            var vision = Path.Combine(dir, "docs", "VISION.md");
-            if (File.Exists(vision) && what != "") File.WriteAllText(vision, File.ReadAllText(vision).Replace("<the problem, in Aaron's words. One paragraph>", what), new UTF8Encoding(false));
+            var summary = Path.Combine(dir, "docs", "SUMMARY.md");
+            if (File.Exists(summary) && what != "") File.WriteAllText(summary, File.ReadAllText(summary).Replace("<who it's for, the problem it solves, what using it is like>", what), new UTF8Encoding(false));
+            var notes = Path.Combine(dir, "docs", "NOTES.md");
+            if (!File.Exists(notes)) new Notes(dir).Create(name);
         }
 
         /// <summary>After NEW PROJECT: what to paste into Claude, with COPY buttons, and the few clicks that remain.</summary>
@@ -147,19 +149,16 @@ namespace Catalyzer
                 "Project repo: " + gh + " (PC: " + dir + ")\n" +
                 "Rules: Catalyzer Development Principles, github.com/AaronPierdon/Catalyzer/tree/main/principles\n" +
                 "(PC: " + Path.Combine(ProjectsRoot, "Catalyzer", "principles") + ")\n\n" +
-                "Every chat:\n" +
-                "1. Read CLAUDE.md and follow its new-chat steps (handover, notes, state, git log).\n" +
-                "2. Check the Catalyzer link: bash .catalyzer/link/run.sh --status. If it's OFF, ask me to click LINK on the card. Builds, git and installs go through the link.\n" +
-                "3. Follow the principles for the look, the workflow and the repo docs. Never bring back anything in STATE → Removed / decided against.\n" +
-                "4. Tell me in a few lines what you understood and what you'll do, then start.\n" +
-                "5. End every piece of work by updating HANDOFF (and NOTES / STATE if they changed), committing and pushing.";
+                "Read CLAUDE.md first and follow it: it's this project's instructions. Check the Catalyzer link before running anything. " +
+                "End every piece of work by updating HANDOFF (and SUMMARY / ARCHITECTURE / ROADMAP if they changed), committing and pushing. " +
+                "Never edit docs/NOTES.md: it's mine.";
             var kickoff =
                 "This is the first chat for " + name + ": " + (what == "" ? "(tell Claude what it's for)" : what) + "\n" +
                 "Catalyzer already made the repo from the principles' templates (" + version + "), pushed it" + (url != null ? " to " + gh : "") + ", and gave it a card.\n" +
                 "- Read the principles: README, 04-WORKFLOW, 05-RULES, 07-APP-REPO (\"Wiring an app to Catalyzer\").\n" +
-                "- Fill in VISION from what I said (ask me what you need), then CLAUDE.md, ARCHITECTURE and the tools\\ scripts for the stack we pick.\n" +
+                "- Fill in SUMMARY from what I said (ask me what you need), then CLAUDE.md, ARCHITECTURE, ROADMAP and the tools\\ scripts for the stack we pick.\n" +
                 "- Ask me to click LINK on the " + name + " card, check it with --status, and run the first build through it.\n" +
-                "- Update HANDOFF / NOTES / STATE, commit and push.\n" +
+                "- Update HANDOFF, commit and push.\n" +
                 "- Then give me the Morning brief to schedule from inside this project (principles PROMPTS → Morning brief).";
 
             var d = Dialog(name + " is ready", 720, onEsc: null);

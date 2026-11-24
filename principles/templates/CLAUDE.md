@@ -3,19 +3,20 @@
 Follows **Catalyzer Development Principles** (`repos\Catalyzer\principles`,
 github.com/AaronPierdon/Catalyzer/tree/main/principles); this repo's version is in `.catalyzer-principles`. Read them
 before working (at least the CHANGELOG since that version). Rules below only add to them; exceptions are marked
-**EXCEPTION** with the reason.
+**EXCEPTION** with the reason. This file is the project's instructions: the Claude project's own instructions only
+point here, so they can't drift.
 
 New chat:
 1. Check the Catalyzer link.
-2. Read this file, the principles, then `docs/HANDOFF.md`, `docs/NOTES.md`, `docs/STATE.md` and
-   `git log --oneline -20`.
-3. Skim `docs/VISION.md` and `docs/ARCHITECTURE.md`.
+2. Read this file, then `docs/HANDOFF.md`, `docs/ROADMAP.md` (*Now*) and `git log --oneline -20`.
+3. Skim `docs/SUMMARY.md` and `docs/ARCHITECTURE.md` for the part you'll touch.
+4. `docs/NOTES.md` is Aaron's. Read it only when he asks you to pull his notes in; never edit it.
 
 ## What it is
-<one paragraph. The why and the where-next are in docs/VISION.md>
+<one paragraph. The full feature list is in docs/SUMMARY.md>
 
 ## Shape
-<the projects / folders and what each owns; any public API or SDK. The full map is in docs/ARCHITECTURE.md>
+<the projects / folders and what each owns. The inventory and the reasons are in docs/ARCHITECTURE.md>
 
 ## Build / install / run
 Through the Catalyzer link. Check it with `bash .catalyzer/link/run.sh --status`; if it's OFF, ask Aaron to click

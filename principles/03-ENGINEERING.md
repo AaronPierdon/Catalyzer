@@ -87,7 +87,7 @@
   - keep running.
 - **Never leave the user stranded.** An app that replaces something essential (taskbar, file manager) has a
   watchdog, a panic key and a restore command.
-- **Removals are decisions.** Removed features are listed in the app's `STATE.md` → *Removed / decided against* and
+- **Removals are decisions.** Removed features are listed in the app's `ROADMAP.md` → *Decided against* and
   don't come back unless Aaron asks.
 - **Tests:** plain-.NET cores (no UI) get unit tests. Latency-critical paths (e.g. InputShare hooks) never allocate,
   block, log or touch UI.

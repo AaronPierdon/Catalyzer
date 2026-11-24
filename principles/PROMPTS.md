@@ -7,7 +7,7 @@ Copy and paste these into a chat that's linked to the app's repo.
 > github.com/AaronPierdon/Catalyzer/tree/main/principles), all of it. Then audit this app against 06-CHECKLIST: list
 > what passes, what fails and what's an intentional exception, and estimate the effort for each fix. Don't change
 > code yet. After I pick, add the repo files from 07-APP-REPO, starting from `templates/`: CLAUDE.md,
-> `.catalyzer-principles` with the current VERSION, catalyzer.json, and the docs. Fill VISION, ARCHITECTURE and GUIDE
+> `.catalyzer-principles` with the current VERSION, catalyzer.json, and the docs. Fill SUMMARY and ARCHITECTURE
 > from the actual code. Create the GitHub repo if it's missing. Then fix things in the order I chose.
 
 ## Update (the principles moved on)
@@ -34,13 +34,21 @@ Copy and paste these into a chat that's linked to the app's repo.
 ## Note this (from anywhere, even the phone)
 > Note this for <App>: <the idea>.
 
-The chat adds it to `docs/NOTES.md` → *Inbox* in that app's repo, commits and pushes. Notes that apply to every
-app go into these principles instead.
+The chat adds `- <yyyy-MM-dd HH:mm> — <the idea>` to the top of `docs/NOTES.md` → *Notes* in that app's repo (the
+one time a chat writes NOTES: on Aaron's word, as Aaron), commits and pushes. Notes that apply to every app go into
+these principles instead.
+
+## Pull my notes in
+> Pull my notes in for <App>.
+
+The chat reads `docs/NOTES.md`, asks about anything unclear, then carries each note into ROADMAP (agreed idea),
+HANDOFF → *Next* / *Bugs* (work in hand) or ROADMAP → *Decided against*, and lists where each one went. It doesn't
+touch NOTES: Aaron wipes it with **WIPE + SYNC** once he's happy.
 
 ## New app
 > Start a new app called <App>: <what it's for>. Follow the Catalyzer Development Principles from the start:
 > - create the repo from `templates/` and `AaronPierdon/<App>` on GitHub;
-> - write VISION from what I said;
+> - write SUMMARY from what I said;
 > - add catalyzer.json;
 > - set up `tools\` build and install scripts.
 >
@@ -53,13 +61,9 @@ Keep this short. The detail lives in the repo (CLAUDE.md, the docs) and in these
 > (PC: `C:\Users\Aaron\source\repos\Catalyzer\principles`)
 >
 > Every chat:
-> 1. Read CLAUDE.md and follow its new-chat steps (handover, notes, state, git log).
-> 2. Check the Catalyzer link: `bash .catalyzer/link/run.sh --status`. If it's OFF, ask me to click LINK on the card.
->    Builds, git and installs go through the link.
-> 3. Follow the principles for the look, the workflow and the repo docs. Never bring back anything in STATE →
->    *Removed / decided against*.
-> 4. Tell me in a few lines what you understood and what you'll do, then start.
-> 5. End every piece of work by updating HANDOFF (and NOTES / STATE if they changed), committing and pushing.
+> Read CLAUDE.md first and follow it: it's this project's instructions. Check the Catalyzer link before running
+> anything. End every piece of work by updating HANDOFF (and SUMMARY / ARCHITECTURE / ROADMAP if they changed),
+> committing and pushing. Never edit docs/NOTES.md: it's mine.
 
 ## Kickoff (Catalyzer hands this out for a new app)
 Catalyzer fills in `<App>`, `<what it's for>` and the paths, and shows the setup steps from 04 *Setting up a project
@@ -71,13 +75,13 @@ in Claude* next to it. Paste it into the first chat of the new project.
 >   README, 04-WORKFLOW, 05-RULES and 07-APP-REPO first.
 > - Hub: github.com/AaronPierdon/Catalyzer (`repos\Catalyzer`). Add `catalyzer.json` so the app gets a card, and set
 >   up `tools\` build and install scripts so the Catalyzer link can run them.
-> - Write VISION from what I said, fill CLAUDE.md, HANDOFF, NOTES and STATE, and set `.catalyzer-principles` to the
->   current VERSION. Push.
+> - Write SUMMARY from what I said, fill CLAUDE.md, ARCHITECTURE, HANDOFF and ROADMAP, and set
+>   `.catalyzer-principles` to the current VERSION. Push.
 > - Then give me the project instructions to paste and the Morning brief task to schedule.
 
 ## Morning brief (the project's scheduled task)
-> Morning brief for <App>. Read only CLAUDE.md, docs/HANDOFF.md, docs/NOTES.md (Inbox, Next up), docs/STATE.md and
-> `git log --oneline -20`. Don't read source code, build or test. Check the Catalyzer link (`--status`) and whether
+> Morning brief for <App>. Read only CLAUDE.md, docs/HANDOFF.md, docs/ROADMAP.md (*Now*), the count of notes in
+> docs/NOTES.md and `git log --oneline -20`. Don't read source code, build or test. Check the Catalyzer link (`--status`) and whether
 > the app is behind the principles VERSION. Then tell me in under 10 lines:
 > - where things stand and what's waiting to test;
 > - the first move from HANDOFF → Next, and the next two after it;
@@ -87,7 +91,7 @@ in Claude* next to it. Paste it into the first chat of the new project.
 
 ## Retire a thread
 > We're retiring this thread. Update the docs and handover first:
-> - update HANDOFF / STATE / NOTES (and ARCHITECTURE / GUIDE if the shape changed);
+> - update HANDOFF (and SUMMARY / ARCHITECTURE / ROADMAP if they changed);
 > - write anything unfinished into HANDOFF → *Next*;
 > - push.
 >
