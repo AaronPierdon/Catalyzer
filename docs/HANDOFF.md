@@ -4,7 +4,9 @@ The baton between chats, and Claude's working list. Short and current: each chat
 the lists true. History is in git, not here.
 
 ## Last session — 2026-11-25
-- **Did (Catalyzer 1.3.0, principles 5.1.0):**
+- **Did (Catalyzer 1.3.1, principles 5.1.0):**
+  - **1.3.1:** the git chip works with a remote that isn't called `origin` (Nexus's is `Nexus`): it uses the
+    branch's tracked remote, else `origin`, else the only one; fetch is `--all`. It said NOT ON GITHUB before.
   - **Git on the card:** a GIT chip per card (PULL ↓n / PUSH ↑n / PUBLISH BRANCH / COMMIT n / DIVERGED / CONFLICT /
     ✓ IN STEP), click does the next step; the git drawer (incoming / outgoing commits, changed files with
     checkboxes and risk flags, message, COMMIT, COMMIT + PUSH); FETCH ALL in the header plus a quiet 15-minute

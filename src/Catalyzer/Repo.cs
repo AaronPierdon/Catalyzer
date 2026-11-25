@@ -42,6 +42,8 @@ namespace Catalyzer
             public Kind Kind = Kind.NotRepo;
             public string Branch, Upstream, InProgress;
             public bool HasOrigin, HasUpstream;
+            /// <summary>The GitHub remote: the one this branch tracks, else "origin", else the only one (Nexus calls its "Nexus").</summary>
+            public string Remote;
             public int Ahead, Behind;
             public List<Change> Changes = new List<Change>();
             public List<Commit> Incoming = new List<Commit>(), Outgoing = new List<Commit>();
@@ -69,9 +71,10 @@ namespace Catalyzer
         {
             var s = new State { LockedBy = lockedBy ?? LinkBusy() };
             if (Git("rev-parse --is-inside-work-tree").output.Trim() != "true") { s.Kind = Kind.NotRepo; s.Why = "NOT A GIT REPO"; return s; }
-            s.HasOrigin = Git("remote").output.Split('\n').Any(r => r.Trim() == "origin");
+            var remotes = Git("remote").output.Split('\n').Select(r => r.Trim()).Where(r => r != "").ToList();
+            s.HasOrigin = remotes.Count > 0;
             if (File.Exists(GitPath("index.lock"))) { s.Kind = Kind.Busy; s.Why = "GIT IS BUSY (INDEX.LOCK)  //  SOMETHING ELSE IS USING THIS REPO"; return Finish(s); }
-            if (fetch && s.HasOrigin) Git("fetch --quiet origin", 45000);
+            if (fetch && s.HasOrigin) Git("fetch --quiet --all", 45000);
             var fh = GitPath("FETCH_HEAD"); if (File.Exists(fh)) s.Fetched = File.GetLastWriteTime(fh);
 
             foreach (var (file, name) in new[] { ("MERGE_HEAD", "A MERGE"), ("rebase-merge", "A REBASE"), ("rebase-apply", "A REBASE"), ("CHERRY_PICK_HEAD", "A CHERRY-PICK"), ("REVERT_HEAD", "A REVERT"), ("BISECT_LOG", "A BISECT") })
@@ -89,6 +92,8 @@ namespace Catalyzer
                 s.Changes.Add(new Change { Path = path, Code = code, Conflict = conflict });
             }
             if (Git("symbolic-ref -q HEAD").code != 0 && s.InProgress == null) s.Branch = null;
+            var tracked = s.Branch != null ? Git("config --get \"branch." + s.Branch + ".remote\"").output.Trim() : "";
+            s.Remote = remotes.Contains(tracked) ? tracked : remotes.Contains("origin") ? "origin" : remotes.FirstOrDefault();
             Risks(s);
             if (s.HasUpstream)
             {
@@ -225,10 +230,10 @@ namespace Catalyzer
                 return p.code == 0 ? (true, "PUSHED " + s.Ahead + " COMMIT(S)") : (false, "PUSH FAILED  //  " + First(p.output));
             }
             // a new branch: only if GitHub really doesn't have one by that name (never overwrite)
-            var ls = Git("ls-remote --heads origin \"" + s.Branch + "\"", 30000);
+            var ls = Git("ls-remote --heads \"" + s.Remote + "\" \"" + s.Branch + "\"", 30000);
             if (ls.code != 0) return (false, "GITHUB UNREACHABLE  //  " + First(ls.output));
             if (ls.output.Trim() != "") return (false, "NOT PUSHED  //  GITHUB ALREADY HAS A BRANCH CALLED " + s.Branch.ToUpperInvariant() + ": SORT IT OUT IN VISUAL STUDIO");
-            var pu = Git("push --quiet -u origin \"" + s.Branch + "\"", 90000);
+            var pu = Git("push --quiet -u \"" + s.Remote + "\" \"" + s.Branch + "\"", 90000);
             return pu.code == 0 ? (true, "PUBLISHED BRANCH " + s.Branch.ToUpperInvariant() + " TO GITHUB") : (false, "PUSH FAILED  //  " + First(pu.output));
         });
 
