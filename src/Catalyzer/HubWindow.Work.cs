@@ -45,10 +45,14 @@ namespace Catalyzer
                 PluginHost.I.BadgesChanged += () => { foreach (var c in _cardOf.Values) c.Badges(); };
             }
             Application.Current.SessionEnding += (s, e) => _exiting = true;
+            // Windows shutting down or signing out: really quit (never hold the session up by hiding to the tray)
+            Application.Current.SessionEnding += (s, e) => { _exiting = true; try { PluginHost.I?.StopAllWork(); } catch { } };
             Application.Current.Exit += (s, e) => { try { if (_tray != null) { _tray.Visible = false; _tray.Dispose(); } } catch { } };
             Closing += (s, e) =>
             {
-                if (_exiting || Running == 0) return;
+                if (_exiting) return;
+                if (Prefs.Value.CloseToTray && !Prefs.Offline) { e.Cancel = true; ToTray(); return; }
+                if (Running == 0) return;
                 e.Cancel = true;
                 switch (Prefs.Value.CloseWithWork)
                 {
@@ -197,8 +201,16 @@ namespace Catalyzer
             _tray.Text = Tip();
             _tray.Visible = true;
             Hide();
+            if (!Prefs.Value.TrayHintShown)
+            {
+                Prefs.Save(p => p.TrayHintShown = true);
+                try { _tray.ShowBalloonTip(5000, "Catalyzer is still running", "It keeps checking GitHub from the tray. Click the icon to open it; right-click → Exit Catalyzer to quit.", System.Windows.Forms.ToolTipIcon.Info); } catch { }
+            }
             Log.Write("to the tray: " + WorkText());
         }
+
+        /// <summary>Started with Windows: straight to the tray (when closing goes to the tray).</summary>
+        internal void StartInTray() { if (Prefs.Value.CloseToTray) ToTray(); }
 
         /// <summary>Back from the tray (tray click, or Catalyzer started again).</summary>
         internal void FromTray()

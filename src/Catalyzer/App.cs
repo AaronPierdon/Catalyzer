@@ -66,6 +66,7 @@ namespace Catalyzer
             if (snap != null) { Snapshot(w, board, snap); return; }
             if (autostart) { w.WindowState = WindowState.Minimized; w.ShowActivated = false; }
             w.Show();
+            if (autostart) w.StartInTray();
             if (_show != null)
                 new Thread(() => { try { while (_show.WaitOne()) Dispatcher.BeginInvoke(new Action(w.FromTray)); } catch { } }) { IsBackground = true, Name = "show-signal" }.Start();
             board.Rescan();

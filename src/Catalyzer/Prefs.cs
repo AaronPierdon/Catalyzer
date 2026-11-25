@@ -26,6 +26,11 @@ namespace Catalyzer
         public bool ReduceMotion { get; set; }
         /// <summary>Closing while helpers (plugins' background work) run: "ask", "stop" (stop all and exit) or "tray".</summary>
         public string CloseWithWork { get; set; } = "ask";
+        /// <summary>X hides Catalyzer to the tray (it keeps checking GitHub); Exit is in the tray menu. Off: X quits
+        /// (or asks, with work running, per <see cref="CloseWithWork"/>).</summary>
+        public bool CloseToTray { get; set; } = true;
+        /// <summary>The one-time "still running in the tray" hint has been shown.</summary>
+        public bool TrayHintShown { get; set; }
         /// <summary>Notes edited in the panel commit (NOTES.md only) and push themselves a minute after the last edit.</summary>
         public bool NotesAutoSync { get; set; } = true;
         /// <summary>Notes backups (NotesCache): the cap per project in MB; 0 = take no new backups.</summary>

@@ -111,7 +111,10 @@ namespace Catalyzer
             nb.Children.Add(new CzButton("OPEN", () => { Directory.CreateDirectory(NotesCache.Root); Launch.Shell("explorer.exe", "\"" + NotesCache.Root + "\""); }, "\uE838", tip: "%LOCALAPPDATA%\\CATALYZER\\NOTES-CACHE") { Margin = new Thickness(0, 0, 8, 8) });
             b.Children.Add(nb);
             b.Children.Add(Note("Every version of a project's NOTES.md that Catalyzer sees, the oldest dropped first past the cap. A project's backups go when it leaves the board (hidden projects keep theirs). OFF takes no new backups. In use now: " + Size(NotesCache.Size()) + "."));
-            b.Children.Add(Note("Starting with Windows opens Catalyzer minimized."));
+            b.Children.Add(new CzToggle(Prefs.Value.CloseToTray, on => { Prefs.Save(p => p.CloseToTray = on); BuildSettings(); }, "Close to the tray") { Margin = new Thickness(0, 8, 0, 4), ToolTip = "X KEEPS CATALYZER RUNNING IN THE TRAY (IT KEEPS CHECKING GITHUB)  //  TRAY RIGHT-CLICK: EXIT CATALYZER" });
+            b.Children.Add(Note(Prefs.Value.CloseToTray
+                ? "X hides Catalyzer to the tray; right-click the tray icon → Exit Catalyzer to quit. Starting with Windows goes straight to the tray."
+                : "X quits Catalyzer (with helpers running, the choice below decides). Starting with Windows opens it minimized."));
             b.Children.Add(Cz.Mono("CLOSING WHILE HELPERS RUN", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
             var close = new WrapPanel();
             foreach (var (id, label, glyph) in new[] { ("ask", "ASK", "\uE897"), ("stop", "STOP ALL & EXIT", "\uE71A"), ("tray", "KEEP IN TRAY", "\uE70D") })
