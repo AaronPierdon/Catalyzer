@@ -125,5 +125,9 @@ The lab's stress battery covers:
 Bug format in HANDOFF → *Bugs*: `- [ ] <app>: <what happens> — steps: … — expected: … — VM/PC — added <date>`.
 
 ## Shipping
-Build → snapshot and look → install (warned) → check on the real screen (sharpness, motion, CPU/GPU) → update
-HANDOFF, SUMMARY, ARCHITECTURE and ROADMAP as needed → merge → push.
+Build → snapshot and look → bump `<Version>` (07) → install (warned) → check on the real screen (sharpness, motion,
+CPU/GPU) → update HANDOFF, SUMMARY, ARCHITECTURE and ROADMAP as needed → merge → push.
+
+**Who installs:** with the link on, the chat installs itself (warning Aaron first if the app is running). Otherwise,
+or when Aaron would rather save the tokens, the chat ends with one line: **"Build and install: click UPDATE on the
+<App> card"**, plus what to look at once it's in. Aaron clicks; Catalyzer builds, installs and restarts the app.

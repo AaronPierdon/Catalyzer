@@ -138,11 +138,31 @@ A chat that's been handed the Catalyzer repo and told "let's build something" fo
 3. **`tools\` scripts** from [`templates/tools/`](templates/tools/):
    - `build.ps1` and `install.ps1` (plus `snap.ps1` for UI apps);
    - a `.cmd` beside each, so Aaron can double-click it;
-   - every script prints a short result and exits non-zero on failure.
+   - every script prints a short result and exits non-zero on failure;
+   - `install.ps1` follows the install contract below.
 4. **The docs** from `templates/`. CLAUDE.md's *Build / install / run* names the tools scripts and the link.
 5. **Ask Aaron to click LINK** on the new card. Check it with `bash .catalyzer/link/run.sh --status`, then run
    `bash .catalyzer/link/run.sh -f tools/build.ps1`. That's the proof the wiring works.
 6. **Push.** The card shows the repo, its git state, its NOTES and its link.
+
+### The install contract (C# / .NET apps)
+So Catalyzer can update any app with one click (its card's **UPDATE a → b** chip), every app's `tools\install.ps1`:
+1. **Builds first** (Release, into `_devSpace\publish`), while the app keeps running. A failed build changes nothing.
+2. **Then closes the app**, copies on top of `%LOCALAPPDATA%\Programs\<App>`, keeps the Start menu shortcut, and
+   starts the new copy (unless `-NoStart`). Settings in `%APPDATA%\<App>` are never touched.
+3. **Takes `-Log <file>`** (a transcript) and **exits 0 when installed, 1 when not**. If it fails after closing the
+   app, it starts the old copy again: Aaron is never left without the app.
+4. Runs hidden with no questions (no `Read-Host`, no pauses; the `.cmd` beside it may pause on failure).
+
+The template ([`templates/tools/install.ps1`](templates/tools/install.ps1)) does all of this; copy it and set `$app`.
+
+**Versions:** `<Version>` in the app's main `.csproj` is the app's one version, starting at `1.0.0`. Every change
+that ships bumps it: PATCH for fixes and small touches, MINOR for a feature, MAJOR only when Aaron says something big
+changed. Catalyzer compares it with the installed exe's version; an unbumped change never shows as an update.
+
+**Where things are:** the template layout needs no configuration (`src\<App>\<App>.csproj`,
+`%LOCALAPPDATA%\Programs\<App>\<App>.exe`, `tools\install.ps1`). An app laid out differently says so in
+`catalyzer.json` → `"app": { "exe", "version", "install" }` (see `Catalyzer/docs/design/MANIFEST.md`).
 
 **Using the link:** `.catalyzer/link/README.md` (Catalyzer writes it into the repo the first time LINK is on) and
 04 → *Running things on the PC*. In short:

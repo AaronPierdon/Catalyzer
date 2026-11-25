@@ -13,7 +13,9 @@ chunk ships, its objectives leave this file (SUMMARY and ARCHITECTURE describe w
   - Size: S
 - **R2 Convert the apps**: MAWP first (its doc plan is agreed: 19 docs → the five + `design/CONTRACT.md` and
   `design/RUNBOOK.md`), then Nexus and the rest, each in its own chat with "update to the latest principles".
-  - Decided: the 5.0.0 changelog is the recipe; Aaron OKs deletions per repo.
+  - Decided: the 5.0.0 and 5.1.0 changelogs are the recipe (5.1: the install contract and `<Version>`, which light
+    the UPDATE chip); Aaron OKs deletions per repo. No app has `tools\install.ps1` yet, so no card shows UPDATE
+    until its chat does this.
   - Size: M
 
 ## Next

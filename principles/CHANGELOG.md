@@ -2,6 +2,22 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 5.1.0 — 2026-11-25
+**The install contract** (07): every C# / .NET app's `tools\install.ps1` builds first (a failed build leaves the
+running app alone), then closes the app, installs on top, restarts it, takes `-Log`, exits 0 / 1, and brings the old
+copy back if it fails after closing. Catalyzer shows **UPDATE a → b** on the card when the repo's `<Version>` is
+newer than the installed exe (and **INSTALL** when it isn't installed), and one click runs the script hidden.
+
+**Versions** (07): `<Version>` in the main `.csproj`, bumped by every change that ships (PATCH / MINOR / MAJOR).
+
+**Shipping** (04): with the link off, a chat ends with "Build and install: click UPDATE on the <App> card".
+
+**What an app should do** (when next touched):
+1. Replace `tools\install.ps1` with the template's (set `$app`), or bring its own up to the contract.
+2. Put `<Version>1.0.0</Version>` (or its real version) in the main `.csproj` if it has none.
+3. If it isn't laid out like the template, add `"app": { "exe", "version", "install" }` to `catalyzer.json`.
+4. Bump `.catalyzer-principles` to `5.1.0`.
+
 ## 5.0.0 — 2026-11-24
 **Five docs, one owner each** (07). The standard set is now:
 - `docs/NOTES.md` — **Aaron's alone.** Raw ideas, each one timestamped (`- 2026-11-24 14:57 — …`). Chats never edit

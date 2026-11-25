@@ -43,6 +43,13 @@ also carries the rulebook every app follows (`principles/`), so the hub and its 
 - **FETCH ALL** in the header checks GitHub for every project and says what needs doing ("2 TO PULL · 1 TO
   PUSH"); it also happens quietly every 15 minutes. The header counts TO PULL and TO PUSH.
 
+### Updating your apps
+- Every app that follows the install contract (principles 07) gets a chip on its card: **UPDATE a → b** when its
+  repo's version is newer than the installed exe, **INSTALL** when it isn't installed, nothing when they match.
+  One click runs the app's own `tools\install.ps1` hidden: build, close the app, install on top, restart it. The chip
+  pulses while it runs, then says ✓ INSTALLED or INSTALL FAILED (click: the log, in
+  `%LOCALAPPDATA%\Catalyzer\installs\`). Right-click: install now, the log, the install folder.
+
 ### Updating Catalyzer
 - When the Catalyzer repo holds a newer version than the one running, an **UPDATE** chip lights in the header.
   One click builds it, closes Catalyzer, installs on top and starts the new one, in about a minute. If the build

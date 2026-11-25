@@ -91,6 +91,7 @@ namespace Catalyzer
             InitFeed();
             InitNotes();
             InitGit();
+            InitApps();
             InitGitHub();
             InitDevSpace();
             Loaded += (s, e) => { if (!Prefs.Value.FirstRunDone && !Prefs.Offline) Dispatcher.BeginInvoke(new Action(Welcome), System.Windows.Threading.DispatcherPriority.Background); };

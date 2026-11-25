@@ -49,6 +49,7 @@ The app never references a plugin or Nexus. Plugins only see the SDK.
 | `NotesCache` | `NotesCache.cs` | the notes backups: snapshot each new version, cap the size, purge projects that left |
 | `Repo` | `Repo.cs` | whole-repo git: where it stands (`State`, `Kind`, block reasons), and safe `Pull` / `Push` / `CommitFiles` |
 | `HubWindow.Git` | `HubWindow.Git.cs` | the GIT chip, the git drawer, FETCH ALL, Visual Studio on Git Changes |
+| `HubWindow.Apps` | `HubWindow.Apps.cs` | UPDATE / INSTALL on each app's card: repo `<Version>` vs installed exe, runs the app's `tools\install.ps1` hidden |
 | `HubWindow.Update` | `HubWindow.Update.cs` | the UPDATE chip: repo version vs running version, runs `tools\install.ps1 -Log` hidden |
 | `GitHub` | `GitHub.cs` | GitHub REST (repos, create) and hidden git for clone / push |
 | `PluginHost` | `Plugins.cs` | loads plugins, implements `ICatalyzerHost` |
@@ -134,7 +135,9 @@ Where each store lives is in [SUMMARY → Where its data lives](SUMMARY.md#where
   Visual Studio Community, not VS Code, so that's the hand-off.
 - **Every git action re-reads first.** The chip can be minutes old; `Pull` and `Push` fetch and re-check before they
   touch anything, so a stale button can't do something unsafe.
-- **Updates build before they close.** A broken build never takes Catalyzer away.
+- **Updates build before they close.** A broken build never takes Catalyzer (or any app) away. The same install
+  contract (principles 07) covers every app, so one chip and one code path update all of them; installs run as their
+  own process, outside Catalyzer's job, so they survive Catalyzer restarting.
 - **Never delete for the user.** GitHub actions don't delete; `_devSpace` cleanup lists first and recycles.
 - **The SDK is add-only.** `Api.Version` goes up when something arrives; nothing is renamed or removed, and plugins
   declare a `MinApi`.

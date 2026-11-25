@@ -20,6 +20,19 @@ Put a `catalyzer.json` in a project's root folder. Every key is optional, and co
 }
 ```
 
+## `app` — where an installable app lives (the UPDATE chip)
+```jsonc
+"app": {
+  "exe": "%LOCALAPPDATA%\\Programs\\Nexus\\Nexus.exe",   // the installed exe (environment variables expand)
+  "version": "src\\Nexus.App\\Nexus.App.csproj",           // the file whose <Version> is the repo's version
+  "install": "tools\\install.ps1"                           // the script UPDATE runs hidden with -Log
+}
+```
+Every key is optional; without them Catalyzer assumes the template layout: `%LOCALAPPDATA%\Programs\<folder>\<folder>.exe`,
+`src\<folder>\<folder>.csproj` and `tools\install.ps1`. The card shows **UPDATE a → b** when the repo is newer than the
+exe, **INSTALL** when the exe isn't there, and nothing when they match. The script should follow the install contract
+(principles 07); one without `-Log` still runs, with its output captured to `%LOCALAPPDATA%\Catalyzer\installs\`.
+
 How `actions` run:
 - `run` is relative to the project folder when that file exists. Otherwise Catalyzer starts it as a command: an exe on PATH, a URL, or a document.
 - The project folder is always the working directory.

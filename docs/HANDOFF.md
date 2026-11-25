@@ -4,7 +4,7 @@ The baton between chats, and Claude's working list. Short and current: each chat
 the lists true. History is in git, not here.
 
 ## Last session — 2026-11-25
-- **Did (Catalyzer 1.2.1):**
+- **Did (Catalyzer 1.3.0, principles 5.1.0):**
   - **Git on the card:** a GIT chip per card (PULL ↓n / PUSH ↑n / PUBLISH BRANCH / COMMIT n / DIVERGED / CONFLICT /
     ✓ IN STEP), click does the next step; the git drawer (incoming / outgoing commits, changed files with
     checkboxes and risk flags, message, COMMIT, COMMIT + PUSH); FETCH ALL in the header plus a quiet 15-minute
@@ -14,6 +14,11 @@ the lists true. History is in git, not here.
     `install.ps1` now builds first, then closes, installs on top and restarts, and restarts the old copy if a
     later step fails (`-Log`, `install.cmd`).
   - Notes sync now says "NOTES WAIT FOR n UNPUSHED COMMIT(S)" instead of the vague message.
+  - **1.3.0 / principles 5.1.0: UPDATE on every app's card.** The install contract (build first, close, install on
+    top, restart, `-Log`, exit 0 / 1, old copy back on failure) in 07 and the template `install.ps1`; `<Version>`
+    bumped by every shipped change; 04: with the link off a chat ends with "Build and install: click UPDATE on the
+    <App> card". `HubWindow.Apps`: the chip (UPDATE a → b / INSTALL / INSTALLING / ✓ INSTALLED / INSTALL FAILED),
+    paths from `catalyzer.json` "app" or the template layout; old scripts without `-Log` still run, output captured.
   - **1.2.1: close to the tray** by default (X hides; tray right-click → Exit; one-time balloon hint; Run at
     Windows start goes to the tray; a Windows shutdown really quits). Setting: General → *Close to the tray*.
   - 1.1.0 (yesterday): principles 5.0.0, the notes rework, the cleanup.
