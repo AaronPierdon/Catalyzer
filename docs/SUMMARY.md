@@ -25,6 +25,30 @@ also carries the rulebook every app follows (`principles/`), so the hub and its 
 - **NEW PROJECT:** a name and a line about it → the folder from the principles' templates, the first commit, the
   GitHub repo, the push, then the Claude handoff (project instructions and a kickoff prompt, each with COPY).
 
+### Git on the card
+- A **GIT chip** on every card says where the repo stands against GitHub and what to do next, and clicking it does
+  it: **PULL ↓n**, **PUSH ↑n**, **PUBLISH BRANCH**, **COMMIT n** (opens the git panel), or **✓ IN STEP** (click to
+  check GitHub now). Its tip says when GitHub was last checked. Right-click: pull, push, git panel, check now,
+  Visual Studio, GitHub.
+- **Odd situations block the buttons** and send you to **Visual Studio's Git Changes window** (the solution opens
+  on it; if Visual Studio already has it open, that window comes to the front): a conflict or a merge / rebase in
+  progress, both sides moved (DIVERGED), a detached HEAD, a branch deleted on GitHub, git busy, or a chat running
+  something through the link.
+- **Safe by design:** pull only fast-forwards and never with uncommitted changes; push never forces, checks GitHub
+  first and refuses if GitHub moved; a new branch is published only if GitHub has none by that name.
+- **The git panel** (from the chip): what GitHub has that you don't and the other way round (commit by commit), the
+  changed files with checkboxes (new files and flagged ones start unticked: possible secrets like `.env` or keys,
+  files over 50 MB, `_devSpace` scratch, line-ending-only changes), a suggested message you can edit, **COMMIT**
+  and **COMMIT + PUSH**. It commits exactly the ticked files.
+- **FETCH ALL** in the header checks GitHub for every project and says what needs doing ("2 TO PULL · 1 TO
+  PUSH"); it also happens quietly every 15 minutes. The header counts TO PULL and TO PUSH.
+
+### Updating Catalyzer
+- When the Catalyzer repo holds a newer version than the one running, an **UPDATE** chip lights in the header.
+  One click builds it, closes Catalyzer, installs on top and starts the new one, in about a minute. If the build
+  fails, the running copy stays and the chip says so (click: the log; right-click: try again). Settings, links and
+  notes backups always stay. `tools\install.cmd` does the same by double-click.
+
 ### Notes (Aaron's own)
 - A **NOTES** chip on every card shows how many notes the repo's `docs/NOTES.md` holds; clicking it slides in the
   notes drawer.
@@ -64,12 +88,14 @@ also carries the rulebook every app follows (`principles/`), so the hub and its 
 | Plugin data | `%APPDATA%\Catalyzer\plugin-data\<id>\` |
 | Log | `%LOCALAPPDATA%\Catalyzer\log.txt` |
 | Notes backups | `%LOCALAPPDATA%\Catalyzer\notes-cache\<project>\` |
+| Update log | `%LOCALAPPDATA%\Catalyzer\update.log` |
 | Install | `%LOCALAPPDATA%\Programs\Catalyzer` (Apps & Features entry; `tools\uninstall.ps1`) |
 
 In a repo it only writes `docs/NOTES.md` (from the notes drawer), `.catalyzer/` (the link mailbox, git-ignored) and,
 for NEW PROJECT, the new folder. It never deletes a repo, locally or on GitHub.
 
 ## Works with
-- **GitHub:** clone, push, publish, notes sync, through the PC's git sign-in.
+- **GitHub:** clone, pull, push, publish, notes sync, through the PC's git sign-in.
+- **Visual Studio** (Community is fine): everything git that isn't a safe one-click case.
 - **Nexus:** the live Nexus look and the NEXUS button, through NexusPlugin. Catalyzer runs fine without it.
 - **Claude chats:** through the repo folder: the link mailbox, `docs/NOTES.md` and the principles.

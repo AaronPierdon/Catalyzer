@@ -47,6 +47,9 @@ The app never references a plugin or Nexus. Plugins only see the SDK.
 | `HubWindow` (partial: `.Settings` `.Work` `.Feed` `.Notes` `.GitHub` `.NewProject` `.Welcome` `.DevSpace` `.Dialog`) | `HubWindow*.cs` | the window and everything on it |
 | `Notes` | `Notes.cs` | reading and editing `docs/NOTES.md`, and syncing it (NOTES.md only) |
 | `NotesCache` | `NotesCache.cs` | the notes backups: snapshot each new version, cap the size, purge projects that left |
+| `Repo` | `Repo.cs` | whole-repo git: where it stands (`State`, `Kind`, block reasons), and safe `Pull` / `Push` / `CommitFiles` |
+| `HubWindow.Git` | `HubWindow.Git.cs` | the GIT chip, the git drawer, FETCH ALL, Visual Studio on Git Changes |
+| `HubWindow.Update` | `HubWindow.Update.cs` | the UPDATE chip: repo version vs running version, runs `tools\install.ps1 -Log` hidden |
 | `GitHub` | `GitHub.cs` | GitHub REST (repos, create) and hidden git for clone / push |
 | `PluginHost` | `Plugins.cs` | loads plugins, implements `ICatalyzerHost` |
 | `ThemeService`, `Cz` | `Theme.cs`, `Controls.cs` | theme roles as `Cz*` resources; the drawn controls (Glass, CzButton, Chip, CzMenu…) |
@@ -73,6 +76,26 @@ The app never references a plugin or Nexus. Plugins only see the SDK.
 4. **WIPE + SYNC:** confirm → `PullIfSafe` → backup → `Notes.Wipe` (keeps the intro, empties the notes) → `Sync`.
 5. A `FileSystemWatcher` per `docs\` folder refreshes the chip and drawer when anything changes the file, and
    `NotesCache.Snapshot` saves the new version.
+
+### Git on the card
+1. `Board.GitLoaded` (after every `Projects.LoadGit`) → `RefreshRepo` → `Repo.Read`: `status --porcelain=v1 -b -z`,
+   in-progress markers (`MERGE_HEAD`, `rebase-*`…), `index.lock`, unfinished link requests, `FETCH_HEAD`'s time,
+   incoming / outgoing logs, risky-file flags. `Finish` turns that into one `Kind`, a one-line `Why`, and
+   `CanPull` / `CanPush` / `CanCommit` with the reason when they're off.
+2. `GitBadge` draws the chip; `GitGo` does the one sensible thing for its `Kind`.
+3. `Repo.Pull` re-reads with a fetch and refuses unless `CanPull`, then `merge --ff-only @{u}`. `Repo.Push` re-reads
+   with a fetch, refuses unless `CanPush`, then `push` (or, for a new branch, `ls-remote` first and `push -u` only if
+   GitHub has no branch by that name). `Repo.CommitFiles` does `add -A` and `commit` with `--pathspec-from-file`, so
+   only the ticked files go in.
+4. Every action runs through `RunGit` (one at a time per repo, blocked while notes sync), then re-reads the repo,
+   git and notes state.
+5. A 15-minute timer and FETCH ALL fetch every repo, three at a time.
+
+### Updating Catalyzer
+`CheckUpdate` (whenever the Catalyzer repo is re-read) compares `<Version>` in `src/Catalyzer/Catalyzer.csproj` with
+the running assembly. UPDATE runs `tools\install.ps1 -Log %LOCALAPPDATA%\Catalyzer\update.log` hidden: it builds
+into `_devSpace\publish` first, then closes Catalyzer, copies on top, and starts the new copy (or the old one again
+if a later step failed). If the script exits while this copy still runs, the build failed and the chip says so.
 
 ### LINK
 1. `LinkPlugin.Toggle` → `Link.Activate` prepares `.catalyzer\link\` (`.gitignore`, `README.md`, `run.sh`, `STATUS`),
@@ -106,6 +129,12 @@ Where each store lives is in [SUMMARY → Where its data lives](SUMMARY.md#where
   is left for the project's chat.
 - **Nothing runs from a cloned repo until Aaron says so.** A helper's `auto` works only after a first manual start
   (`trusted.json`).
+- **Git: only the safe one-click cases.** Fast-forward pulls, non-forced pushes, commits of chosen files. Anything
+  that needs judgment (conflicts, merges, rebases, branches, history) goes to Visual Studio's Git window. Aaron uses
+  Visual Studio Community, not VS Code, so that's the hand-off.
+- **Every git action re-reads first.** The chip can be minutes old; `Pull` and `Push` fetch and re-check before they
+  touch anything, so a stale button can't do something unsafe.
+- **Updates build before they close.** A broken build never takes Catalyzer away.
 - **Never delete for the user.** GitHub actions don't delete; `_devSpace` cleanup lists first and recycles.
 - **The SDK is add-only.** `Api.Version` goes up when something arrives; nothing is renamed or removed, and plugins
   declare a `MinApi`.

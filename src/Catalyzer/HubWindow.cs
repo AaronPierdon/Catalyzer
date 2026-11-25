@@ -60,6 +60,7 @@ namespace Catalyzer
             _root.Children.Add(Rim());
             _root.Children.Add(_drawerHost);
             _root.Children.Add(_notesHost);
+            _root.Children.Add(_gitHost);
             _root.Children.Add(_ghHost);
             _root.Children.Add(_feedHost);
             _root.Children.Add(_promptHost);
@@ -77,7 +78,7 @@ namespace Catalyzer
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; }
                 else if (e.Key == Key.F5) { _board.Rescan(); e.Handled = true; }
-                else if (e.Key == Key.Escape) { if (DialogOpen) _dialogEsc?.Invoke(); else if (PromptOpen) ClosePrompt(); else if (GitHubOpen) CloseGitHub(); else if (FeedOpen) CloseFeed(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
+                else if (e.Key == Key.Escape) { if (DialogOpen) _dialogEsc?.Invoke(); else if (PromptOpen) ClosePrompt(); else if (GitHubOpen) CloseGitHub(); else if (FeedOpen) CloseFeed(); else if (GitOpen) CloseGit(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
             };
             StateChanged += (s, e) => { _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
             Activated += (s, e) => { if ((DateTime.Now - _board.LastScan).TotalSeconds > 20 && !_board.Scanning) _board.RefreshGit(); };
@@ -89,6 +90,7 @@ namespace Catalyzer
             InitWork();
             InitFeed();
             InitNotes();
+            InitGit();
             InitGitHub();
             InitDevSpace();
             Loaded += (s, e) => { if (!Prefs.Value.FirstRunDone && !Prefs.Offline) Dispatcher.BeginInvoke(new Action(Welcome), System.Windows.Threading.DispatcherPriority.Background); };
@@ -137,6 +139,7 @@ namespace Catalyzer
             // search + tools
             var tools = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) };
             tools.Children.Add(_workChip);   // "2 HELPERS" while plugins keep something running
+            tools.Children.Add(_updateChip); // "UPDATE 1.1.0 → 1.2.0" when the Catalyzer repo is ahead of this copy
             var sg = new Grid { Width = 280, Height = 36, Margin = new Thickness(0, 0, 10, 0) };
             sg.Children.Add(new Glass { Cut = 7, Brackets = false });
             var sp = new Grid { Margin = new Thickness(12, 0, 10, 0) };
@@ -148,6 +151,7 @@ namespace Catalyzer
             Grid.SetColumn(_search, 1); sp.Children.Add(_search);
             sg.Children.Add(sp);
             tools.Children.Add(sg);
+            tools.Children.Add(new CzIconButton("\uE895", () => FetchAll(quiet: false), "FETCH ALL  //  CHECK GITHUB FOR EVERY PROJECT"));
             tools.Children.Add(new CzIconButton("\uE72C", () => { _board.Rescan(); Say("RESCANNING"); }, "RESCAN  //  F5"));
             CzIconButton plus = null;
             plus = new CzIconButton("\uE710", () => new CzMenu { Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom }.Show(plus, "NEW", new List<CzMenu.Item>
@@ -174,7 +178,7 @@ namespace Catalyzer
         private void Stats()
         {
             var items = _board.Items;
-            int changed = items.Count(p => p.Git.Changed > 0), push = items.Count(p => p.Git.Ahead > 0);
+            int changed = items.Count(p => p.Git.Changed > 0), push = items.Count(p => p.Git.Ahead > 0), pull = items.Count(p => p.Git.Behind > 0);
             int week = items.Sum(p => p.Git.Daily.Skip(Math.Max(0, p.Git.Daily.Length - 7)).Sum());
             _stats.Children.Clear();
             void S(string num, string label, string brush)
@@ -186,6 +190,7 @@ namespace Catalyzer
             }
             S(items.Count.ToString("00"), "PROJECTS", "CzTextBrush");
             S(changed.ToString("00"), "WITH CHANGES", changed > 0 ? "CzWarnBrush" : "CzTextDimBrush");
+            S(pull.ToString("00"), "TO PULL", pull > 0 ? "CzAccentBrush" : "CzTextDimBrush");
             S(push.ToString("00"), "TO PUSH", push > 0 ? "CzSelectBrush" : "CzTextDimBrush");
             S(week.ToString("000"), "COMMITS  //  7 DAYS", "CzAccentBrush");
         }

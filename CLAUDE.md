@@ -63,6 +63,9 @@ bash .catalyzer/link/run.sh -s -f tools/install.ps1           # install: survive
 - Look matters: chamfered glass, glow, decode-in text, nothing pops. Every colour comes from the theme. No literals in UI code.
 - No console windows, ever: git and helper processes run hidden (`CreateNoWindow`).
 - Installing Catalyzer restarts it (and everything its link and helpers were running): say so to Aaron first.
+- **Versions:** `<Version>` in `src/Catalyzer/Catalyzer.csproj` is the only version. Every change that ships bumps
+  it: PATCH for fixes and small touches, MINOR for a new feature, MAJOR only when Aaron says something big changed.
+  Push it, and Aaron's Catalyzer shows UPDATE after he pulls (one click installs on top).
 - Settings: `%APPDATA%\Catalyzer\settings.json`. Use `--snapshot <dir>` to render every theme, and look at the PNGs after UI changes.
 - The Nexus repo's hard rules still apply to anything there:
   - never print the SQL password;

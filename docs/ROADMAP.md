@@ -28,9 +28,6 @@ chunk ships, its objectives leave this file (SUMMARY and ARCHITECTURE describe w
 - **R4 Claude Code button**: a card button that opens Claude Code in that repo (and its recent sessions), as an
   alternative to the chat + link.
   - Size: S
-- **R5 Repo buttons**: pull / push / fetch-all on the card, through hidden git (likely a plugin).
-  - Open: guard rails for pull with local changes.
-  - Size: S
 - **R6 Drag to reorder cards** (today: move to front, and `Order` in settings).
   - Size: S
 
@@ -66,3 +63,6 @@ chunk ships, its objectives leave this file (SUMMARY and ARCHITECTURE describe w
 - Notes as a shared to-do list (Inbox / Next up / Ideas / Bugs / Done, written by chats too) — NOTES is Aaron's
   alone; Claude's list is HANDOFF, agreed ideas are ROADMAP (principles 5.0.0) — 2026-11-24
 - A separate TODO.md — it duplicates HANDOFF + ROADMAP + NOTES — 2026-11-24
+- Conflict resolution, rebase, stash, branch management, force-push or history editing inside Catalyzer — those
+  need judgment; Visual Studio's Git window does them — 2026-11-25
+- VS Code as the hand-off for git — Aaron works in Visual Studio Community — 2026-11-25

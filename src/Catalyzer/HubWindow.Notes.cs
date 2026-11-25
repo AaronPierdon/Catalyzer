@@ -317,6 +317,7 @@ namespace Catalyzer
             if (_notesHost.Children.Count == 0) BuildNotesShell();
             if (_drawerOpen) Drawer(false);
             if (FeedOpen) CloseFeed();
+            if (GitOpen) CloseGit();
             _notesFor = p; _notes = new Notes(p.Folder); _raw = false;
             Decode.Play(_notesTitle, (p.Name + "  //  NOTES").ToUpperInvariant(), 0.05, 0.4);
             NotesRefresh(false);

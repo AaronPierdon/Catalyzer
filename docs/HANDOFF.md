@@ -3,32 +3,35 @@
 The baton between chats, and Claude's working list. Short and current: each chat rewrites *Last session* and keeps
 the lists true. History is in git, not here.
 
-## Last session — 2026-11-24
-- **Did:**
-  - **Principles 5.0.0:** five docs with one owner each: NOTES (Aaron's, timestamped), SUMMARY, ARCHITECTURE,
-    HANDOFF, ROADMAP; `docs/design/` for live contracts only. VISION, GUIDE, STATE, TODO and plan docs are gone.
-    New templates; 03–07, PROMPTS and the CHANGELOG are updated.
-  - **Catalyzer's docs converted:** SUMMARY, ARCHITECTURE (with GUIDE merged in), HANDOFF, ROADMAP;
-    LINK / MANIFEST / PLUGINS moved to `docs/design/`. Aaron's three test notes kept in the new format.
-  - **Catalyzer 1.1.0, notes:** stamped notes (`yyyy-MM-dd HH:mm`) in one `## Notes` section; WIPE + SYNC (confirm →
-    stops if newer notes just arrived from GitHub → backup → fresh slate → sync); Remove in the right-click menu;
-    BACKUPS button; `NotesCache` (every new version, deduped, per-project cap from Settings: OFF / 25 / 100 / 500 MB,
-    default 100; purged when a project leaves the board, kept for hidden projects and offline drives). Older
-    NOTES files still read and edit. NEW PROJECT scaffolds the 5.0.0 docs and the shorter project instructions.
-  - **Cleaned:** the root `.catalyzer-src*.tgz` snapshots, `.scratch/`, `publish/` and `_devSpace/` contents (28 MB).
-- **Verified:** the app and the Link / Helpers plugins build clean (Linux build with Windows targeting; NexusPlugin
-  not built, it needs the Nexus repo). The notes logic passed a throwaway test: stamps, newest-first, remove, legacy
-  files, wipe, cache dedupe / cap / newest kept / OFF / purge. **Not yet run on Windows or looked at.**
-- **Ready to test:** after the fresh install, open NOTES on the Catalyzer card: add a note (stamp shows), right-click
-  → Remove, BACKUPS, then WIPE + SYNC on the three test notes. Settings → General → Notes backups.
+## Last session — 2026-11-25
+- **Did (Catalyzer 1.2.0):**
+  - **Git on the card:** a GIT chip per card (PULL ↓n / PUSH ↑n / PUBLISH BRANCH / COMMIT n / DIVERGED / CONFLICT /
+    ✓ IN STEP), click does the next step; the git drawer (incoming / outgoing commits, changed files with
+    checkboxes and risk flags, message, COMMIT, COMMIT + PUSH); FETCH ALL in the header plus a quiet 15-minute
+    fetch; a TO PULL stat. Odd states block the buttons and open Visual Studio on Git Changes (`View.GitWindow`),
+    or bring an already-open Visual Studio to the front.
+  - **One-click update:** the UPDATE chip when the repo's `<Version>` is newer than the running copy;
+    `install.ps1` now builds first, then closes, installs on top and restarts, and restarts the old copy if a
+    later step fails (`-Log`, `install.cmd`).
+  - Notes sync now says "NOTES WAIT FOR n UNPUSHED COMMIT(S)" instead of the vague message.
+  - 1.1.0 (yesterday): principles 5.0.0, the notes rework, the cleanup.
+- **Verified:** the app and Link / Helpers plugins build clean. `Repo` passed 31 scenarios against real repos with a
+  bare remote: in step, behind clean / dirty / untracked-only, ahead, push while GitHub moved, diverged,
+  mid-merge conflict, detached, index.lock, link busy, new branch publish, same-name branch on GitHub (refused),
+  deleted-on-GitHub with and without unique commits, no remote, commit of exactly the ticked files with something
+  else staged, `.env` and line-ending flags. **Not yet run on Windows or looked at.**
+- **Ready to test:** double-click `tools\install.cmd` once (1.1.0 doesn't have the UPDATE chip yet). Then the GIT
+  chip on Catalyzer's own card should say PUSH ↑3: click it. Open the git panel on a repo with changes; try
+  Visual Studio from a card's right-click menu.
 
 ## Next
-1. **Fresh install:** Apps & Features (or `tools\uninstall.ps1`), then `tools\install.ps1` from the repo (the card's
-   Install button goes away with the uninstall). Then the welcome, and LINK on the cards that need it.
-2. Snapshot the notes drawer and Settings (`tools/snap.ps1`) and look at them: the wrapped button row is new.
-3. ROADMAP → *Now* (chunk A): the principles badge, then MAWP's docs to 5.0.0 (the agreed plan: 19 docs → the five
-   + `design/CONTRACT.md` + `design/RUNBOOK.md`).
-4. Helpers: add real `helpers` to the projects that have them (ask Aaron which).
+1. Aaron installs 1.2.0 (`tools\install.cmd`), pushes Catalyzer from its GIT chip, then the NOTES SYNC chip
+   clears.
+2. Snapshot and look at: the git drawer, the GIT chips, the header (FETCH ALL, UPDATE chip), the notes drawer.
+3. Check that `/Command View.GitWindow` opens Git Changes in his Visual Studio (if it complains, the command name
+   changes in `OpenVsGit`).
+4. ROADMAP → *Now* (chunk A): the principles badge, then MAWP's docs to 5.0.0.
+5. Helpers: add real `helpers` to the projects that have them (ask Aaron which).
 
 ## Bugs
 

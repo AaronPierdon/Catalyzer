@@ -329,7 +329,7 @@ namespace Catalyzer
                 st = Status(fetch: false);
             }
             if (st.Ahead == 0) return (true, Join(committed ? "NOTES COMMITTED" : null, pulled, "UP TO DATE"));
-            if (!st.OutgoingNotesOnly) return (true, Join(committed ? "NOTES COMMITTED HERE" : null, pulled, "NOT PUSHED: THIS REPO HAS OTHER UNPUSHED WORK, THE NOTES GO WITH ITS NEXT PUSH"));
+            if (!st.OutgoingNotesOnly) return (true, Join(committed ? "NOTES COMMITTED HERE" : null, pulled, "NOTES WAIT FOR " + st.Ahead + " UNPUSHED COMMIT(S)  //  PUSH ON THE CARD'S GIT CHIP AND THEY GO TOO"));
             var p = Git("push --quiet", 60000);
             if (p.code != 0) return (false, "PUSH FAILED  //  " + First(p.output));
             return (true, Join(auto ? "NOTES AUTO-SYNCED" : "NOTES SYNCED", pulled, "PUSHED " + DateTime.Now.ToString("HH:mm")));
