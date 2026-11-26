@@ -2,6 +2,20 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 6.0.0 — 2026-11-26
+**Commit and push every piece of work, every time** (05 rule 11, new hard rule). When a change works, the chat
+commits it and pushes to GitHub through the link straight away, without asking. It doesn't wait for the end of the
+chat. With the link off it asks for LINK. If it still can't commit, its reply opens with `NOT COMMITTED / NOT
+PUSHED: <why>` and HANDOFF → *Next* starts with it. This replaces 04's "push before a chat ends". 06's
+checklist, the project instructions (PROMPTS) and the template CLAUDE.md say the same.
+
+**What an app must do:**
+1. Commit and push anything left uncommitted now.
+2. Add the template CLAUDE.md's line under *New chat* ("Every piece of work ends committed and pushed…") to the app's
+   CLAUDE.md.
+3. Re-paste PROMPTS → *Project instructions* into the app's Claude project if it has the old wording.
+4. Bump `.catalyzer-principles` to `6.0.0`.
+
 ## 5.1.0 — 2026-11-25
 **The install contract** (07): every C# / .NET app's `tools\install.ps1` builds first (a failed build leaves the
 running app alone), then closes the app, installs on top, restarts it, takes `-Log`, exits 0 / 1, and brings the old

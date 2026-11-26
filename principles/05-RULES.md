@@ -25,3 +25,13 @@ These are never broken. An app's CLAUDE.md can add rules but never loosen these.
 10. **Old `_tools` queue helpers run outside our apps** (the Catalyzer link replaces them; see 04). Start it from Windows' own Explorer or Run, never inside a Nexus Explorer
     terminal: an install closes Explorer and kills the helper mid-install. Through the link, install Catalyzer
     itself with `run.sh -s` (survive).
+11. **Commit and push every piece of work, every time, in every project.** When a change works (it builds, the docs
+    are updated), the chat commits it and pushes it to GitHub straight away. Don't ask first, and don't save it up
+    for the end of the chat or the next chat. One piece of work is one commit (or a few small ones); a chat that
+    does three things pushes three times.
+    - Git runs on Windows through the link (Aaron's credentials, his lock files), so the local repo and GitHub
+      both get it. Never run git from the Linux VM.
+    - Link OFF: ask Aaron to click LINK and wait for it (or use the old helper's `git` action). Then commit and push.
+    - Still can't: the reply's **first line** says `NOT COMMITTED / NOT PUSHED: <why>`, and HANDOFF → *Next* starts
+      with it, so the next chat does it first.
+    - Rules 3 and 8 still hold: no secrets, no force-push. NOTES.md is committed only on Aaron's word.

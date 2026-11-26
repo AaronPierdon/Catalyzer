@@ -12,6 +12,9 @@ New chat:
 3. Skim `docs/SUMMARY.md` and `docs/ARCHITECTURE.md` for the part you'll touch.
 4. `docs/NOTES.md` is Aaron's. Read it only when he asks you to pull his notes in; never edit it.
 
+Every piece of work ends committed and pushed to GitHub through the link, straight away, without asking
+(principles 05 rule 11).
+
 ## What it is
 <one paragraph. The full feature list is in docs/SUMMARY.md>
 

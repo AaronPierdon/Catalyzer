@@ -18,7 +18,7 @@ namespace Catalyzer
     public static class Cz
     {
         public static CatalyzerTheme T => ThemeService.I.Current;
-        public static bool Still => Prefs.Value.ReduceMotion || SystemParameters.ClientAreaAnimation == false;
+        public static bool Still => Prefs.Value.ReduceMotion || SystemParameters.ClientAreaAnimation == false || Visuals.Still;
 
         public static TextBlock Text(string s, double size = 13, string brush = "CzTextBrush", string font = "CzFontUi", FontWeight? w = null)
         {
@@ -62,7 +62,7 @@ namespace Catalyzer
         /// <summary>Glow on its own layer (no glow on light themes).</summary>
         public static void Glow(UIElement e, Color c, double radius = 12, double opacity = 0.7)
         {
-            if (T.Light || T.Glow <= 0) { e.Effect = null; return; }
+            if (T.Light || T.Glow <= 0 || !Visuals.Glow) { e.Effect = null; return; }
             e.Effect = new DropShadowEffect { Color = c, BlurRadius = radius * T.Glow, ShadowDepth = 0, Opacity = opacity, RenderingBias = RenderingBias.Performance };
         }
 
@@ -97,19 +97,37 @@ namespace Catalyzer
             return utc.Value.ToLocalTime().ToString("MMM d yyyy").ToUpperInvariant();
         }
 
-        /// <summary>A frame clock that only ticks while something wants it (and the app isn't in reduce-motion).</summary>
-        public static void Tick(FrameworkElement owner, Func<double, bool> step, int fps = 30)
+        /// <summary>
+        /// A frame clock that only runs while something wants it: while the owner is loaded and visible, until
+        /// <paramref name="step"/> returns false, and at the rate the visuals level gives its pace (0 = stopped; the
+        /// owner is redrawn once so it holds a still frame). Returns wake(): call it to run a finished clock again.
+        /// </summary>
+        public static Action Tick(FrameworkElement owner, Func<double, bool> step, int fps = 30, Pace pace = Pace.Feedback)
         {
-            var t = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(1000.0 / fps) };
-            var last = DateTime.UtcNow;
+            var t = new DispatcherTimer(DispatcherPriority.Render);
+            var last = DateTime.UtcNow; bool loaded = owner.IsLoaded, done = false;
+            void Sync()
+            {
+                int f = Visuals.Fps(pace, fps);
+                if (loaded && !done && f > 0 && owner.IsVisible)
+                {
+                    var iv = TimeSpan.FromMilliseconds(1000.0 / f);
+                    if (t.Interval != iv) t.Interval = iv;
+                    if (!t.IsEnabled) { last = DateTime.UtcNow; t.Start(); }
+                }
+                else t.Stop();
+            }
             t.Tick += (s, e) =>
             {
                 var now = DateTime.UtcNow; double dt = Math.Min(0.1, (now - last).TotalSeconds); last = now;
-                if (!owner.IsVisible) return;
-                if (!step(dt)) t.Stop();
+                if (!step(dt)) { done = true; t.Stop(); }
             };
-            owner.Loaded += (s, e) => { last = DateTime.UtcNow; t.Start(); };
-            owner.Unloaded += (s, e) => t.Stop();
+            Action changed = () => { Sync(); owner.InvalidateVisual(); };
+            owner.Loaded += (s, e) => { if (loaded) return; loaded = true; Visuals.Changed += changed; Sync(); };
+            owner.Unloaded += (s, e) => { loaded = false; Visuals.Changed -= changed; t.Stop(); };
+            owner.IsVisibleChanged += (s, e) => Sync();
+            if (loaded) { Visuals.Changed += changed; Sync(); }
+            return () => { done = false; Sync(); };
         }
     }
 
@@ -128,7 +146,7 @@ namespace Catalyzer
         {
             IsHitTestVisible = false;
             ThemeService.I.Changed += () => { _lattice = null; InvalidateVisual(); };
-            Cz.Tick(this, dt => { if (Cz.Still) return true; _t += dt; InvalidateVisual(); return true; }, 30);
+            Cz.Tick(this, dt => { _t += dt; InvalidateVisual(); return true; }, 30, Pace.Ambient);
         }
 
         private void Build(Size s)
@@ -163,8 +181,9 @@ namespace Catalyzer
             if (_lattice == null || _for != s || _theme != T.Id) Build(s);
             var floor = new LinearGradientBrush(T.Bg1.Mix(T.Bg0, 0.35), T.Bg0, 90); floor.Freeze();
             dc.DrawRectangle(floor, null, new Rect(s));
+            bool hex = Visuals.HexFloor;
             // the lattice, faint everywhere ...
-            dc.PushOpacity(T.Light ? 0.05 : 0.045); dc.DrawDrawing(_lattice); dc.Pop();
+            if (hex) { dc.PushOpacity(T.Light ? 0.05 : 0.045); dc.DrawDrawing(_lattice); dc.Pop(); }
             // ... and lit where the blooms are
             double w = s.Width, h = s.Height;
             Point A = new Point(w * (0.28 + 0.16 * Math.Sin(_t * 0.07)), h * (0.35 + 0.18 * Math.Cos(_t * 0.05)));
@@ -177,12 +196,14 @@ namespace Catalyzer
                 dc.DrawRectangle(bloom, null, new Rect(s));
                 var mask = new RadialGradientBrush { Center = p, GradientOrigin = p, RadiusX = rad * 0.7, RadiusY = rad * 0.55, MappingMode = BrushMappingMode.Absolute };
                 mask.GradientStops.Add(new GradientStop(Colors.Black, 0)); mask.GradientStops.Add(new GradientStop(Colors.Transparent, 1)); mask.Freeze();
-                dc.PushOpacityMask(mask); dc.PushOpacity(T.Light ? 0.12 : 0.2); dc.DrawDrawing(_lattice); dc.Pop(); dc.Pop();
+                if (hex) { dc.PushOpacityMask(mask); dc.PushOpacity(T.Light ? 0.12 : 0.2); dc.DrawDrawing(_lattice); dc.Pop(); dc.Pop(); }
             }
             // sparks drifting up
+            int sparks = Visuals.Sparks;
             if (!T.Light)
                 foreach (var (x0, y0, v, sz, ph) in _sparks)
                 {
+                    if (sparks-- <= 0) break;
                     double y = (y0 - _t * v) % 1; if (y < 0) y += 1;
                     double x = x0 + 0.012 * Math.Sin(_t * 0.6 + ph);
                     double tw = 0.35 + 0.35 * Math.Sin(_t * 1.7 + ph);
@@ -337,12 +358,13 @@ namespace Catalyzer
     /// <summary>A status light (breathes when <see cref="Pulse"/>).</summary>
     public sealed class Led : FrameworkElement
     {
-        public Color Color; public bool Pulse; private double _t;
-        public Led(Color c, double size = 8) { Color = c; Width = Height = size; IsHitTestVisible = false; Cz.Tick(this, dt => { if (!Pulse || Cz.Still) return true; _t += dt; InvalidateVisual(); return true; }, 20); }
+        public Color Color; private double _t; private bool _pulse; private readonly Action _wake;
+        public bool Pulse { get => _pulse; set { if (_pulse == value) return; _pulse = value; if (value) _wake?.Invoke(); } }
+        public Led(Color c, double size = 8) { Color = c; Width = Height = size; IsHitTestVisible = false; _wake = Cz.Tick(this, dt => { if (!_pulse) return false; _t += dt; InvalidateVisual(); return true; }, 20, Pace.Pulse); }
         protected override void OnRender(DrawingContext dc)
         {
             double r = ActualWidth / 2; var c = new Point(r, r);
-            double a = Pulse && !Cz.Still ? 0.55 + 0.45 * Math.Sin(_t * 3) : 1;
+            double a = Pulse && Visuals.Fps(Pace.Pulse, 20) > 0 ? 0.55 + 0.45 * Math.Sin(_t * 3) : 1;
             if (!Cz.T.Light) { var halo = new RadialGradientBrush(Color.A(0.45 * a), Color.A(0)); halo.Freeze(); dc.DrawEllipse(halo, null, c, r * 2.4, r * 2.4); }
             dc.DrawEllipse(Color.A(a).Brush(), null, c, r * 0.72, r * 0.72);
             dc.DrawEllipse(Colors.White.A(0.55 * a).Brush(), null, new Point(r - r * 0.18, r - r * 0.2), r * 0.22, r * 0.22);
@@ -379,12 +401,17 @@ namespace Catalyzer
     {
         public int[] Days = Array.Empty<int>();
         public Color? Tint;
-        private double _grow = 0;
-        public ActivityBars() { IsHitTestVisible = false; ThemeService.I.Changed += InvalidateVisual; }
+        private double _grow = 1;
+        private readonly Action _wake;
+        public ActivityBars()
+        {
+            IsHitTestVisible = false; ThemeService.I.Changed += InvalidateVisual;
+            _wake = Cz.Tick(this, dt => { if (Cz.Still) _grow = 1; _grow = Math.Min(1, _grow + dt * 2.2); InvalidateVisual(); return _grow < 1; }, 30);
+        }
         public void Set(int[] days)
         {
             Days = days ?? Array.Empty<int>(); _grow = Cz.Still ? 1 : 0;
-            if (_grow < 1) Cz.Tick(this, dt => { _grow = Math.Min(1, _grow + dt * 2.2); InvalidateVisual(); return _grow < 1; }, 30);
+            if (_grow < 1) _wake();
             InvalidateVisual();
         }
         protected override void OnRender(DrawingContext dc)

@@ -130,12 +130,13 @@ namespace Catalyzer
             MouseLeave += (s, e) => Hot(false);
             MouseLeftButtonDown += (s, e) => { if (e.ClickCount == 2 && !Cz.IsInteractive(e.OriginalSource as DependencyObject, this)) { e.Handled = true; Launch.Shell("explorer.exe", "\"" + p.Folder + "\""); } };
             MouseRightButtonUp += (s, e) => { e.Handled = true; Menu?.Invoke(this); };
-            Cz.Tick(this, dt =>
+            // hover light: a clock that runs only while the light is moving (cards never tick at rest)
+            _litWake = Cz.Tick(this, dt =>
             {
-                if (Math.Abs(_lit - _litTo) < 0.01) return true;
-                _lit += (_litTo - _lit) * Math.Min(1, dt * 12);
+                if (Cz.Still || Math.Abs(_lit - _litTo) < 0.01) _lit = _litTo;
+                else _lit += (_litTo - _lit) * Math.Min(1, dt * 12);
                 _glass.Lit = _lit; _lift.Y = -3 * _lit;
-                return true;
+                return _lit != _litTo;
             }, 60);
 
             // arrive: rise + fade, staggered; the name decodes in
@@ -238,7 +239,8 @@ namespace Catalyzer
             _activity.Text = "21 DAYS\n" + sum + (sum == 1 ? " COMMIT" : " COMMITS");
         }
 
-        private void Hot(bool on) { _litTo = on ? 1 : 0; if (on) Cz.Glow(_glass, Tint, 26, 0.45); else _glass.Effect = null; }
+        private Action _litWake;
+        private void Hot(bool on) { _litTo = on ? 1 : 0; _litWake?.Invoke(); if (on) Cz.Glow(_glass, Tint, 26, 0.45); else _glass.Effect = null; }
 
         private void Look()
         {

@@ -24,6 +24,12 @@ namespace Catalyzer
         public double Height { get; set; } = 920;
         public bool Maximized { get; set; }
         public bool ReduceMotion { get; set; }
+        /// <summary>Visuals on this PC: "full", "balanced", "eco" or "static" (see <see cref="VisualLevel"/>).</summary>
+        public string VisualsLocal { get; set; } = "full";
+        /// <summary>Visuals inside a Remote Desktop session (software rendering: the CPU pays for every frame).</summary>
+        public string VisualsRemote { get; set; } = "eco";
+        /// <summary>The hex lattice on the window floor.</summary>
+        public bool HexFloor { get; set; } = true;
         /// <summary>Closing while helpers (plugins' background work) run: "ask", "stop" (stop all and exit) or "tray".</summary>
         public string CloseWithWork { get; set; } = "ask";
         /// <summary>X hides Catalyzer to the tray (it keeps checking GitHub); Exit is in the tray menu. Off: X quits

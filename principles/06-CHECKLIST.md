@@ -10,7 +10,8 @@
 - [ ] Nothing removed came back.
 - [ ] HANDOFF updated. SUMMARY updated if a feature changed; ARCHITECTURE if a part, library, class, flow or
       decision did; ROADMAP if a chunk started or shipped or an idea was dropped. NOTES untouched.
-- [ ] Pushed.
+- [ ] Committed and pushed to GitHub, straight away (05 rule 11), or the reply opens with `NOT COMMITTED / NOT
+      PUSHED: <why>`.
 
 ## Every app (conformance)
 **Look**

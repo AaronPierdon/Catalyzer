@@ -82,7 +82,7 @@ also carries the rulebook every app follows (`principles/`), so the hub and its 
   Catalyzer to quit. A one-time hint says so. Settings → General → *Close to the tray* turns it off (then X quits, or
   asks when work is running: ask / stop all / keep in tray). Run at Windows start goes straight to the tray.
   Windows shutting down always really quits.
-- Live themes (4 built in, plus Nexus through its plugin), reduce motion, a single instance.
+- Live themes (4 built in, plus Nexus through its plugin), reduce motion, visuals levels (FULL / BALANCED / ECO / STATIC, a separate one over Remote Desktop; ambience pauses when nobody can see it), a single instance.
 - **Plugins:** switch on or off, import a .dll or .zip (Settings → Plugins).
 
 ## A typical session

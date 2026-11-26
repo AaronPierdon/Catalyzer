@@ -77,7 +77,8 @@ Every chat works with **two repos**: its app, and Catalyzer (the hub, with these
   - `pc/<YYYY-MM-DD>-<topic>` for the PC.
 - Merged or abandoned branches are renamed `retire--<name>`.
 - Commit messages say *what changed and why*, in plain words. They end with the attribution lines the session asks for.
-- **Push before a chat ends.** Each app has its own GitHub repo under `AaronPierdon`.
+- **Commit and push after every piece of work** (05 rule 11): locally and to GitHub, straight away, without
+  asking. Each app has its own GitHub repo under `AaronPierdon`.
 
 ## Handover files (every app repo)
 - `docs/HANDOFF.md` — the baton and Claude's working list: *Last session* (did, verified, ready to test),

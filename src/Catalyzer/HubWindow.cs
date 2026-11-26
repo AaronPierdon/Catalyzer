@@ -68,6 +68,8 @@ namespace Catalyzer
             Content = _root;
 
             ThemeService.I.Changed += OnTheme;
+            Visuals.Hook();
+            Visuals.Changed += () => { if (!Visuals.Glow) NoGlow(_root); };
             OnTheme();
             Log.Shown += line => Dispatcher.BeginInvoke(new Action(() => Say(line)));
             _board.Changed += BuildCards;
@@ -80,7 +82,7 @@ namespace Catalyzer
                 else if (e.Key == Key.F5) { _board.Rescan(); e.Handled = true; }
                 else if (e.Key == Key.Escape) { if (DialogOpen) _dialogEsc?.Invoke(); else if (PromptOpen) ClosePrompt(); else if (GitHubOpen) CloseGitHub(); else if (FeedOpen) CloseFeed(); else if (GitOpen) CloseGit(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
             };
-            StateChanged += (s, e) => { _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
+            StateChanged += (s, e) => { Visuals.SetMinimized(WindowState == WindowState.Minimized); _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
             Activated += (s, e) => { if ((DateTime.Now - _board.LastScan).TotalSeconds > 20 && !_board.Scanning) _board.RefreshGit(); };
             Closing += (s, e) => Prefs.Save(p => { p.Maximized = WindowState == WindowState.Maximized; if (WindowState == WindowState.Normal) { p.Width = ActualWidth; p.Height = ActualHeight; } });
             if (pv.Maximized) Loaded += (s, e) => WindowState = WindowState.Maximized;
@@ -102,10 +104,18 @@ namespace Catalyzer
         {
             var b = Cz.T.Backdrop;
             FrameworkElement back = null;
-            try { back = b?.Invoke(); } catch (Exception ex) { Log.Write("theme backdrop: " + ex.Message); }
+            if (Visuals.ThemeBackdrop) try { back = b?.Invoke(); } catch (Exception ex) { Log.Write("theme backdrop: " + ex.Message); }
             _backHost.Content = back ?? (_backHost.Content as Backdrop ?? new Backdrop());
             Cz.Glow(_title, Cz.T.Accent, 16, 0.9);
             FooterRight();
+        }
+
+        /// <summary>Glow just went off: drop the glow layers already on screen (the next look pass won't add them back).</summary>
+        private static void NoGlow(DependencyObject d)
+        {
+            if (d is UIElement u && u.Effect is System.Windows.Media.Effects.DropShadowEffect) u.Effect = null;
+            int n = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(d) : 0;
+            for (int i = 0; i < n; i++) NoGlow(VisualTreeHelper.GetChild(d, i));
         }
 
         // ================================================================== header
@@ -330,7 +340,7 @@ namespace Catalyzer
     public sealed class Reactor : FrameworkElement
     {
         private double _t;
-        public Reactor() { IsHitTestVisible = false; Cz.Tick(this, dt => { if (Cz.Still) return true; _t += dt; InvalidateVisual(); return true; }, 30); ThemeService.I.Changed += InvalidateVisual; }
+        public Reactor() { IsHitTestVisible = false; Cz.Tick(this, dt => { _t += dt; InvalidateVisual(); return true; }, 30, Pace.Ambient); ThemeService.I.Changed += InvalidateVisual; }
         protected override void OnRender(DrawingContext dc)
         {
             var T = Cz.T; double w = ActualWidth, h = ActualHeight, cx = w / 2, cy = h / 2, R = Math.Min(w, h) / 2 - 2;

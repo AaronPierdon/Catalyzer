@@ -64,6 +64,9 @@ namespace Catalyzer
             Changed?.Invoke();
         }
 
+        /// <summary>Re-run the look pass without changing theme (the visuals level moved: glow, backdrop).</summary>
+        public void Refresh() { if (Current != null) Changed?.Invoke(); }
+
         /// <summary>A plugin's theme may leave things out: Catalyzer's defaults fill the gaps.</summary>
         private static void Fill(CatalyzerTheme t)
         {

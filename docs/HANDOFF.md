@@ -3,7 +3,24 @@
 The baton between chats, and Claude's working list. Short and current: each chat rewrites *Last session* and keeps
 the lists true. History is in git, not here.
 
-## Last session — 2026-11-25
+## Last session — 2026-11-26
+- **Did (Catalyzer 1.4.0): visuals levels, for the RDP file server (6600H ran hot).**
+  - `Visuals.cs`: FULL / BALANCED / ECO / STATIC, one level **on this PC** (default FULL) and one **over Remote
+    Desktop** (default ECO; RDP renders WPF in software, so every frame and DropShadow is CPU). Settings → *Visuals*,
+    plus *Hex floor* and *Reduce motion* (moved there). Prefs: `visualsLocal`, `visualsRemote`, `hexFloor`.
+  - Every frame clock (`Cz.Tick`) is paced by the level (`Pace.Ambient / Pulse / Feedback`), stops when its owner is
+    hidden or done, and wakes on demand: cards no longer tick at 60 fps at rest, LEDs only tick while pulsing.
+  - Ambience (backdrop, reactor, LED pulses) stops while minimized, in the tray, locked or the RDP session is
+    disconnected (`SystemEvents.SessionSwitch`).
+  - Below FULL the theme's own backdrop (the Nexus plugin's, unthrottled) is swapped for Catalyzer's; ECO and STATIC
+    drop glow (live: existing glow layers are cleared).
+- **Principles 6.0.0:** new hard rule 05 #11, commit and push every piece of work straight away, in every project
+  (04, 06, PROMPTS, template CLAUDE.md, this CLAUDE.md follow). Every other app needs the Update prompt.
+- **Verified:** builds clean (Linux, `EnableWindowsTargeting`). **Not yet run on Windows or snapshotted.**
+- **Ready to test:** on the server, Settings → Visuals shows *OVER REMOTE DESKTOP ◂ NOW*; compare CPU in Task
+  Manager at FULL vs ECO.
+
+## Previous session — 2026-11-25
 - **Did (Catalyzer 1.3.1, principles 5.1.0):**
   - **1.3.1:** the git chip works with a remote that isn't called `origin` (Nexus's is `Nexus`): it uses the
     branch's tracked remote, else `origin`, else the only one; fetch is `--all`. It said NOT ON GITHUB before.
@@ -34,6 +51,8 @@ the lists true. History is in git, not here.
   Visual Studio from a card's right-click menu.
 
 ## Next
+0. **NOT COMMITTED / NOT PUSHED (link was off):** commit and push 1.4.0 visuals, then principles 6.0.0, as two
+   commits.
 1. Aaron installs 1.2.0 (`tools\install.cmd`), pushes Catalyzer from its GIT chip, then the NOTES SYNC chip
    clears.
 2. Snapshot and look at: the git drawer, the GIT chips, the header (FETCH ALL, UPDATE chip), the notes drawer.

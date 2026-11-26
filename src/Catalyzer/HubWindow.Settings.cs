@@ -80,7 +80,6 @@ namespace Catalyzer
             // ---------------- GENERAL
             b.Children.Add(Section("General"));
             b.Children.Add(new CzToggle(Launch.AtStartup, on => Launch.AtStartup = on, "Run at Windows start") { Margin = new Thickness(0, 4, 0, 10) });
-            b.Children.Add(new CzToggle(Prefs.Value.ReduceMotion, on => { Prefs.Save(p => p.ReduceMotion = on); }, "Reduce motion") { Margin = new Thickness(0, 0, 0, 4) });
             b.Children.Add(Cz.Mono("GITHUB", 10, "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 12, 0, 6)));
             var gh = new WrapPanel();
             gh.Children.Add(Cz.Mono(Prefs.Value.GitHubLogin != null ? "SIGNED IN AS " + Prefs.Value.GitHubLogin.ToUpperInvariant() + "   " : "NOT SIGNED IN   ", 11, Prefs.Value.GitHubLogin != null ? "CzOkBrush" : "CzTextFaintBrush").Also(t => { t.VerticalAlignment = VerticalAlignment.Center; t.Margin = new Thickness(0, 0, 8, 8); }));
@@ -124,6 +123,32 @@ namespace Catalyzer
             }
             b.Children.Add(close);
             b.Children.Add(Note("Helpers always stop if Catalyzer itself stops - nothing is left running behind your back."));
+
+            // ---------------- VISUALS
+            bool remote = Visuals.Remote;
+            b.Children.Add(Section("Visuals", (remote ? "REMOTE DESKTOP" : "THIS PC") + "  //  " + Visuals.Level.ToString().ToUpperInvariant()));
+            foreach (var (isRemote, label) in new[] { (false, "ON THIS PC"), (true, "OVER REMOTE DESKTOP") })
+            {
+                var now = isRemote == remote;
+                b.Children.Add(Cz.Mono(label + (now ? "   ◂ NOW" : ""), 10, now ? "CzAccentBrush" : "CzTextDimBrush").Also(t => t.Margin = new Thickness(0, 10, 0, 8)));
+                var cur = Visuals.Parse(isRemote ? Prefs.Value.VisualsRemote : Prefs.Value.VisualsLocal, isRemote ? VisualLevel.Eco : VisualLevel.Full);
+                var row = new WrapPanel();
+                foreach (var (lv, tip) in new[]
+                {
+                    (VisualLevel.Full, "EVERYTHING MOVES  //  GLOW  //  THE THEME'S OWN BACKDROP"),
+                    (VisualLevel.Balanced, "AMBIENT MOTION AT 12 FPS  //  FEWER SPARKS  //  CATALYZER'S BACKDROP"),
+                    (VisualLevel.Eco, "NOTHING MOVES ON ITS OWN  //  NO GLOW  //  STATUS LIGHTS STILL BREATHE, SLOWLY"),
+                    (VisualLevel.Static, "NOTHING MOVES AT ALL  //  NO GLOW"),
+                })
+                {
+                    var v = lv; var r = isRemote;
+                    row.Children.Add(new CzButton(v.ToString().ToUpperInvariant(), () => { Visuals.Set(r, v); BuildSettings(); }, null, primary: cur == v, tip: tip) { Margin = new Thickness(0, 0, 8, 8) });
+                }
+                b.Children.Add(row);
+            }
+            b.Children.Add(new CzToggle(Prefs.Value.HexFloor, on => { Prefs.Save(p => p.HexFloor = on); Visuals.Poke(); }, "Hex floor") { Margin = new Thickness(0, 8, 0, 4), ToolTip = "THE HEX LATTICE ON CATALYZER'S WINDOW FLOOR (A THEME'S OWN BACKDROP, AT FULL, BRINGS ITS OWN)" });
+            b.Children.Add(new CzToggle(Prefs.Value.ReduceMotion, on => { Prefs.Save(p => p.ReduceMotion = on); Visuals.Poke(); }, "Reduce motion") { Margin = new Thickness(0, 4, 0, 4) });
+            b.Children.Add(Note("Remote Desktop draws Catalyzer on the CPU, so every animated frame and glow costs heat there. FULL: everything. BALANCED: ambient motion slowed, fewer sparks. ECO: nothing moves on its own and no glow; hovers, drawers and status lights still respond. STATIC: nothing moves. Whatever the level, ambient motion stops while Catalyzer is minimized, in the tray, locked or its remote session is disconnected."));
 
             // ---------------- FOLDERS
             b.Children.Add(Section("Project folders", Prefs.Value.Roots.Count + Prefs.Value.Extra.Count + " FOLDERS"));

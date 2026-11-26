@@ -63,7 +63,7 @@ Keep this short. The detail lives in the repo (CLAUDE.md, the docs) and in these
 > Every chat:
 > Read CLAUDE.md first and follow it: it's this project's instructions. Check the Catalyzer link before running
 > anything. End every piece of work by updating HANDOFF (and SUMMARY / ARCHITECTURE / ROADMAP if they changed),
-> committing and pushing. Never edit docs/NOTES.md: it's mine.
+> then committing and pushing to GitHub straight away, without asking (rule 11). Never edit docs/NOTES.md: it's mine.
 
 ## Kickoff (Catalyzer hands this out for a new app)
 Catalyzer fills in `<App>`, `<what it's for>` and the paths, and shows the setup steps from 04 *Setting up a project
