@@ -121,6 +121,28 @@ namespace Catalyzer
             Save();
         }
 
+        /// <summary>Change a note's text. It keeps its stamp (when it was first written) and its check box; its wrapped
+        /// lines fold into one. The file is read again first, and the note found by its text if lines moved since.</summary>
+        public bool Edit(Item it, string text)
+        {
+            text = (text ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
+            if (text == "") return false;
+            Load();
+            var now = Items().FirstOrDefault(x => x.Line == it.Line && x.Text == it.Text && x.Stamp == it.Stamp)
+                   ?? Items().FirstOrDefault(x => x.Text == it.Text && x.Stamp == it.Stamp);
+            if (now == null) return false;   // it changed or went (another PC, a pull): the caller refreshes
+            var body = _lines[now.Line].Substring(2);
+            string box = body.StartsWith("[ ]") || body.StartsWith("[x]") || body.StartsWith("[X]") ? body.Substring(0, 3) + " " : "";
+            string done = "";
+            if (now.Done) { int k = text.LastIndexOf(" — done ", StringComparison.Ordinal); if (k < 0) { int d = now.Text.LastIndexOf(" — done ", StringComparison.Ordinal); if (d >= 0) done = now.Text.Substring(d); } }
+            int n = 1;
+            for (int j = now.Line + 1; j < _lines.Count && (_lines[j].StartsWith("  ") || _lines[j].StartsWith("\t")) && !_lines[j].TrimStart().StartsWith("- "); j++) n++;
+            _lines.RemoveRange(now.Line, n);
+            _lines.Insert(now.Line, "- " + box + (now.Stamp != null ? now.Stamp + " — " : "") + text + done);
+            Save();
+            return true;
+        }
+
         /// <summary>Take one note (and its indented lines) out of the file.</summary>
         public void Remove(Item it)
         {

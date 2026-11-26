@@ -93,7 +93,7 @@ namespace Catalyzer
 
         private BadgeState GitBadge(Project p)
         {
-            if (_repoBusy.Contains(p.Folder)) return new BadgeState { Text = "GIT  ·  WORKING", Tone = Tone.Select, Pulse = true, Tip = "GIT IS RUNNING FOR THIS REPO" };
+            if (_repoBusy.Contains(p.Folder)) return new BadgeState { Text = "GIT  ·  WORKING", Tone = Tone.Select, Pulse = true, Card = CardMood.Working, Tip = "GIT IS RUNNING FOR THIS REPO" };
             if (!_repoOf.TryGetValue(p.Folder, out var s) || s.Kind == Repo.Kind.NotRepo) return null;
             string checkedAt = "\nCHECKED GITHUB " + Since(s.Fetched);
             BadgeState B(string text, Tone tone, bool pulse, string click) => new BadgeState { Text = text, Tone = tone, Pulse = pulse, Tip = s.Why + checkedAt + "\nCLICK: " + click + "  //  RIGHT-CLICK: MORE" };
@@ -105,8 +105,8 @@ namespace Catalyzer
                 Repo.Kind.Push => B("PUSH  ↑" + s.Ahead, Tone.Select, true, "PUSH"),
                 Repo.Kind.NoUpstream when s.CanPush => B("PUBLISH BRANCH", Tone.Select, true, "PUSH THE BRANCH TO GITHUB"),
                 Repo.Kind.Changes => B("COMMIT  " + s.Changes.Count, Tone.Warn, false, "OPEN THE GIT PANEL"),
-                Repo.Kind.Diverged => B("DIVERGED  ↕", Tone.Danger, true, "VISUAL STUDIO'S GIT WINDOW"),
-                Repo.Kind.Conflict => B("CONFLICT", Tone.Danger, true, "VISUAL STUDIO'S GIT WINDOW"),
+                Repo.Kind.Diverged => B("DIVERGED  ↕", Tone.Danger, true, "VISUAL STUDIO'S GIT WINDOW").Also(b => b.Card = CardMood.Warn),
+                Repo.Kind.Conflict => B("CONFLICT", Tone.Danger, true, "VISUAL STUDIO'S GIT WINDOW").Also(b => b.Card = CardMood.Danger),
                 Repo.Kind.Detached => B("DETACHED", Tone.Warn, false, "VISUAL STUDIO'S GIT WINDOW"),
                 Repo.Kind.Gone => B("BRANCH GONE", Tone.Warn, false, "VISUAL STUDIO'S GIT WINDOW"),
                 Repo.Kind.Busy => B("GIT BUSY", Tone.Warn, true, "CHECK AGAIN"),

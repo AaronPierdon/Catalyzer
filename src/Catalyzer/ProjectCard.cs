@@ -34,13 +34,19 @@ namespace Catalyzer
         private bool _hadGitHub;
         public event Action<ProjectCard> Menu;
 
-        private Color Tint => P.Accent ?? Cz.T.Accent;
+        /// <summary>The card's colours: yours (right-click → Card colours), else catalyzer.json's accent, else the theme's.</summary>
+        private Color Tint => Prefs.Hex(Prefs.ColorsFor(P.Folder)?.Primary) ?? P.Accent ?? Cz.T.Accent;
+        private Color? Tint2 => Prefs.Hex(Prefs.ColorsFor(P.Folder)?.Secondary);
+        private readonly Rectangle _ruleLine = new Rectangle { Height = 1 }, _ruleDia;
+        // the mood (from the badges): energy 0..1 rises while something works on the repo; the mood colour fades in
+        private CardMood _mood; private double _energy, _moodAmt, _phase; private Action _moodWake;
+        public CardMood Mood => _mood;
 
         public ProjectCard(Project p, int index)
         {
             P = p; Width = W; Height = H; Margin = new Thickness(0, 0, 18, 18);
             RenderTransform = _lift; Background = Brushes.Transparent;
-            _glass.Tint = p.Accent;
+            _glass.Tint = Tint; _glass.Tint2 = Tint2;
             Children.Add(_glass);
             var body = new Grid { Margin = new Thickness(18, 14, 18, 12) };
             body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(48) });   // badge + name
@@ -86,11 +92,9 @@ namespace Catalyzer
 
             // ---- a rule with a diamond
             var rule = new Grid { VerticalAlignment = VerticalAlignment.Center };
-            var line = new Rectangle { Height = 1 };
-            line.Fill = new LinearGradientBrush(Tint.A(0.5), Tint.A(0), 0);
-            rule.Children.Add(line);
-            var dia = new Rectangle { Width = 5, Height = 5, HorizontalAlignment = HorizontalAlignment.Left, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform(45), Fill = Tint.Brush() };
-            rule.Children.Add(dia);
+            rule.Children.Add(_ruleLine);
+            _ruleDia = new Rectangle { Width = 5, Height = 5, HorizontalAlignment = HorizontalAlignment.Left, RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new RotateTransform(45) };
+            rule.Children.Add(_ruleDia);
             _badges.HorizontalAlignment = HorizontalAlignment.Right; _badges.VerticalAlignment = VerticalAlignment.Center;
             rule.Children.Add(_badges);
             Grid.SetRow(rule, 2); body.Children.Add(rule);
@@ -109,7 +113,7 @@ namespace Catalyzer
             // ---- three weeks of activity
             var act = new Grid { Margin = new Thickness(2, 4, 0, 0) };
             act.ColumnDefinitions.Add(new ColumnDefinition()); act.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            _bars.Tint = p.Accent;
+            _bars.Tint = Tint;
             act.Children.Add(_bars);
             _activity = Cz.Mono("", 9.5, "CzTextFaintBrush"); _activity.VerticalAlignment = VerticalAlignment.Bottom; _activity.Margin = new Thickness(12, 0, 0, 0); _activity.TextAlignment = TextAlignment.Right; _activity.Width = 92;
             Grid.SetColumn(_activity, 1); act.Children.Add(_activity);
@@ -139,6 +143,22 @@ namespace Catalyzer
                 return _lit != _litTo;
             }, 60);
 
+            // the mood: MAWP's busy energy (rise fast, settle slowly), the colours shift with it; danger breathes
+            _moodWake = Cz.Tick(this, dt =>
+            {
+                double eTo = _mood == CardMood.Working ? 1 : 0, mTo = MoodTarget(_mood);
+                _energy = Damp(_energy, eTo, eTo > _energy ? 2.2 : 1.2, dt);
+                _moodAmt = Damp(_moodAmt, mTo, 3, dt);
+                _phase += dt * (0.35 + 1.4 * _energy);
+                bool breathe = _mood >= CardMood.Warn;
+                double amt = breathe ? _moodAmt * (0.82 + 0.18 * Math.Sin(_phase * 2.4)) : _moodAmt;
+                Paint(amt);
+                if (breathe) { _phase += dt * 0.6; return true; }
+                bool settled = Math.Abs(_energy - eTo) < 0.004 && Math.Abs(_moodAmt - mTo) < 0.004;
+                if (settled) { _energy = eTo; _moodAmt = mTo; Paint(_moodAmt); }
+                return !settled || _energy > 0;
+            }, 30, Pace.Pulse);
+
             // arrive: rise + fade, staggered; the name decodes in
             if (!Cz.Still)
             {
@@ -149,6 +169,34 @@ namespace Catalyzer
                 Decode.Play(_name, Cz.T.HeadCaps ? p.Name.ToUpperInvariant() : p.Name, d.TotalSeconds + 0.1, 0.55);
             }
             else _name.Text = Cz.T.HeadCaps ? p.Name.ToUpperInvariant() : p.Name;
+        }
+
+        private static double MoodTarget(CardMood m) => m switch { CardMood.Linked => 0.62, CardMood.Working => 0.5, CardMood.Warn => 0.75, CardMood.Danger => 0.8, _ => 0 };
+        private static double Damp(double v, double to, double rate, double dt) => to + (v - to) * Math.Exp(-rate * dt);
+        private Color MoodColor => _mood switch { CardMood.Warn => Cz.T.Warn, CardMood.Danger => Cz.T.Danger, _ => Cz.T.Select };
+
+        private void Paint(double amt)
+        {
+            _glass.Energy = _energy; _glass.Phase = _phase;
+            _glass.Mood = amt > 0.001 ? MoodColor : (Color?)null; _glass.MoodAmount = amt;
+            _glass.InvalidateVisual();
+        }
+
+        /// <summary>The strongest mood across the card's badges (linked, working, a serious problem).</summary>
+        public void SetMood(CardMood m)
+        {
+            if (m == _mood) return;
+            _mood = m;
+            if (Visuals.Fps(Pace.Pulse, 30) == 0 || Prefs.Offline) { _energy = m == CardMood.Working ? 1 : 0; _moodAmt = MoodTarget(m); Paint(_moodAmt); }   // nothing moves: the colour still says it
+            else _moodWake?.Invoke();
+        }
+
+        /// <summary>Your colours changed (or the theme did): re-tint everything on the card.</summary>
+        public void Recolor()
+        {
+            _glass.Tint = Tint; _glass.Tint2 = Tint2; _glass.InvalidateVisual();
+            _bars.Tint = Tint; _bars.InvalidateVisual();
+            Look();
         }
 
         public void BuildButtons()
@@ -208,6 +256,7 @@ namespace Catalyzer
                 }
                 chip.Set(st.Text ?? "", st.Tone, st.Pulse, st.Tip);
             }
+            SetMood(want.Count == 0 ? CardMood.None : want.Max(w => w.st.Card));
         }
 
         public void Git()
@@ -244,8 +293,10 @@ namespace Catalyzer
 
         private void Look()
         {
-            var T = Cz.T; var c = Tint;
-            _badge.Fill = new LinearGradientBrush(c.A(0.38), c.Mix(T.Select, 0.4).A(0.16), 45);
+            var T = Cz.T; var c = Tint; var c2 = Tint2 ?? c.Mix(T.Select, 0.4);
+            _ruleLine.Fill = new LinearGradientBrush(c.A(0.5), c2.A(0), 0);
+            _ruleDia.Fill = c.Brush();
+            _badge.Fill = new LinearGradientBrush(c.A(0.38), c2.A(0.16), 45);
             _badgeRing.Stroke = c.A(0.9).Brush(); _badgeRing.StrokeThickness = 1.3;
             Cz.Glow(_badgeRing, c, 12, 0.8);
             if (P.Git.Loaded) Git();

@@ -15,8 +15,9 @@ namespace Catalyzer.Sdk
         ///     header chip, the close prompt and the tray), feeds (<see cref="IFeed"/>: a live log drawer),
         ///     <see cref="ICatalyzerHost.IsSnapshot"/>.
         /// 3 = plugin options in Settings (<see cref="PluginSetting"/>).
+        /// 4 = a badge can set its whole card's mood (<see cref="BadgeState.Card"/>, <see cref="CardMood"/>).
         /// </summary>
-        public const int Version = 3;
+        public const int Version = 4;
     }
 
     /// <summary>
@@ -147,7 +148,14 @@ namespace Catalyzer.Sdk
         /// <summary>The light breathes (something is busy).</summary>
         public bool Pulse { get; set; }
         public string Tip { get; set; }
+        /// <summary>API 4. What this state asks of the whole card (the strongest mood across a card's badges wins).
+        /// Keep it for what matters: ordinary states stay on the chip.</summary>
+        public CardMood Card { get; set; }
     }
+
+    /// <summary>API 4. A card's mood, weakest first. Linked: the card takes the select colour. Working: full energy (the
+    /// card's two colours shift through it). Warn / Danger: a serious problem, the whole card goes amber / red.</summary>
+    public enum CardMood { None, Linked, Working, Warn, Danger }
 
     /// <summary>API 2. A line in a Catalyzer menu.</summary>
     public sealed class MenuEntry

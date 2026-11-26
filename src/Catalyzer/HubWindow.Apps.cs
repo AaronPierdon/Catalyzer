@@ -90,8 +90,8 @@ namespace Catalyzer
         {
             if (_installs.TryGetValue(p.Folder, out var r))
             {
-                if (r.Code == null) return new BadgeState { Text = "INSTALLING", Tone = Tone.Select, Pulse = true, Tip = "BUILDING AND INSTALLING " + p.Name.ToUpperInvariant() + " (TOOLS\\INSTALL.PS1, HIDDEN)\nRIGHT-CLICK: THE LOG" };
-                if (r.Code != 0) return new BadgeState { Text = "INSTALL FAILED", Tone = Tone.Danger, Tip = "TOOLS\\INSTALL.PS1 STOPPED (EXIT " + r.Code + ")  //  CLICK: THE LOG  //  RIGHT-CLICK: TRY AGAIN" };
+                if (r.Code == null) return new BadgeState { Text = "INSTALLING", Tone = Tone.Select, Pulse = true, Card = CardMood.Working, Tip = "BUILDING AND INSTALLING " + p.Name.ToUpperInvariant() + " (TOOLS\\INSTALL.PS1, HIDDEN)\nRIGHT-CLICK: THE LOG" };
+                if (r.Code != 0) return new BadgeState { Text = "INSTALL FAILED", Tone = Tone.Danger, Card = CardMood.Danger, Tip = "TOOLS\\INSTALL.PS1 STOPPED (EXIT " + r.Code + ")  //  CLICK: THE LOG  //  RIGHT-CLICK: TRY AGAIN" };
                 if (DateTime.Now - r.Ended < TimeSpan.FromMinutes(2)) { var done = ReadApp(p); return new BadgeState { Text = "✓  INSTALLED" + (done?.Installed != null ? "  " + V3(done.Installed) : ""), Tone = Tone.Ok, Tip = "INSTALLED  //  " + (done?.Exe ?? "").ToUpperInvariant() }; }
             }
             var a = ReadApp(p);

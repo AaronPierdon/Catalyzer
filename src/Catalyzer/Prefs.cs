@@ -30,6 +30,8 @@ namespace Catalyzer
         public string VisualsRemote { get; set; } = "eco";
         /// <summary>The hex lattice on the window floor.</summary>
         public bool HexFloor { get; set; } = true;
+        /// <summary>Your colours per card (folder, lower case → "#RRGGBB" primary / secondary; null = the default).</summary>
+        public Dictionary<string, CardColorPref> CardColors { get; set; } = new Dictionary<string, CardColorPref>();
         /// <summary>Closing while helpers (plugins' background work) run: "ask", "stop" (stop all and exit) or "tray".</summary>
         public string CloseWithWork { get; set; } = "ask";
         /// <summary>X hides Catalyzer to the tray (it keeps checking GitHub); Exit is in the tray menu. Off: X quits
@@ -47,8 +49,22 @@ namespace Catalyzer
         public string GitHubLogin { get; set; }
     }
 
+    public sealed class CardColorPref
+    {
+        public string Primary { get; set; }
+        public string Secondary { get; set; }
+    }
+
     public static class Prefs
     {
+        /// <summary>A card's colours you set (or null), and a colour from "#RRGGBB" (or null).</summary>
+        public static CardColorPref ColorsFor(string folder) => folder != null && Value.CardColors.TryGetValue(folder.ToLowerInvariant(), out var c) ? c : null;
+        public static System.Windows.Media.Color? Hex(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return null;
+            try { return (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(s.Trim()); } catch { return null; }
+        }
+
         public static readonly string Folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Catalyzer");
         private static readonly string FilePath = Path.Combine(Folder, "settings.json");
         private static readonly JsonSerializerOptions Opt = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };

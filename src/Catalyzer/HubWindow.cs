@@ -80,7 +80,7 @@ namespace Catalyzer
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { _search.Focus(); _search.SelectAll(); e.Handled = true; }
                 else if (e.Key == Key.F5) { _board.Rescan(); e.Handled = true; }
-                else if (e.Key == Key.Escape) { if (DialogOpen) _dialogEsc?.Invoke(); else if (PromptOpen) ClosePrompt(); else if (GitHubOpen) CloseGitHub(); else if (FeedOpen) CloseFeed(); else if (GitOpen) CloseGit(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
+                else if (e.Key == Key.Escape) { if (_noteEditCancel != null) _noteEditCancel(); else if (DialogOpen) _dialogEsc?.Invoke(); else if (PromptOpen) ClosePrompt(); else if (GitHubOpen) CloseGitHub(); else if (FeedOpen) CloseFeed(); else if (GitOpen) CloseGit(); else if (NotesOpen) CloseNotes(); else if (_drawerOpen) Drawer(false); else if (_search.Text != "") _search.Text = ""; e.Handled = true; }
             };
             StateChanged += (s, e) => { Visuals.SetMinimized(WindowState == WindowState.Minimized); _maxBtn?.InvalidateVisual(); _root.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0); };
             Activated += (s, e) => { if ((DateTime.Now - _board.LastScan).TotalSeconds > 20 && !_board.Scanning) _board.RefreshGit(); };
@@ -257,6 +257,7 @@ namespace Catalyzer
                 new CzMenu.Item { Text = "Open folder", Glyph = "\uE8B7", Click = () => Launch.Shell("explorer.exe", "\"" + p.Folder + "\"") },
                 new CzMenu.Item { Text = "Copy path", Glyph = "\uE8C8", Click = () => { try { Clipboard.SetText(p.Folder); Say("COPIED  " + p.Folder.ToUpperInvariant()); } catch { } } },
                 new CzMenu.Item { Text = p.HasManifest ? "Edit catalyzer.json" : "Create catalyzer.json", Glyph = "\uE70F", Hint = p.HasManifest ? null : "name, colour, buttons", Click = () => EditManifest(p) },
+                new CzMenu.Item { Text = "Card colours", Glyph = "\uE790", Hint = "primary + secondary", Click = () => CardColors(c) },
                 new CzMenu.Item { Text = "Refresh git", Glyph = "\uE72C", Click = async () => { await Projects.LoadGit(p); c.Git(); Stats(); } },
                 new CzMenu.Item { Separator = true },
                 new CzMenu.Item { Text = "Move to the front", Glyph = "\uE74A", Click = () => { Prefs.Save(x => { x.Order.RemoveAll(o => string.Equals(o, p.Folder, StringComparison.OrdinalIgnoreCase)); x.Order.Insert(0, p.Folder); }); _board.Rescan(); } },

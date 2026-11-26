@@ -3,7 +3,23 @@
 The baton between chats, and Claude's working list. Short and current: each chat rewrites *Last session* and keeps
 the lists true. History is in git, not here.
 
-## Last session — 2026-11-26
+## Last session — 2026-11-26 (2)
+- **Did (Catalyzer 1.5.0, API 4, Link 1.1.0): Aaron's notes of 08:24 and 08:26.**
+  - **Edit a note** in place (double-click, or right-click → Edit): keeps its stamp and check box, finds it by text if
+    the file moved, backs up first; Esc cancels. Synced notes too (auto-sync pushes the edit).
+  - **Card mood** (`BadgeState.Card`, API 4): LINKED → select tint; link RUNNING / git WORKING / INSTALLING / SYNCING
+    → full energy (MAWP's busy damp: rise 2.2, settle 1.2; the two colours shift as a travelling wave, the brackets
+    reach, a sheen sweeps); CONFLICT / INSTALL FAILED → red, DIVERGED → amber, breathing. Paced as status (`Pace.Pulse`:
+    slow in ECO, still colour in STATIC).
+  - **Card colours:** right-click → Card colours: primary + secondary from every theme's colours or a #hex, live
+    preview (rest / working). `Prefs.CardColors`, not the repo.
+  - Why MAWP TV is purple and MAWP Android blue: each repo's `catalyzer.json` sets `accent` (`#B26BFF`, `#3AA8FF`).
+- **Verified:** builds clean; snapshots looked at (linked cards tint). Not tried by hand: editing a note, the colours
+  dialog, a working card's motion.
+- **Ready to test:** link a repo and run something (card should come alive); double-click a note; right-click a card →
+  Card colours.
+
+## Earlier — 2026-11-26
 - **Did (Catalyzer 1.4.0): visuals levels, for the RDP file server (6600H ran hot).**
   - `Visuals.cs`: FULL / BALANCED / ECO / STATIC, one level **on this PC** (default FULL) and one **over Remote
     Desktop** (default ECO; RDP renders WPF in software, so every frame and DropShadow is CPU). Settings → *Visuals*,

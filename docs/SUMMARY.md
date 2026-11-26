@@ -15,7 +15,13 @@ also carries the rulebook every app follows (`principles/`), so the hub and its 
 - Each card shows the branch, CLEAN / n CHANGED / n TO PUSH / TO PULL, the last commit and 21 days of activity, plus
   buttons: FOLDER, GITHUB, CODE, VS, TERMINAL, NEXUS, and the project's own (from its `catalyzer.json`). Extras fold
   into a ⋯ menu.
-- Search (Ctrl+F), rescan (F5), hide, move to front, and a right-click menu (copy path, edit catalyzer.json, refresh).
+- Search (Ctrl+F), rescan (F5), hide, move to front, and a right-click menu (copy path, edit catalyzer.json, card
+  colours, refresh).
+- **Card colours:** a primary and a secondary per card (right-click → Card colours; kept in Catalyzer's settings, not
+  the repo). Default primary: `catalyzer.json`'s `accent`, else the theme's.
+- **The card's mood:** linked → the card takes the select colour; the link, git, an install or a notes sync working
+  → full energy, its two colours shift through each other (MAWP's busy look); a serious problem (a conflict, a
+  diverged branch, a failed install) → the whole card goes red / amber. Everything else stays on the chips and text.
 
 ### Starting and managing projects
 - **First-run welcome:** pick the projects folder; GitHub works through the PC's existing git sign-in (nothing
@@ -60,7 +66,8 @@ also carries the rulebook every app follows (`principles/`), so the hub and its 
 - A **NOTES** chip on every card shows how many notes the repo's `docs/NOTES.md` holds; clicking it slides in the
   notes drawer.
 - Type and press Enter: the note lands at the top, stamped with the date and time. RAW edits the whole file; EDITOR
-  opens it in the editor; right-click a note to copy or remove it.
+  opens it in the editor; double-click a note (or right-click → Edit)
+  to change it, synced or not (it keeps its stamp; auto-sync pushes the edit); right-click to copy or remove it.
 - **SYNC** commits NOTES.md alone, brings in notes written elsewhere (phone, another PC) and pushes. It happens by
   itself a minute after the last edit (Settings can turn that off), and a SYNC ↑/↓ chip shows when the card is out
   of step.

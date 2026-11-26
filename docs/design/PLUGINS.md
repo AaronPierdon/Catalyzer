@@ -65,6 +65,11 @@ linked projects when Catalyzer starts*.
   `BadgeState`: `Text` (short, capitals), `Tone` (`Faint`, `Dim`, `Accent`, `Select`, `Ok`, `Warn` or `Danger`; a
   theme role, never a colour), `Pulse` (busy) and `Tip`. `Click` (optional) makes the chip a one-click toggle, with `Menu` on right-click. `Menu` returns `MenuEntry` lines (`Text`, `Glyph`, `Hint`,
   `Run`, `Separator`, `Danger`); Catalyzer draws them as its own glass menu.
+- **Card mood (API 4).** `BadgeState.Card` (`CardMood`: `None`, `Linked`, `Working`, `Warn`, `Danger`) is what the
+  state asks of the whole card; the strongest across a card's badges wins. `Linked`: the card takes the select
+  colour. `Working`: full energy, the card's two colours shift through each other. `Warn` / `Danger`: a serious
+  problem only (a conflict, a failed install): the whole card goes amber / red and breathes. Ordinary states (changes,
+  pushes, notes) leave it `None` and stay on the chip.
 - **Background work.** `IBackgroundWork` has:
   - `Name`: plural, capitals, e.g. `"HELPERS"`;
   - `Running`: a count;

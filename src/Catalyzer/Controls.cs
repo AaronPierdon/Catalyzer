@@ -219,50 +219,92 @@ namespace Catalyzer
     /// <summary>
     /// Floating glass: chamfered (cut top-left + bottom-right), a gradient fill, scan lines, a top sheen, the rim and
     /// brackets on the two square corners. Lit 0..1 = hover / selected (brighter rim, glow).
+    /// Cards also give it a second colour (<see cref="Tint2"/>: the rim and wash run from one to the other), an
+    /// <see cref="Energy"/> 0..1 (working: the two colours shift through each other, the brackets reach, a sheen sweeps),
+    /// and a <see cref="Mood"/> colour the whole card takes by <see cref="MoodAmount"/> (linked, a serious problem).
     /// </summary>
     public sealed class Glass : FrameworkElement
     {
         private double _lit; public double Lit { get => _lit; set { _lit = value; InvalidateVisual(); } }
-        public Color? Tint;
+        public Color? Tint, Tint2, Mood;
+        public double Energy, Phase, MoodAmount;
         public double Cut = -1;
         public bool Brackets = true;
         /// <summary>A near-opaque base under the glass (drawers, popups over busy content).</summary>
         public bool Solid;
         public Glass() { IsHitTestVisible = false; ThemeService.I.Changed += InvalidateVisual; }
 
+        /// <summary>The card's colour at k (0 = top-left .. 1 = bottom-right): resting, a gentle slope from Tint to
+        /// Tint2; working, a wave of the two travelling across; then the mood laid over.</summary>
+        private Color At(double k, Color a, Color b)
+        {
+            double rest = 0.55 * k;
+            double wave = 0.5 + 0.5 * Math.Sin(k * 2.6 - Phase * 3.2);
+            var c = a.Mix(b, rest + (wave - rest) * Energy);
+            return Mood is Color m && MoodAmount > 0 ? c.Mix(m, MoodAmount) : c;
+        }
+
+        private Brush Across(double w, double h, Color a, Color b, double alpha)
+        {
+            var g = new LinearGradientBrush { MappingMode = BrushMappingMode.Absolute, StartPoint = new Point(0, 0), EndPoint = new Point(w, h) };
+            for (int i = 0; i <= 4; i++) { double k = i / 4.0; g.GradientStops.Add(new GradientStop(At(k, a, b).A(alpha), k)); }
+            g.Freeze(); return g;
+        }
+
         protected override void OnRender(DrawingContext dc)
         {
             var T = Cz.T; double w = ActualWidth, h = ActualHeight; if (w < 4 || h < 4) return;
             double cut = Cut >= 0 ? Cut : T.Cut;
-            var tint = Tint ?? T.Accent;
+            double e = Math.Clamp(Energy, 0, 1), mood = Mood != null ? Math.Clamp(MoodAmount, 0, 1) : 0;
+            // no second colour set: working shifts towards the theme's select colour
+            var tint = Tint ?? T.Accent; var tint2 = Tint2 ?? (e > 0 ? T.Select : tint);
+            bool two = Tint2 != null || mood > 0;
+            var mid = At(0.5, tint, tint2);
             var shape = Cz.Chamfer(w, h, cut);
             if (Solid) dc.DrawGeometry(T.Bg0.Mix(T.Bg1, 0.35).A(0.95).Brush(), null, shape);
-            var fill = new LinearGradientBrush(T.Panel.Mix(tint.A(T.Panel.A / 255.0), 0.06 + 0.06 * _lit), T.Panel.Mix(T.Bg0.A(T.Panel.A / 255.0), 0.45), 90); fill.Freeze();
+            var fill = new LinearGradientBrush(T.Panel.Mix(mid.A(T.Panel.A / 255.0), 0.06 + 0.06 * _lit), T.Panel.Mix(T.Bg0.A(T.Panel.A / 255.0), 0.45), 90); fill.Freeze();
             dc.DrawGeometry(fill, null, shape);
             dc.PushClip(shape);
+            // the two colours washed across (stronger when working, or when the card has a mood)
+            if (two || e > 0) dc.DrawRectangle(Across(w, h, tint, tint2, 0.035 + 0.02 * _lit + 0.09 * e + 0.2 * mood), null, new Rect(0, 0, w, h));
             if (T.Scan > 0 && !T.Light)
             {
-                var lines = new DrawingBrush(new GeometryDrawing(tint.A(0.05 * T.Scan + 0.02 * _lit).Brush(), null, new RectangleGeometry(new Rect(0, 0, 4, 1))))
+                var lines = new DrawingBrush(new GeometryDrawing(mid.A(0.05 * T.Scan + 0.02 * _lit + 0.03 * e).Brush(), null, new RectangleGeometry(new Rect(0, 0, 4, 1))))
                 { TileMode = TileMode.Tile, Viewport = new Rect(0, 0, 4, 3), ViewportUnits = BrushMappingMode.Absolute }; lines.Freeze();
                 dc.DrawRectangle(lines, null, new Rect(0, 0, w, h));
             }
             var sheen = new LinearGradientBrush(Colors.White.A(T.Light ? 0.25 : 0.05 + 0.03 * _lit), Colors.Transparent, 90); sheen.Freeze();
             dc.DrawRectangle(sheen, null, new Rect(0, 0, w, Math.Min(h, 46)));
             // a soft light where the energy sits (top-left), stronger when lit
+            var c0 = At(0, tint, tint2);
             var spot = new RadialGradientBrush { Center = new Point(0.1, 0), GradientOrigin = new Point(0.1, 0), RadiusX = 0.8, RadiusY = 1.1 };
-            spot.GradientStops.Add(new GradientStop(tint.A(0.07 + 0.08 * _lit), 0)); spot.GradientStops.Add(new GradientStop(tint.A(0), 1)); spot.Freeze();
+            spot.GradientStops.Add(new GradientStop(c0.A(0.07 + 0.08 * _lit + 0.06 * e), 0)); spot.GradientStops.Add(new GradientStop(c0.A(0), 1)); spot.Freeze();
             dc.DrawRectangle(spot, null, new Rect(0, 0, w, h));
+            // working: a band of light sweeps across
+            if (e > 0.01 && !T.Light)
+            {
+                double x = ((Phase * 0.32) % 1.5 - 0.25) * w, bw = w * 0.22;
+                var band = new LinearGradientBrush { MappingMode = BrushMappingMode.Absolute, StartPoint = new Point(x - bw, 0), EndPoint = new Point(x + bw, h * 0.35) };
+                band.GradientStops.Add(new GradientStop(Colors.Transparent, 0)); band.GradientStops.Add(new GradientStop(mid.Mix(Colors.White, 0.4).A(0.07 * e), 0.5)); band.GradientStops.Add(new GradientStop(Colors.Transparent, 1)); band.Freeze();
+                dc.DrawRectangle(band, null, new Rect(0, 0, w, h));
+            }
             dc.Pop();
-            var rim = new Pen(T.PanelEdge.Mix(tint, 0.25 + 0.5 * _lit).A(Math.Min(1, T.PanelEdge.A / 255.0 + 0.45 * _lit)).Brush(), 1); rim.Freeze();
+            var edge = T.PanelEdge.A / 255.0;
+            var rimBrush = two || e > 0
+                ? Across(w, h, tint, tint2, Math.Min(1, edge + 0.05 + 0.45 * _lit + 0.35 * e + 0.4 * mood))
+                : T.PanelEdge.Mix(tint, 0.25 + 0.5 * _lit).A(Math.Min(1, edge + 0.45 * _lit)).Brush();
+            var rim = new Pen(rimBrush, 1 + 0.4 * Math.Max(e, mood)); rim.Freeze();
             dc.DrawGeometry(null, rim, shape);
             if (Brackets)
             {
-                var bp = new Pen(tint.A(0.55 + 0.45 * _lit).Brush(), 2) { StartLineCap = PenLineCap.Square, EndLineCap = PenLineCap.Square }; bp.Freeze();
-                double L = 12 + 6 * _lit;
+                var bb = two || e > 0 ? Across(w, h, tint, tint2, Math.Min(1, 0.55 + 0.45 * _lit + 0.3 * e + 0.3 * mood)) : tint.A(0.55 + 0.45 * _lit).Brush();
+                var bp = new Pen(bb, 2) { StartLineCap = PenLineCap.Square, EndLineCap = PenLineCap.Square }; bp.Freeze();
+                double L = 12 + 6 * _lit + 10 * e * (0.75 + 0.25 * Math.Sin(Phase * 4));
                 dc.DrawLine(bp, new Point(w - L, 1), new Point(w - 1, 1)); dc.DrawLine(bp, new Point(w - 1, 1), new Point(w - 1, L));
                 dc.DrawLine(bp, new Point(1, h - L), new Point(1, h - 1)); dc.DrawLine(bp, new Point(1, h - 1), new Point(L, h - 1));
                 // the cut corners get a small tick
-                var tp = new Pen(tint.A(0.35 + 0.4 * _lit).Brush(), 1.4); tp.Freeze();
+                var tb = two || e > 0 ? Across(w, h, tint, tint2, 0.35 + 0.4 * _lit + 0.3 * e) : tint.A(0.35 + 0.4 * _lit).Brush();
+                var tp = new Pen(tb, 1.4); tp.Freeze();
                 double c2 = Math.Min(cut, Math.Min(w, h) / 3);
                 dc.DrawLine(tp, new Point(2, c2 + 3), new Point(c2 + 3, 2));
                 dc.DrawLine(tp, new Point(w - c2 - 3, h - 2), new Point(w - 2, h - c2 - 3));

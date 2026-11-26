@@ -24,10 +24,10 @@ namespace Catalyzer.Link
     {
         public string Id => "link";
         public string Name => "Link";
-        public string Version => "1.0.0";
+        public string Version => "1.1.0";
         public string Author => "Aaron Pierdon";
         public string Description => "LINK on a card gives that repo a hidden Windows terminal for Claude: commands run in the repo, no windows, every one shown in the feed.";
-        public int MinApi => 3;
+        public int MinApi => 4;   // the card mood (BadgeState.Card)
 
         internal ICatalyzerHost Host;
         internal Job Job;
@@ -157,8 +157,8 @@ namespace Catalyzer.Link
             if (!on) return new BadgeState { Text = "LINK", Tone = Tone.Dim, Tip = "CLICK: A HIDDEN WINDOWS TERMINAL FOR CLAUDE IN THIS REPO\nRIGHT-CLICK: FEED · MAILBOX" };
             int busy = l?.Busy ?? 0;
             return busy > 0
-                ? new BadgeState { Text = "LINKED  ·  RUNNING", Tone = Tone.Select, Pulse = true, Tip = l.Now + "\nCLICK: UNLINK  //  RIGHT-CLICK: SHOW THE FEED" }
-                : new BadgeState { Text = "LINKED", Tone = Tone.Select, Tip = "CLAUDE CAN RUN COMMANDS HERE (HIDDEN)\nCLICK: UNLINK  //  RIGHT-CLICK: SHOW THE FEED" };
+                ? new BadgeState { Text = "LINKED  ·  RUNNING", Tone = Tone.Select, Pulse = true, Card = CardMood.Working, Tip = l.Now + "\nCLICK: UNLINK  //  RIGHT-CLICK: SHOW THE FEED" }
+                : new BadgeState { Text = "LINKED", Tone = Tone.Select, Card = CardMood.Linked, Tip = "CLAUDE CAN RUN COMMANDS HERE (HIDDEN)\nCLICK: UNLINK  //  RIGHT-CLICK: SHOW THE FEED" };
         }
 
         private IEnumerable<MenuEntry> MenuFor(Project p)

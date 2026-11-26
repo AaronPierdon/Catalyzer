@@ -99,7 +99,7 @@ namespace Catalyzer
 
         private BadgeState SyncBadge(Project p)
         {
-            if (_syncBusy.Contains(p.Folder)) return new BadgeState { Text = "SYNCING", Tone = Tone.Select, Pulse = true, Tip = "NOTES.MD  //  COMMIT, PULL, PUSH" };
+            if (_syncBusy.Contains(p.Folder)) return new BadgeState { Text = "SYNCING", Tone = Tone.Select, Pulse = true, Card = CardMood.Working, Tip = "NOTES.MD  //  COMMIT, PULL, PUSH" };
             if (!_syncOf.TryGetValue(p.Folder, out var st)) return null;
             return st.Kind switch
             {
@@ -473,6 +473,8 @@ namespace Catalyzer
             if (it.Done) text.TextDecorations = null;
             col.Children.Add(text);
             Grid.SetColumn(col, 1); row.Children.Add(col);
+            text.MouseLeftButtonDown += (s, e) => { if (e.ClickCount == 2) { e.Handled = true; EditNote(it, col, text); } };
+            text.ToolTip = "DOUBLE-CLICK TO EDIT";
 
             row.MouseEnter += (s, e) => wash.BeginAnimation(OpacityProperty, new DoubleAnimation(0.08, TimeSpan.FromMilliseconds(Cz.Still ? 0 : 120)));
             row.MouseLeave += (s, e) => wash.BeginAnimation(OpacityProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(Cz.Still ? 0 : 200)));
@@ -483,11 +485,47 @@ namespace Catalyzer
                     .Select(sec => new CzMenu.Item { Text = "Move to " + sec, Glyph = "", Click = () => NoteEdit(() => _notes.Move(it, sec), "MOVED TO " + sec.ToUpperInvariant(), "moved") }).ToList();
                 if (items.Count > 0) items.Add(new CzMenu.Item { Separator = true });
                 if (it.Check || it.Done) items.Add(new CzMenu.Item { Text = it.Done ? "Not done" : "Done", Glyph = it.Done ? "" : "", Click = () => NoteEdit(() => _notes.Toggle(it), it.Done ? "REOPENED" : "DONE", it.Done ? "reopened" : "done") });
+                items.Add(new CzMenu.Item { Text = "Edit", Glyph = "\uE70F", Hint = "or double-click", Click = () => EditNote(it, col, text) });
                 items.Add(new CzMenu.Item { Text = "Copy", Glyph = "", Click = () => { try { Clipboard.SetText(it.Text); } catch { } } });
                 items.Add(new CzMenu.Item { Text = "Remove", Glyph = "\uE74D", Click = () => NoteEdit(() => { NotesCache.Snapshot(_notes.Folder, "before-remove"); _notes.Remove(it); }, "REMOVED  //  IT'S IN BACKUPS", "removed") });
                 new CzMenu().Show(row, "NOTE", items);
             };
             return row;
+        }
+
+        /// <summary>The note being edited in place: Esc cancels it (the window's Esc asks this first).</summary>
+        private Action _noteEditCancel;
+
+        /// <summary>Edit a note in place: its text becomes a box. Enter or clicking away saves, Esc cancels. Synced notes
+        /// too: the edit is a change like any other, so auto-sync commits and pushes it.</summary>
+        private void EditNote(Notes.Item it, StackPanel col, TextBlock text)
+        {
+            _noteEditCancel?.Invoke();
+            int at = col.Children.IndexOf(text); if (at < 0) return;
+            var frame = new System.Windows.Shapes.Path { StrokeThickness = 1, IsHitTestVisible = false };
+            frame.SetResourceReference(Shape.StrokeProperty, "CzSelectBrush");
+            var host = new Grid { Margin = new Thickness(-6, 0, 4, 0) };
+            host.Children.Add(Cz.Under(frame));
+            host.SizeChanged += (s, e) => frame.Data = Cz.Chamfer(Math.Max(4, host.ActualWidth), Math.Max(4, host.ActualHeight), 5);
+            var box = new TextBox { Text = it.Text, TextWrapping = TextWrapping.Wrap, AcceptsReturn = false, Margin = new Thickness(6, 4, 6, 4) };
+            Field(box, 13.5, "CzFontUi");
+            host.Children.Add(box);
+            col.Children.RemoveAt(at); col.Children.Insert(at, host);
+            bool done = false;
+            void Back() { if (done) return; done = true; _noteEditCancel = null; int i = col.Children.IndexOf(host); if (i >= 0) { col.Children.RemoveAt(i); col.Children.Insert(i, text); } }
+            void Commit()
+            {
+                if (done) return;
+                var v = box.Text.Replace("\r", " ").Replace("\n", " ").Trim();
+                Back();
+                if (v == "" || v == it.Text) return;
+                NoteEdit(() => { NotesCache.Snapshot(_notes.Folder, "before-edit"); if (!_notes.Edit(it, v)) throw new Exception("that note changed (another PC or a pull): refreshed, try again"); }, "NOTE EDITED", "edited");
+            }
+            _noteEditCancel = Back;
+            box.KeyDown += (s, e) => { if (e.Key == Key.Enter) { e.Handled = true; Commit(); } };
+            box.LostKeyboardFocus += (s, e) => Commit();
+            box.Loaded += (s, e) => { box.Focus(); box.CaretIndex = box.Text.Length; };
+            if (box.IsLoaded) { box.Focus(); box.CaretIndex = box.Text.Length; }
         }
 
         private void NoteEdit(Action edit, string say, string what = "edited")
