@@ -35,3 +35,12 @@ These are never broken. An app's CLAUDE.md can add rules but never loosen these.
     - Still can't: the reply's **first line** says `NOT COMMITTED / NOT PUSHED: <why>`, and HANDOFF → *Next* starts
       with it, so the next chat does it first.
     - Rules 3 and 8 still hold: no secrets, no force-push. NOTES.md is committed only on Aaron's word.
+12. **Nothing personal or machine-specific in the repo, so every repo can go public.** Never hardcode IPs, host or
+    machine names, phone numbers, email addresses, real names, account ids, local user paths (`C:\Users\Aaron\…`)
+    or keys in any code or config file in the repo.
+    - Real values live outside it: `%APPDATA%\<App>\settings.json`, environment variables, or the user's input.
+    - The repo ships only placeholders: `example.com`, `192.0.2.1`, `<your-email>`, in a `*.example` file if needed.
+    - Temp data, dumps and test values go in `_devSpace/`. It's never committed: every repo's `.gitignore` lists
+      `_devSpace/`, Catalyzer adds it to each repo's `.git/info/exclude`, and its git drawer never lists or commits
+      anything under it.
+    - Before a repo goes public, scan its whole history for these (not just the current files).

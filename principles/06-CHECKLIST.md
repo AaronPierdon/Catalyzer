@@ -7,9 +7,12 @@
       about look or motion.
 - [ ] Reduce motion and the Static / efficient tier still usable.
 - [ ] No colour literals, no stock dialogs or controls, no console windows.
+- [ ] Nothing personal or machine-specific in the repo (05 rule 12): no IPs, emails, phone numbers, user paths, keys.
 - [ ] Nothing removed came back.
 - [ ] HANDOFF updated. SUMMARY updated if a feature changed; ARCHITECTURE if a part, library, class, flow or
       decision did; ROADMAP if a chunk started or shipped or an idea was dropped. NOTES untouched.
+- [ ] 4+ features or fixes: the reply ends with the short list, `check:` on the risky ones (04 *Working with
+      Aaron*).
 - [ ] Committed and pushed to GitHub, straight away (05 rule 11), or the reply opens with `NOT COMMITTED / NOT
       PUSHED: <why>`.
 

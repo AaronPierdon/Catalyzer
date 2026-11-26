@@ -16,6 +16,11 @@ the lists true. History is in git, not here.
     drop glow (live: existing glow layers are cleared).
 - **Principles 6.0.0:** new hard rule 05 #11, commit and push every piece of work straight away, in every project
   (04, 06, PROMPTS, template CLAUDE.md, this CLAUDE.md follow). Every other app needs the Update prompt.
+- **Principles 6.1.0:** the wrap-up list (04 *Working with Aaron*, 06): 4+ features or fixes → one line each, `check:`
+  on the risky ones.
+- **Principles 7.0.0:** hard rule 05 #12, nothing personal or machine-specific in any repo (so repos can go
+  public); temp data in `_devSpace/`. Catalyzer enforces it: `Repo` adds `_devSpace/` to every repo's
+  `.git/info/exclude` and never lists or commits a `_devSpace` path (it was only flagged before).
 - **Verified:** builds clean (Linux, `EnableWindowsTargeting`). **Not yet run on Windows or snapshotted.**
 - **Ready to test:** on the server, Settings → Visuals shows *OVER REMOTE DESKTOP ◂ NOW*; compare CPU in Task
   Manager at FULL vs ECO.
@@ -51,8 +56,7 @@ the lists true. History is in git, not here.
   Visual Studio from a card's right-click menu.
 
 ## Next
-0. **NOT COMMITTED / NOT PUSHED (link was off):** commit and push 1.4.0 visuals, then principles 6.0.0, as two
-   commits.
+0. Before Catalyzer goes public: scan its whole git history for rule 12 (IPs, emails, user paths, keys).
 1. Aaron installs 1.2.0 (`tools\install.cmd`), pushes Catalyzer from its GIT chip, then the NOTES SYNC chip
    clears.
 2. Snapshot and look at: the git drawer, the GIT chips, the header (FETCH ALL, UPDATE chip), the notes drawer.

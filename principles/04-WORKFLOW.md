@@ -100,6 +100,14 @@ Every chat works with **two repos**: its app, and Catalyzer (the hub, with these
 - **Look matters as much as function.** Render and look before calling UI done.
 - **Warn before every install** that restarts something he's using.
 - **Computer control** only with permission, in short bursts, then release it.
+- **The wrap-up: 4 or more features or fixes → a short list.** One line per item: what changed. Items worth
+  checking get a `check:` (what to try, or what could break). Only those items; no paragraphs.
+  ```
+  - Visuals levels in Settings (ECO over RDP by default). check: Task Manager CPU, FULL vs ECO
+  - Cards don't tick at rest
+  - Ambience pauses when minimized / locked. check: disconnect RDP, come back: it moves again
+  - Glow off below BALANCED
+  ```
 
 ## Testing: triple-test everything
 1. **The normal path.**

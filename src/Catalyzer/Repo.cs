@@ -58,6 +58,8 @@ namespace Catalyzer
             /// <summary>Why pull / push are off (shown as the button's tip).</summary>
             public string PullBlock, PushBlock;
             public int Tracked => Changes.Count(c => !c.Untracked);
+            /// <summary>Changes under _devSpace: never listed, never committed.</summary>
+            public int ScratchHidden;
         }
 
         public string Folder { get; }
@@ -74,6 +76,7 @@ namespace Catalyzer
             var remotes = Git("remote").output.Split('\n').Select(r => r.Trim()).Where(r => r != "").ToList();
             s.HasOrigin = remotes.Count > 0;
             if (File.Exists(GitPath("index.lock"))) { s.Kind = Kind.Busy; s.Why = "GIT IS BUSY (INDEX.LOCK)  //  SOMETHING ELSE IS USING THIS REPO"; return Finish(s); }
+            Exclude();
             if (fetch && s.HasOrigin) Git("fetch --quiet --all", 45000);
             var fh = GitPath("FETCH_HEAD"); if (File.Exists(fh)) s.Fetched = File.GetLastWriteTime(fh);
 
@@ -89,6 +92,7 @@ namespace Catalyzer
                 var code = e.Substring(0, 2); var path = e.Substring(3);
                 if (code[0] == 'R' || code[0] == 'C') i++;   // -z: the rename's source path follows
                 bool conflict = code == "DD" || code == "AU" || code == "UD" || code == "UA" || code == "DU" || code == "AA" || code == "UU";
+                if (IsScratch(path)) { s.ScratchHidden++; continue; }   // _devSpace never reaches a commit (principles 05)
                 s.Changes.Add(new Change { Path = path, Code = code, Conflict = conflict });
             }
             if (Git("symbolic-ref -q HEAD").code != 0 && s.InProgress == null) s.Branch = null;
@@ -119,6 +123,28 @@ namespace Catalyzer
             s.Ahead = Num(rest, "ahead "); s.Behind = Num(rest, "behind ");
         }
 
+        /// <summary>The scratch folder: any path with a `_devSpace` segment (case-insensitive). Never committed.</summary>
+        public static bool IsScratch(string path) =>
+            ("/" + (path ?? "").Replace('\\', '/').Trim('"')).IndexOf("/_devspace/", StringComparison.OrdinalIgnoreCase) >= 0
+            || (path ?? "").TrimEnd('/').Equals("_devSpace", StringComparison.OrdinalIgnoreCase);
+
+        private static readonly HashSet<string> _excluded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>Every repo Catalyzer reads gets `_devSpace/` in .git/info/exclude (local, untracked), so git itself
+        /// skips it even where the repo's .gitignore forgot.</summary>
+        private void Exclude()
+        {
+            lock (_excluded) { if (!_excluded.Add(Folder)) return; }
+            try
+            {
+                var f = GitPath("info/exclude");
+                var lines = File.Exists(f) ? File.ReadAllLines(f) : Array.Empty<string>();
+                if (lines.Any(l => l.Trim().TrimStart('/').Equals("_devSpace/", StringComparison.OrdinalIgnoreCase) || l.Trim().TrimStart('/').Equals("_devSpace", StringComparison.OrdinalIgnoreCase))) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(f));
+                File.AppendAllText(f, (lines.Length > 0 && lines[^1].Trim() != "" ? "\n" : "") + "# Catalyzer: scratch is never committed (principles 05)\n_devSpace/\n");
+            }
+            catch (Exception ex) { Catalyzer.Log.Write("exclude " + Folder + ": " + ex.Message); }
+        }
+
         private static readonly string[] SecretNames = { ".env", "id_rsa", "id_ed25519", "credentials.json", "secrets.json", "appsettings.secrets.json" };
         private static readonly string[] SecretExt = { ".pfx", ".p12", ".pem", ".key", ".snk", ".publishsettings", ".keystore", ".jks" };
         public const long BigFile = 50L * 1024 * 1024;
@@ -131,8 +157,7 @@ namespace Catalyzer
                 if (c.Conflict) continue;
                 var name = Path.GetFileName(c.Path).ToLowerInvariant();
                 var full = Path.Combine(Folder, c.Path.Replace('/', Path.DirectorySeparatorChar));
-                if (c.Path.StartsWith("_devSpace/", StringComparison.OrdinalIgnoreCase)) c.Risk = "SCRATCH (_DEVSPACE)";
-                else if (SecretNames.Contains(name) || name.StartsWith(".env.") || SecretExt.Any(x => name.EndsWith(x)) || name.Contains("secret") || name.Contains("password")) c.Risk = "MIGHT HOLD A SECRET";
+                if (SecretNames.Contains(name) || name.StartsWith(".env.") || SecretExt.Any(x => name.EndsWith(x)) || name.Contains("secret") || name.Contains("password")) c.Risk = "MIGHT HOLD A SECRET";
                 else if (File.Exists(full) && new FileInfo(full).Length > BigFile) c.Risk = "BIG FILE (" + (new FileInfo(full).Length >> 20) + " MB)";
                 else if (c.Code == " M" && eolChecks++ < 150 && Git("diff --ignore-cr-at-eol --quiet -- \"" + c.Path + "\"").code == 0) c.Risk = "ONLY LINE ENDINGS CHANGED";
             }
@@ -246,7 +271,7 @@ namespace Catalyzer
             var s = Read(fetch: false);
             if (!s.CanCommit) return (false, "NOT COMMITTED  //  " + (s.LockedBy ?? s.Why));
             var known = new HashSet<string>(s.Changes.Select(c => c.Path), StringComparer.Ordinal);
-            var list = paths.Where(known.Contains).Distinct().ToList();
+            var list = paths.Where(p => known.Contains(p) && !IsScratch(p)).Distinct().ToList();
             if (list.Count == 0) return (false, "THOSE FILES HAVE NO CHANGES ANY MORE  //  REFRESH");
             var tmp = Path.Combine(Path.GetTempPath(), "catalyzer-" + Guid.NewGuid().ToString("N"));
             try

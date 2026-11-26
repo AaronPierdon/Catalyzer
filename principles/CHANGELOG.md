@@ -2,6 +2,27 @@
 
 Newest first. Each entry says what changed and **what an app must do**.
 
+## 7.0.0 — 2026-11-26
+**Nothing personal or machine-specific in the repo** (05 rule 12, new hard rule), so any repo can be made public.
+No IPs, host names, phone numbers, emails, real names, account ids, local user paths or keys in code or config.
+Real values go in `%APPDATA%\<App>\settings.json`, environment variables or user input. The repo ships placeholders.
+Temp data goes in `_devSpace/`, which never reaches git: `.gitignore` lists it, and Catalyzer (1.4.0) adds it to
+every repo's `.git/info/exclude` and never lists or commits it.
+
+**What an app must do:**
+1. Search the repo for IPs, emails, phone numbers, `C:\Users\`, host names and keys. Move each one out (settings,
+   env var, `_devSpace`) and leave a placeholder.
+2. Make sure `.gitignore` has `_devSpace/`.
+3. Before making the repo public: scan the whole git history too, and tell Aaron what's in it.
+4. Bump `.catalyzer-principles` to `7.0.0`.
+
+## 6.1.0 — 2026-11-26
+**The wrap-up list** (04 *Working with Aaron*, 06): when a chat delivers 4 or more features or fixes, its reply
+lists them, one short line each, with `check:` (what to try or watch for) on the items that need it. Concise.
+
+**What an app should do:** nothing in its files. Chats follow it from now on. Bump `.catalyzer-principles` to
+`6.1.0` when next touched.
+
 ## 6.0.0 — 2026-11-26
 **Commit and push every piece of work, every time** (05 rule 11, new hard rule). When a change works, the chat
 commits it and pushes to GitHub through the link straight away, without asking. It doesn't wait for the end of the
