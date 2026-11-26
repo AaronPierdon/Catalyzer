@@ -6,3 +6,4 @@ Aaron wipes it for a fresh slate (Catalyzer: WIPE + SYNC); Catalyzer keeps a bac
 Every note starts with when it was written: `- 2026-11-24 14:57 — the note`.
 
 ## Notes
+- 2026-11-26 08:24 — allow me to edit a note that was already synced or saved
