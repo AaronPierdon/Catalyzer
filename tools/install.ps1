@@ -9,6 +9,14 @@ $root = Split-Path $PSScriptRoot -Parent
 $dest = Join-Path $env:LOCALAPPDATA 'Programs\Catalyzer'
 $stage = Join-Path $root '_devSpace\publish'
 $closed = $false
+$old = $null
+# a file can stay busy for a moment after its owner exits (antivirus, an Explorer window reading sizes): retry ~15 s
+function Retry([scriptblock]$what, [string]$label) {
+    for ($i = 0; ; $i++) {
+        try { & $what; return }
+        catch { if ($i -ge 30) { throw "$label ($_)" }; Start-Sleep -Milliseconds 500 }
+    }
+}
 try {
 # 1. build (Catalyzer keeps running meanwhile); the staging folder can stay locked for a moment: retry, then use a fresh one
 for ($i = 0; $i -lt 10 -and (Test-Path $stage); $i++) {
@@ -30,15 +38,22 @@ Get-Process Catalyzer -ErrorAction SilentlyContinue | ForEach-Object { $_.CloseM
 Start-Sleep -Milliseconds 800
 Get-Process Catalyzer -ErrorAction SilentlyContinue | Stop-Process -Force
 Get-Process Catalyzer -ErrorAction SilentlyContinue | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue
+for ($i = 0; $i -lt 30 -and (Get-Process Catalyzer -ErrorAction SilentlyContinue); $i++) { Get-Process Catalyzer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }
 $closed = $true
 
 # 3. install on top
 New-Item $dest -ItemType Directory -Force | Out-Null
-if (Test-Path "$dest\plugins") { Remove-Item "$dest\plugins" -Recurse -Force }   # bundled plugins are replaced whole (yours live in %APPDATA%)
-Copy-Item "$stage\app\*" $dest -Recurse -Force
+# bundled plugins are replaced whole (yours live in %APPDATA%). Moved aside in one step, never deleted file by file:
+# a failure leaves the old set whole, and the catch below puts it back.
+Get-ChildItem $dest -Directory -Filter 'plugins.old-*' -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+if (Test-Path "$dest\plugins") {
+    $old = "$dest\plugins.old-" + (Get-Date -Format 'yyyyMMddHHmmss')
+    Retry { Rename-Item "$dest\plugins" (Split-Path $old -Leaf) -ErrorAction Stop } 'the old plugins are still in use'
+}
+Retry { Copy-Item "$stage\app\*" $dest -Recurse -Force -ErrorAction Stop } 'copying the new version'
+if ($old) { Remove-Item $old -Recurse -Force -ErrorAction SilentlyContinue }   # whatever is still busy goes next time
 # the principles travel with the app: NEW PROJECT builds new repos from principles\templates
-if (Test-Path "$dest\principles") { Remove-Item "$dest\principles" -Recurse -Force }
-Copy-Item "$root\principles" "$dest\principles" -Recurse -Force
+Retry { if (Test-Path "$dest\principles") { Remove-Item "$dest\principles" -Recurse -Force -ErrorAction Stop }; Copy-Item "$root\principles" "$dest\principles" -Recurse -Force -ErrorAction Stop } 'copying the principles'
 Copy-Item "$root\tools\uninstall.ps1" "$dest\uninstall.ps1" -Force
 
 $lnk = Join-Path ([Environment]::GetFolderPath('Programs')) 'Catalyzer.lnk'
@@ -63,6 +78,10 @@ if (-not $NoStart) { Start-Process "$dest\Catalyzer.exe" }
 }
 catch {
     Write-Host "INSTALL FAILED: $_"
+    # the old plugins were moved aside and the new ones didn't land: put the old ones back
+    if ($old -and (Test-Path $old) -and -not (Test-Path "$dest\plugins\Link")) {
+        try { if (Test-Path "$dest\plugins") { Remove-Item "$dest\plugins" -Recurse -Force }; Rename-Item $old 'plugins' } catch { Write-Host "couldn't restore the old plugins: $_" }
+    }
     # never leave Aaron without Catalyzer: if we closed it, start whatever copy is there
     if ($closed -and -not $NoStart -and (Test-Path "$dest\Catalyzer.exe") -and -not (Get-Process Catalyzer -ErrorAction SilentlyContinue)) { Start-Process "$dest\Catalyzer.exe" }
     if ($Log) { try { Stop-Transcript | Out-Null } catch { } }
